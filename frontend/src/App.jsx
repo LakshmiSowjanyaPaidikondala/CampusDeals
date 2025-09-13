@@ -7,8 +7,8 @@ import Sell from "./pages/Sell";
 import Tips from "./pages/Tips";
 import Faqs from "./pages/Faqs";
 import Footer from "./components/Footer";
-import logo from "./assets/logo.jpg"; 
-import HeroBanner from "./components/HeroBanner"; // ✅ new
+import logo from "./assets/logo.png"; 
+ // ✅ new
 
 const App = () => {
   return (
@@ -20,8 +20,7 @@ const App = () => {
         {/* Navbar */}
         <Navbar />
 
-        {/* ✅ Hero Banner (visible on every page) */}
-        <HeroBanner />
+       
 
         {/* Pages */}
         <Routes>
