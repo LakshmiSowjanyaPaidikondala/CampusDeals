@@ -91,58 +91,58 @@ const Home = () => {
       {/* Hero Banner */}
       <HeroBanner />
 
+      {/* Cards Section */}
       <div className="home-content">
-        <div className="main-sections-container">
-          {/* Cards Section */}
-          <div className={`card-grid ${cardsVisible ? "cards-visible" : ""}`}>
-            <Link to="/buy" className="card card-1">
-              <div className="card-icon">
-                <FaShoppingCart size={32} />
-              </div>
-              <h3>Buy Now</h3>
-              <p className="card-description">
-                Discover amazing deals from fellow students
-              </p>
-              <div className="card-overlay"></div>
-            </Link>
+        <div className={`card-grid ${cardsVisible ? "cards-visible" : ""}`}>
+          <Link to="/buy" className="card card-1">
+            <div className="card-icon">
+              <FaShoppingCart size={32} />
+            </div>
+            <h3>Buy Now</h3>
+            <p className="card-description">
+              Discover amazing deals from fellow students
+            </p>
+            <div className="card-overlay"></div>
+          </Link>
 
-            <Link to="/sell" className="card card-2">
-              <div className="card-icon">
-                <FaPlusCircle size={32} />
-              </div>
-              <h3>Sell an Item</h3>
-              <p className="card-description">
-                Turn your unused items into cash
-              </p>
-              <div className="card-overlay"></div>
-            </Link>
+          <Link to="/sell" className="card card-2">
+            <div className="card-icon">
+              <FaPlusCircle size={32} />
+            </div>
+            <h3>Sell an Item</h3>
+            <p className="card-description">
+              Turn your unused items into cash
+            </p>
+            <div className="card-overlay"></div>
+          </Link>
 
-            <Link to="/tips" className="card card-3">
-              <div className="card-icon">
-                <FaLightbulb size={32} />
-              </div>
-              <h3>Smart Tips</h3>
-              <p className="card-description">
-                Expert advice for better deals
-              </p>
-              <div className="card-overlay"></div>
-            </Link>
+          <Link to="/tips" className="card card-3">
+            <div className="card-icon">
+              <FaLightbulb size={32} />
+            </div>
+            <h3>Smart Tips</h3>
+            <p className="card-description">
+              Expert advice for better deals
+            </p>
+            <div className="card-overlay"></div>
+          </Link>
 
-            <Link to="/faqs" className="card card-4">
-              <div className="card-icon">
-                <FaQuestionCircle size={32} />
-              </div>
-              <h3>Help Center</h3>
-              <p className="card-description">
-                Get answers to common questions
-              </p>
-              <div className="card-overlay"></div>
-            </Link>
-          </div>
-
-          {/* FAQ Section Wrapper */}
-          <FAQ />
+          <Link to="/faqs" className="card card-4">
+            <div className="card-icon">
+              <FaQuestionCircle size={32} />
+            </div>
+            <h3>Help Center</h3>
+            <p className="card-description">
+              Get answers to common questions
+            </p>
+            <div className="card-overlay"></div>
+          </Link>
         </div>
+      </div>
+
+      {/* FAQ Section - Full width, separate from buttons */}
+      <div className="faq-section-wrapper">
+        <FAQ />
       </div>
     </div>
   );
