@@ -1,19 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./ProductCard.css";
 
 const ProductCard = ({ product, onAddToCart }) => {
-  const [showModal, setShowModal] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Drafter options
   const drafterOptions = [
-    { type: "Budget Friendly", price: 300 },
-    { type: "Standard", price: 350 },
-    { type: "Premium", price: 400 },
+    { type: "Budget Friendly", price: 300, description: "Basic functionality" },
+    { type: "Standard", price: 350, description: "Good quality & durability" },
+    { type: "Premium", price: 400, description: "Professional grade" },
   ];
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleAddToCart = () => {
-    if (product.name === "Engineering Drafter") {
-      setShowModal(true);
+    if (product.name === "Engineering Drafter" || product.name?.includes("Drafter")) {
+      setShowDropdown(!showDropdown);
     } else {
       onAddToCart(product); // ✅ send product to Buy.jsx
     }
@@ -24,40 +39,65 @@ const ProductCard = ({ product, onAddToCart }) => {
       ...product,
       name: `${option.type} Drafter`,
       price: option.price,
+      id: `${product.id}-${option.type.toLowerCase().replace(/\s+/g, '-')}`,
     };
     onAddToCart(selectedDrafter); // ✅ send selected option
-    setShowModal(false);
+    setShowDropdown(false);
   };
 
-  return (
-    <div className="product-card">
-      <img src={product.image} alt={product.name} className="product-image" />
-      <h3 className="product-name">{product.name}</h3>
-      <p className="product-price">₹{product.price}</p>
-      <p className="product-stock">{product.stock} items left</p>
-      <button className="add-to-cart" onClick={handleAddToCart}>
-        {product.name === "Engineering Drafter" ? "Choose Option" : "Add to Cart"}
-      </button>
+  const isDrafter = product.name === "Engineering Drafter" || product.name?.includes("Drafter");
 
-      {/* Modal for Drafter */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Select Drafter Type</h2>
+  return (
+    <div className={`product-card ${product.loading ? 'loading' : ''} ${product.error ? 'error' : ''} ${showDropdown ? 'dropdown-active' : ''}`}>
+      <img 
+        src={product.image} 
+        alt={product.name} 
+        className="product-image"
+        loading="lazy"
+      />
+      <div className="product-details">
+        <h3 className="product-name">{"Product: " + product.name}</h3>
+        <p className="product-price">{"Price: ₹" + product.price}</p>
+        <p className={`product-stock ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}>
+          {product.stock > 0 ? `${product.stock} items left` : 'Out of stock'}
+        </p>
+      </div>
+
+      {isDrafter ? (
+        <div className="drafter-dropdown" ref={dropdownRef}>
+          <button 
+            className={`dropdown-toggle ${showDropdown ? 'open' : ''}`}
+            onClick={handleAddToCart}
+            disabled={product.stock === 0}
+          >
+            Choose Drafter Type
+            <span className="dropdown-arrow">▼</span>
+          </button>
+          
+          <div className={`dropdown-menu ${showDropdown ? 'open' : ''}`}>
             {drafterOptions.map((option, index) => (
               <button
                 key={index}
-                className="option-btn"
+                className="dropdown-option"
                 onClick={() => handleOptionSelect(option)}
               >
-                {option.type} – ₹{option.price}
+                <div>
+                  <strong>{option.type}</strong> – ₹{option.price}
+                  <br />
+                  <small>{option.description}</small>
+                </div>
               </button>
             ))}
-            <button className="close-btn" onClick={() => setShowModal(false)}>
-              Close
-            </button>
           </div>
         </div>
+      ) : (
+        <button 
+          className="add-to-cart" 
+          onClick={handleAddToCart}
+          disabled={product.stock === 0}
+        >
+          {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+        </button>
       )}
     </div>
   );
