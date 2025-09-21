@@ -31,19 +31,19 @@ pipreqs>=0.5.0
 # Frontend dependencies: cd frontend && npm install
 # 
 # Backend packages (from backend/package.json):
-# - express: ^4.21.2
-# - sqlite3: ^5.1.7  
-# - bcryptjs: ^3.0.2
-# - jsonwebtoken: ^9.0.2
-# - cors: ^2.8.5
-# - dotenv: ^17.2.2
-# - axios: ^1.11.0
+- express: ^4.21.2
+- sqlite3: ^5.1.7  
+- bcryptjs: ^3.0.2
+- jsonwebtoken: ^9.0.2
+- cors: ^2.8.5
+- dotenv: ^17.2.2
+- axios: ^1.11.0
 #
 # Frontend packages (from frontend/package.json):
-# - react: ^18.3.1
-# - react-dom: ^18.3.1
-# - react-router-dom: ^7.8.2
-# - vite: ^5.4.0
-# - tailwindcss: ^4.1.13
-# - chart.js: ^4.5.0
-# - lucide-react: ^0.414.0
+- react: ^18.3.1
+- react-dom: ^18.3.1
+- react-router-dom: ^7.8.2
+- vite: ^5.4.0
+- tailwindcss: ^4.1.13
+- chart.js: ^4.5.0
+- lucide-react: ^0.414.0

@@ -3,9 +3,9 @@ const { getUserById } = require('../utils/validation');
 
 // Middleware to ensure user is authenticated before buy/sell operations
 const requireAuth = (operation) => {
-  return async (req, res, next) => {
+  return (req, res, next) => {
     // First check if user has valid token
-    authenticateToken(req, res, async (err) => {
+    authenticateToken(req, res, (err) => {
       if (err) {
         return res.status(401).json({
           success: false,
@@ -18,7 +18,7 @@ const requireAuth = (operation) => {
 
       try {
         // Verify user still exists in database
-        const user = await getUserById(req.user.userId);
+        const user = getUserById(req.user.userId);
         if (!user) {
           return res.status(404).json({
             success: false,

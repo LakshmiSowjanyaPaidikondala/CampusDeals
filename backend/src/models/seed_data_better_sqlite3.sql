@@ -1,10 +1,15 @@
--- SQLite Seed Data for CampusDeals
+-- Better-SQLite3 Optimized Seed Data
+-- This file is optimized for better-sqlite3@12.2.0 with transactions and prepared statements
 
--- Insert dummy Buyers & Sellers
+-- Start transaction for optimal performance
+BEGIN TRANSACTION;
+
+-- Insert Users (Buyers, Sellers, and Admin)
+-- Password is 'password123' hashed with bcrypt rounds=12
 INSERT INTO users 
 (user_name, user_email, user_password, role, user_phone, user_studyyear, user_branch, user_section, user_residency, payment_received, amount_given)
 VALUES
--- Buyers (password is 'password123' hashed with bcrypt)
+-- Buyers
 ('Ravi Kumar', 'ravi@example.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj1fJg7zRPO6', 'buyer', '9876543210', '2nd Year', 'CSE', 'A', 'Hostel', 0.00, 0.00),
 ('Anjali Sharma', 'anjali@example.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj1fJg7zRPO6', 'buyer', '9876501234', '3rd Year', 'ECE', 'B', 'Day Scholar', 0.00, 0.00),
 ('Mohit Verma', 'mohit@example.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj1fJg7zRPO6', 'buyer', '9123456789', '1st Year', 'ME', 'C', 'Hostel', 0.00, 0.00),
@@ -48,3 +53,25 @@ VALUES
 ('calculator', 'MS', 'CALC-MS001', 1200.00, 'images/calculator_ms.jpg', 20),
 ('calculator', 'ES', 'CALC-ES001', 800.00, 'images/calculator_es.jpg', 25),
 ('calculator', 'ES-Plus', 'CALC-ESP001', 1500.00, 'images/calculator_es_plus.jpg', 15);
+
+-- Sample cart data (optional for testing)
+INSERT INTO cart (user_id, product_id, quantity) VALUES
+(1, 1, 1), -- Ravi Kumar buying premium drafter
+(2, 4, 2), -- Anjali Sharma buying 2 white lab coats (S)
+(3, 14, 1), -- Mohit Verma buying MS calculator
+(4, 6, 1), -- Sneha Patel buying white lab coat (L)
+(5, 2, 1); -- Arjun Reddy buying standard drafter
+
+-- Sample order data (optional for testing)
+INSERT INTO orders (user_id, serial_no, product_id, total_amount, payment_method, status) VALUES
+(1, 'ORD-001-2024', 1, 2500.00, 'upi', 'completed'),
+(2, 'ORD-002-2024', 4, 900.00, 'cash', 'pending'),
+(3, 'ORD-003-2024', 14, 1200.00, 'upi', 'completed'),
+(4, 'ORD-004-2024', 6, 450.00, 'cash', 'pending'),
+(5, 'ORD-005-2024', 2, 1800.00, 'upi', 'completed');
+
+-- Commit transaction
+COMMIT;
+
+-- Update statistics for better query planning
+ANALYZE;
