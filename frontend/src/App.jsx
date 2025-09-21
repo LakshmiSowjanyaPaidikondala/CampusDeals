@@ -10,6 +10,7 @@ import HeroBanner from "./components/HeroBanner/HeroBanner";
 // import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import logo from "./assets/logo.png";
 
+
 const App = () => {
   return (
     <Router>
@@ -29,6 +30,7 @@ const App = () => {
           <Route path="/sell" element={<Sell />} />
           <Route path="/tips" element={<TipsX />} />
         </Routes>
+
         {/* Footer */}
         <Footer />
         {/* <ScrollToTop /> */}

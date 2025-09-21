@@ -243,37 +243,10 @@ const TipsX = () => {
               <h3 className="cta-title">Ready to Excel at GVP?</h3>
               <p className="cta-description">
                 These tips have been tested and proven by successful seniors. Apply them wisely and make the most of your college experience.
-              </p>
-              
-              <div className="cta-features">
-                <div className="feature-item">
-                  <div className="feature-icon">
-                    <GraduationCap strokeWidth={1.5} />
-                  </div>
-                  <span className="feature-text">Academic Success</span>
-                </div>
-                
-                <div className="feature-item">
-                  <div className="feature-icon">
-                    <Target strokeWidth={1.5} />
-                  </div>
-                  <span className="feature-text">Smart Strategies</span>
-                </div>
-                
-                <div className="feature-item">
-                  <div className="feature-icon">
-                    <Rocket strokeWidth={1.5} />
-                  </div>
-                  <span className="feature-text">Future Ready</span>
-                </div>
-              </div>
+              </p>            
               
               {/* Additional professional touch */}
-              <div className="cta-footer">
-                <p className="footer-text">
-                  Crafted by senior students • For GVP B.Tech success • Updated regularly
-                </p>
-              </div>
+            
             </div>
           </div>
         </div>

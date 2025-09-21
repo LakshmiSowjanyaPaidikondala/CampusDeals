@@ -11,6 +11,7 @@ import "./Home.css";
 import HeroBanner from "../../components/HeroBanner/HeroBanner";
 import FAQ from "../FAQ/FAQ";
 import "../FAQ/FAQ.css";
+import Contacts from "../../components/Contacts/Contacts";
 const Home = () => {
   const [activeQuestion, setActiveQuestion] = useState(null);
   const [faqVisible, setFaqVisible] = useState(false);
@@ -49,6 +50,7 @@ const Home = () => {
   };
 
   return (
+    <>
     <div className="home">
       {/* Hero Banner */}
       <HeroBanner />
@@ -101,12 +103,15 @@ const Home = () => {
               <div className="card-overlay"></div>
             </Link>
           </div>
+        </div>
 
+      </div>
           {/* FAQ Section Wrapper */}
           <FAQ />
-        </div>
-      </div>
     </div>
+    {/* Contacts Section Wrapper */}
+    <Contacts />
+    </>
   );
 };
 

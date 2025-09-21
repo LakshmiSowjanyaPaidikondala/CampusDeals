@@ -125,7 +125,7 @@
 .tips-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  gap: 3rem 2rem; /* Increased vertical gap to 3rem, horizontal gap remains 2rem */
 }
 
 @media (min-width: 768px) {
@@ -145,6 +145,7 @@
   transform: translateY(2rem) scale(0.95);
   opacity: 0;
   transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 2rem; /* Added margin bottom for extra spacing */
 }
 
 .tip-wrapper.visible {
@@ -155,6 +156,7 @@
 .tip-group {
   position: relative;
   height: 100%;
+  margin-bottom: 1.5rem; /* Added margin bottom for consistent spacing */
 }
 
 /* Tip Card */
@@ -167,6 +169,7 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(226, 232, 240, 0.5);
+
 }
 
 .tip-card:hover {
@@ -433,14 +436,19 @@
   padding-top: 2rem;
   border-top: 1px solid rgba(51, 65, 85, 0.5);
 }
+/* Footer */
+.footer {
+  background: #222;
+  color: #aaa;
+  text-align: center;
+  /* margin-top: 2rem;  <-- Remove this */
+}
 .footer {
   text-align: center;
   padding: 1rem;
   background: #222;
   color: white;
-  /* margin-top: 2rem; */
 }
-
 .footer-text {
   color: #94a3b8;
   font-size: 0.875rem;
