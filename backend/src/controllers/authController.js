@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const { db, run, query } = require('../config/db');
 const { generateToken, hashPassword, comparePassword } = require('../utils/auth');
 const { 
   validateEmail, 
@@ -88,8 +88,8 @@ const signup = async (req, res) => {
     const hashedPassword = await hashPassword(user_password);
 
     // Insert new user
-    const [result] = await db.query(
-      `INSERT INTO Users 
+    const [result] = await run(
+      `INSERT INTO users 
        (user_name, user_email, user_password, role, user_phone, user_studyyear, user_branch, user_section, user_residency, payment_received, amount_given) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [

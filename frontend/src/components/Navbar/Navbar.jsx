@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../assets/logo.png";
-import "../index.css";
+import logo from "../../assets/logo.png";
+import ProfileDropdown from "../ProfileDropdown/ProfileDropdown";
+import "./Navbar.css";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -19,6 +20,38 @@ const Navbar = () => {
     setMenuOpen(false);
   }, [location]);
 
+  // Handle escape key to close sidebar
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && menuOpen) {
+        setMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [menuOpen]);
+
+  // Prevent body scroll when sidebar is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [menuOpen]);
+
+  const navItems = [
+    { path: '/', label: 'Home' },
+    { path: '/buy', label: 'Buy' },
+    { path: '/sell', label: 'Sell' },
+    { path: '/tips', label: 'Tips' }
+  ];
+
   return (
     <nav className={`navbar ${isScrolled ? "navbar-scrolled" : ""}`}>
       {/* Left side with logo + hamburger */}
@@ -26,59 +59,75 @@ const Navbar = () => {
         <button
           className="hamburger"
           onClick={() => setMenuOpen((prev) => !prev)}
+          aria-label="Toggle mobile menu"
         >
           ☰
         </button>
-        <img src={logo} alt="Campus Deals Logo" className="logo" />
-        <h1 className="logo-text">Campus Deals</h1>
+        
+        <Link to="/" className="logo-container">
+          <div className="logo-wrapper">
+            <img src={logo} alt="Campus Deals Logo" className="logo" />
+          </div>
+          <h1 className="logo-text">Campus Deals</h1>
+        </Link>
       </div>
 
-      {/* Desktop Links */}
-      <div className="nav-links desktop">
-        <Link
-          to="/"
-          className={`nav-link ${location.pathname === "/" ? "nav-link-active" : ""}`}
-        >
-          Home
-        </Link>
-        <Link
-          to="/buy"
-          className={`nav-link ${location.pathname === "/buy" ? "nav-link-active" : ""}`}
-        >
-          Buy
-        </Link>
-        <Link
-          to="/sell"
-          className={`nav-link ${location.pathname === "/sell" ? "nav-link-active" : ""}`}
-        >
-          Sell
-        </Link>
-        <Link
-          to="/tips"
-          className={`nav-link ${location.pathname === "/tips" ? "nav-link-active" : ""}`}
-        >
-          Tips
-        </Link>
+      {/* Right side with Desktop Links and Profile */}
+      <div className="nav-right">
+        {/* Desktop Links with Equal Spacing */}
+        <div className="nav-links desktop">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`nav-link ${
+                location.pathname === item.path ? "nav-link-active" : ""
+              }`}
+            >
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Profile Dropdown */}
+        <ProfileDropdown />
       </div>
+
+      {/* Backdrop for Mobile Sidebar */}
+      {menuOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
 
       {/* Sidebar for Mobile */}
       <div className={`sidebar ${menuOpen ? "open" : ""}`}>
-        <button className="close-btn" onClick={() => setMenuOpen(false)}>
-          ✖
+        <button 
+          className="close-btn" 
+          onClick={() => setMenuOpen(false)}
+          aria-label="Close mobile menu"
+        >
+          ✕
         </button>
+
+        {/* Profile section in mobile sidebar */}
+        <div className="sidebar-profile">
+          <ProfileDropdown />
+        </div>
+
         <ul>
-          <li>
-            <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
-          </li>
-          <li>
-            <Link to="/buy" onClick={() => setMenuOpen(false)}>Buy</Link>
-          </li>
-          <li>
-            <Link to="/sell" onClick={() => setMenuOpen(false)}>Sell</Link>
-          </li>
-          <li>
-            <Link to="/tips" onClick={() => setMenuOpen(false)}>Tips</Link>
-          </li>
+          {navItems.map((item) => (
+            <li key={item.path}>
+              <Link 
+                to={item.path} 
+                onClick={() => setMenuOpen(false)}
+                className={location.pathname === item.path ? "active" : ""}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
     </nav>

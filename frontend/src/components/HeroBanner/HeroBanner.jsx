@@ -1,6 +1,6 @@
 import React from "react";
 import "./HeroBanner.css";
-import banner from "../assets/banner.jpg"; // replace with your banner image
+import banner from "../../assets/banner.jpg";
 
 const HeroBanner = () => {
   return (

@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const { db, query, run } = require('../config/db');
 const { 
   validateRequiredFields, 
   sanitizeUserInput 
@@ -7,7 +7,7 @@ const {
 // Get all products (Public route)
 const getAllProducts = async (req, res) => {
   try {
-    const [products] = await db.query(`
+    const [products] = await query(`
       SELECT 
         product_id, 
         product_name, 
@@ -18,7 +18,7 @@ const getAllProducts = async (req, res) => {
         quantity,
         created_at,
         updated_at
-      FROM Products 
+      FROM products 
       ORDER BY created_at DESC
     `);
 
@@ -52,7 +52,7 @@ const getProductById = async (req, res) => {
       });
     }
 
-    const [products] = await db.query(`
+    const [products] = await query(`
       SELECT 
         product_id, 
         product_name, 
@@ -63,7 +63,7 @@ const getProductById = async (req, res) => {
         quantity,
         created_at,
         updated_at
-      FROM Products 
+      FROM products 
       WHERE product_id = ?
     `, [id]);
 
@@ -168,8 +168,8 @@ const createProduct = async (req, res) => {
 
     // Check if product_code already exists (if provided)
     if (product_code) {
-      const [existingProduct] = await db.query(
-        'SELECT product_id FROM Products WHERE product_code = ?',
+      const [existingProduct] = await query(
+        'SELECT product_id FROM products WHERE product_code = ?',
         [product_code]
       );
 
@@ -184,8 +184,8 @@ const createProduct = async (req, res) => {
     }
 
     // Insert new product
-    const [result] = await db.query(`
-      INSERT INTO Products 
+    const [result] = await run(`
+      INSERT INTO products 
       (product_name, product_variant, product_code, product_price, product_images, quantity) 
       VALUES (?, ?, ?, ?, ?, ?)
     `, [
@@ -236,8 +236,8 @@ const updateProduct = async (req, res) => {
     }
 
     // Check if product exists
-    const [existingProduct] = await db.query(
-      'SELECT product_id FROM Products WHERE product_id = ?',
+    const [existingProduct] = await query(
+      'SELECT product_id FROM products WHERE product_id = ?',
       [id]
     );
 
@@ -283,8 +283,8 @@ const updateProduct = async (req, res) => {
 
     if (product_code !== undefined) {
       // Check if product_code already exists for different product
-      const [codeCheck] = await db.query(
-        'SELECT product_id FROM Products WHERE product_code = ? AND product_id != ?',
+      const [codeCheck] = await query(
+        'SELECT product_id FROM products WHERE product_code = ? AND product_id != ?',
         [product_code, id]
       );
 
@@ -341,9 +341,9 @@ const updateProduct = async (req, res) => {
     updateFields.push('updated_at = CURRENT_TIMESTAMP');
     updateValues.push(id);
 
-    const sql = `UPDATE Products SET ${updateFields.join(', ')} WHERE product_id = ?`;
+    const sql = `UPDATE products SET ${updateFields.join(', ')} WHERE product_id = ?`;
     
-    const [result] = await db.query(sql, updateValues);
+    const [result] = await run(sql, updateValues);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({
@@ -354,8 +354,8 @@ const updateProduct = async (req, res) => {
     }
 
     // Get updated product
-    const [updatedProduct] = await db.query(
-      'SELECT * FROM Products WHERE product_id = ?',
+    const [updatedProduct] = await query(
+      'SELECT * FROM products WHERE product_id = ?',
       [id]
     );
 
@@ -389,8 +389,8 @@ const deleteProduct = async (req, res) => {
     }
 
     // Check if product exists
-    const [existingProduct] = await db.query(
-      'SELECT product_id, product_name, product_variant FROM Products WHERE product_id = ?',
+    const [existingProduct] = await query(
+      'SELECT product_id, product_name, product_variant FROM products WHERE product_id = ?',
       [id]
     );
 
@@ -403,13 +403,13 @@ const deleteProduct = async (req, res) => {
     }
 
     // Check if product is referenced in orders or cart
-    const [orderCheck] = await db.query(
-      'SELECT COUNT(*) as order_count FROM Orders WHERE product_id = ?',
+    const [orderCheck] = await query(
+      'SELECT COUNT(*) as order_count FROM orders WHERE product_id = ?',
       [id]
     );
 
-    const [cartCheck] = await db.query(
-      'SELECT COUNT(*) as cart_count FROM Cart WHERE product_id = ?',
+    const [cartCheck] = await query(
+      'SELECT COUNT(*) as cart_count FROM cart WHERE product_id = ?',
       [id]
     );
 
@@ -424,7 +424,7 @@ const deleteProduct = async (req, res) => {
       });
     }
 
-    const [result] = await db.query('DELETE FROM Products WHERE product_id = ?', [id]);
+    const [result] = await run('DELETE FROM products WHERE product_id = ?', [id]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({
@@ -470,7 +470,7 @@ const getProductsByFilter = async (req, res) => {
         quantity,
         created_at,
         updated_at
-      FROM Products 
+      FROM products 
       WHERE 1=1
     `;
     const queryParams = [];
@@ -501,7 +501,7 @@ const getProductsByFilter = async (req, res) => {
 
     sql += ' ORDER BY created_at DESC';
 
-    const [products] = await db.query(sql, queryParams);
+    const [products] = await query(sql, queryParams);
 
     res.json({
       success: true,

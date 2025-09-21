@@ -1,11 +1,9 @@
--- SQLite Schema for campusDeals
-
 -- Enable foreign key constraints
 PRAGMA foreign_keys = ON;
 
--- Drop tables if they exist (in correct order to handle foreign keys)
+-- Drop tables if they exist
 DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS cart;
+DROP TABLE IF EXISTS cart;  
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS users;
 
@@ -31,9 +29,7 @@ CREATE TABLE users (
 CREATE TABLE products (
     product_id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_name TEXT CHECK(product_name IN ('drafter','white_lab_coat','brown_lab_coat','calculator')) NOT NULL,
-    product_variant TEXT CHECK(product_variant IN ('premium_drafter','standard_drafter','budget_drafter',
-                         'S','M','L','XL','XXL',
-                         'MS','ES','ES-Plus')) NOT NULL,
+    product_variant TEXT CHECK(product_variant IN ('premium_drafter','standard_drafter','budget_drafter', 'S','M','L','XL','XXL', 'MS','ES','ES-Plus')) NOT NULL,
     product_code TEXT UNIQUE,
     product_price REAL NOT NULL,
     product_images TEXT,
@@ -56,39 +52,23 @@ CREATE TABLE cart (
 -- Orders table
 CREATE TABLE orders (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,              -- FK from users
-    serial_no TEXT UNIQUE NOT NULL,        -- Example: CLC001
-    product_id INTEGER NOT NULL,           -- FK from products
+    user_id INTEGER NOT NULL,
+    serial_no TEXT UNIQUE NOT NULL,
+    product_id INTEGER NOT NULL,
     total_amount REAL NOT NULL,
     payment_method TEXT CHECK(payment_method IN ('cash','upi')) NOT NULL,
     status TEXT CHECK(status IN ('pending','completed','cancelled')) DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    cart_user_id INTEGER,                  -- FK from cart
+    cart_user_id INTEGER,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
     FOREIGN KEY (cart_user_id) REFERENCES cart(user_id) ON DELETE SET NULL
 );
 
--- Create indexes for better performance
+-- Create indexes
 CREATE INDEX idx_users_email ON users(user_email);
 CREATE INDEX idx_products_name ON products(product_name);
 CREATE INDEX idx_products_code ON products(product_code);
 CREATE INDEX idx_cart_user ON cart(user_id);
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_serial ON orders(serial_no);
-
--- Trigger to update updated_at timestamp for users
-CREATE TRIGGER update_users_timestamp 
-    AFTER UPDATE ON users
-    FOR EACH ROW
-    BEGIN
-        UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE user_id = NEW.user_id;
-    END;
-
--- Trigger to update updated_at timestamp for products  
-CREATE TRIGGER update_products_timestamp 
-    AFTER UPDATE ON products
-    FOR EACH ROW
-    BEGIN
-        UPDATE products SET updated_at = CURRENT_TIMESTAMP WHERE product_id = NEW.product_id;
-    END;

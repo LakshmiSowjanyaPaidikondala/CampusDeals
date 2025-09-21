@@ -9,52 +9,14 @@ import {
 } from "react-icons/fa";
 import "./Home.css";
 import HeroBanner from "../../components/HeroBanner/HeroBanner";
-import "./FAQ.css";
 import FAQ from "../FAQ/FAQ";
+import "../FAQ/FAQ.css";
 const Home = () => {
   const [activeQuestion, setActiveQuestion] = useState(null);
   const [faqVisible, setFaqVisible] = useState(false);
   const [cardsVisible, setCardsVisible] = useState(false);
 
-  const faqData = [
-    {
-      id: 1,
-      question: "How do I buy items on Campus Deals?",
-      answer:
-        "Simply browse through available items, click on what interests you, and contact the seller directly through our secure messaging system. All transactions are between students for maximum trust and convenience.",
-    },
-    {
-      id: 2,
-      question: "Is it safe to sell my items here?",
-      answer:
-        "Absolutely! Campus Deals is designed exclusively for verified students. We provide guidelines for safe transactions, meeting recommendations, and a rating system to ensure trustworthy exchanges within your campus community.",
-    },
-    {
-      id: 3,
-      question: "What can I sell on this platform?",
-      answer:
-        "You can sell textbooks, electronics, furniture, clothing, study materials, sports equipment, and any other items that would be useful to fellow students. We only restrict illegal or prohibited items.",
-    },
-    {
-      id: 4,
-      question: "How do I contact other students?",
-      answer:
-        "Once you find an item you're interested in, you can message the seller directly through our built-in chat system. This keeps your personal information private while enabling smooth communication.",
-    },
-    {
-      id: 5,
-      question: "Are there any fees for using Campus Deals?",
-      answer:
-        "Campus Deals is completely free for students! There are no listing fees, transaction fees, or membership costs. We believe in supporting the student community with accessible, cost-free services.",
-    },
-    {
-      id: 6,
-      question: "How do I verify my student status?",
-      answer:
-        "During registration, you'll need to provide your student email address and student ID. We verify this information to ensure our platform remains exclusive to the student community for enhanced safety and trust.",
-    },
-  ];
-
+  
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {

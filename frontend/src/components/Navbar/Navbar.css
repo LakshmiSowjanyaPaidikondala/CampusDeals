@@ -1,51 +1,60 @@
-/* Enhanced Navbar Styles - Add this to your index.css */
+/* Enhanced Navbar Styles */
+
 
 /* Navbar Container */
 .navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  animation: slideDownNavbar 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  padding: 12px 20px;
+  background: rgb(16, 25, 63);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 /* Navbar when scrolled */
 .navbar-scrolled {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
-  padding: 0.8rem 2rem;
+  background: rgb(16, 25, 63);
+}
+/* Left side of navbar */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  animation: slideInFromLeft 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+}
+
+/* Right side of navbar */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  animation: slideInFromRight 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s both;
 }
 
 /* Logo Container */
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  animation: slideInFromLeft 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+  gap: 1rem;
+  cursor: pointer;
 }
 
 /* Logo Wrapper */
 .logo-wrapper {
   position: relative;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
 }
 
 .logo-wrapper::before {
@@ -55,7 +64,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
   transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -64,8 +73,8 @@
 }
 
 .logo-wrapper:hover {
-  transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  transform: scale(1.1) rotate(8deg);
+  box-shadow: 0 12px 35px rgba(99, 102, 241, 0.35);
 }
 
 /* Logo Image */
@@ -73,52 +82,91 @@
   width: 28px;
   height: 28px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
-  transition: all 0.3s ease;
+  /* remove this line 👇 */
+  /* filter: brightness(0) invert(1); */
 }
+
 
 /* Logo Text */
 .logo-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #333;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1e293b;
   margin: 0;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .logo-container:hover .logo-text {
-  transform: translateX(3px);
+  transform: translateX(5px);
+  filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3));
 }
 
-/* Navigation Links */
+/* Hamburger Menu */
+.hamburger {
+  display: none;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 2px solid rgba(99, 102, 241, 0.1);
+  font-size: 1.4rem;
+  color: #6366f1;
+  cursor: pointer;
+  padding: 0.8rem;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
+}
+
+.hamburger:hover {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
+}
+
+/* Navigation Links Container */
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  animation: slideInFromRight 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s both;
+  gap: 0;
+  background: rgba(10, 33, 39, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 0.3rem;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
 }
 
-/* Individual Nav Links */
+.nav-links.desktop {
+  display: flex;
+}
+
+/* Individual Nav Links with Equal Spacing */
 .nav-link {
   position: relative;
   text-decoration: none;
-  color: #555;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.85rem 1.8rem;
+  border-radius: 12px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   overflow: hidden;
+  min-width: 80px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.01em;
 }
 
 .nav-link span {
   position: relative;
   z-index: 2;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Nav Link Hover Effect */
@@ -129,44 +177,181 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50px;
-  transform: scale(0);
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+  border-radius: 12px;
+  transform: scale(0.8) translateY(100%);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 1;
 }
 
 .nav-link:hover::before {
-  transform: scale(1);
+  transform: scale(1) translateY(0%);
+  opacity: 1;
 }
 
 .nav-link:hover {
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.3);
 }
 
 .nav-link:hover span {
   color: white;
+  transform: scale(1.05);
 }
 
 .nav-link:active {
-  transform: translateY(0px);
+  transform: translateY(-1px);
 }
 
 /* Active Nav Link */
 .nav-link-active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white !important;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+  color: #fff !important;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
+  transform: translateY(-2px);
+  font-weight: 700;
 }
 
 .nav-link-active::before {
-  transform: scale(1);
+  transform: scale(1) translateY(0%);
+  opacity: 1;
 }
 
 .nav-link-active span {
+  color: #fff;
+  transform: scale(1.02);
+}
+
+.nav-link-active:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);
+}
+
+/* Sidebar Backdrop */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to { 
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 320px;
+  height: 100vh;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 4px 0 30px rgba(99, 102, 241, 0.15);
+  transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1001;
+  padding: 2rem 0;
+  overflow-y: auto;
+  border-right: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  font-size: 1.3rem;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 0.6rem;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.sidebar-profile {
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.1);
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0 1rem;
+  margin: 0;
+}
+
+.sidebar li {
+  margin: 0.5rem 0;
+}
+
+.sidebar a {
+  display: block;
+  padding: 1.2rem 1.5rem;
+  color: #475569;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-left: 4px solid transparent;
+  border-radius: 0 12px 12px 0;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: -1;
+}
+
+.sidebar a:hover::before {
+  transform: translateX(0);
+}
+
+.sidebar a:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border-left-color: #6366f1;
+  color: #6366f1;
+  transform: translateX(8px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
 }
 
 /* Animations */
@@ -184,7 +369,7 @@
 @keyframes slideInFromLeft {
   0% {
     opacity: 0;
-    transform: translateX(-50px);
+    transform: translateX(-60px);
   }
   100% {
     opacity: 1;
@@ -195,7 +380,7 @@
 @keyframes slideInFromRight {
   0% {
     opacity: 0;
-    transform: translateX(50px);
+    transform: translateX(60px);
   }
   100% {
     opacity: 1;
@@ -207,66 +392,62 @@
 @media (max-width: 768px) {
   .navbar {
     padding: 1rem 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
   }
   
   .navbar-scrolled {
     padding: 0.8rem 1.5rem;
   }
   
+  .hamburger {
+    display: block;
+  }
+  
+  .nav-links.desktop {
+    display: none;
+  }
+  
   .logo-text {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
   
-  .nav-links {
+  .nav-right {
     gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%;
-    order: 3;
-  }
-  
-  .nav-link {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 480px) {
   .navbar {
-    padding: 0.8rem 1rem;
+    padding: 1rem;
   }
   
-  .logo-container {
-    gap: 0.5rem;
+  .nav-left {
+    gap: 0.8rem;
   }
   
   .logo-wrapper {
-    width: 35px;
-    height: 35px;
+    width: 42px;
+    height: 42px;
   }
   
-  .logo {
-    width: 22px;
-    height: 22px;
-  }
-  
+.logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  /* remove this line 👇 */
+  /* filter: brightness(0) invert(1); */
+}
+
   .logo-text {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
   
-  .nav-links {
-    gap: 0.5rem;
-  }
-  
-  .nav-link {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.85rem;
+  .sidebar {
+    width: 300px;
   }
 }
 
 /* Ensure body has proper padding for fixed navbar */
 body {
-  padding-top: 80px;
+  margin: 0; /* reset any margin */
+  padding-top: 0; /* remove static padding */
 }

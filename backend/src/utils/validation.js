@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const { db, query } = require('../config/db');
 
 // Validation utility functions
 const validateEmail = (email) => {
@@ -41,8 +41,8 @@ const validateRequiredFields = (fields, requiredFields) => {
 // Database utility functions
 const checkUserExists = async (email) => {
   try {
-    const [users] = await db.query(
-      'SELECT user_id, user_email FROM Users WHERE user_email = ?',
+    const [users] = await query(
+      'SELECT user_id, user_email FROM users WHERE user_email = ?',
       [email]
     );
     return {
@@ -57,8 +57,8 @@ const checkUserExists = async (email) => {
 
 const getUserByEmail = async (email) => {
   try {
-    const [users] = await db.query(
-      'SELECT user_id, user_name, user_email, user_password, role FROM Users WHERE user_email = ?',
+    const [users] = await query(
+      'SELECT user_id, user_name, user_email, user_password, role FROM users WHERE user_email = ?',
       [email]
     );
     return users.length > 0 ? users[0] : null;
@@ -70,10 +70,10 @@ const getUserByEmail = async (email) => {
 
 const getUserById = async (userId) => {
   try {
-    const [users] = await db.query(
+    const [users] = await query(
       `SELECT user_id, user_name, user_email, role, user_phone, user_studyyear, 
        user_branch, user_section, user_residency, payment_received, amount_given 
-       FROM Users WHERE user_id = ?`,
+       FROM users WHERE user_id = ?`,
       [userId]
     );
     return users.length > 0 ? users[0] : null;

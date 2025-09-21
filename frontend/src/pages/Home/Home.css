@@ -1,10 +1,11 @@
 /* Dark theme with vibrant blue background */
 .home {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #0066ff 100%);
+ background: linear-gradient(145deg, #82bfdd 0%, #91b5c2 100%);
   color: #ffffff;
   padding: 0;
   margin: 0;
+  position: relative;
 }
 
 .home-content {
@@ -31,16 +32,16 @@
 
 .card {
   position: relative;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 20px;
   padding: 40px 30px;
   text-decoration: none;
-  color: #ffffff;
+  color: #2c3e50;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
   min-height: 220px;
   display: flex;
   flex-direction: column;
@@ -50,8 +51,8 @@
 
 .card:hover {
   transform: translateY(-15px) scale(1.02);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .card-overlay {
@@ -73,57 +74,130 @@
 .card-icon {
   margin-bottom: 20px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .card:hover .card-icon {
-  background: rgba(255, 255, 255, 0.25);
   transform: scale(1.1);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-
-.card-icon svg {
-  color: #ffffff;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
 .card h3 {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 15px 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   letter-spacing: -0.5px;
 }
 
 .card-description {
   font-size: 1rem;
-  opacity: 0.9;
+  opacity: 0.8;
   margin: 0;
   line-height: 1.5;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: #34495e;
 }
 
-/* Individual card color accents */
+/* Individual card styling with distinct colors */
+.card-1 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.card-1 .card-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.card-1 .card-icon svg {
+  color: #ffffff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.card-1 .card-description {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .card-1:hover {
-  background: rgba(74, 144, 226, 0.2);
+  background: linear-gradient(135deg, #7b8ff0 0%, #8a5cb8 100%);
+  transform: translateY(-15px) scale(1.02);
+}
+
+.card-2 {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #ffffff;
+}
+
+.card-2 .card-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.card-2 .card-icon svg {
+  color: #ffffff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.card-2 .card-description {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .card-2:hover {
-  background: rgba(52, 168, 83, 0.2);
+  background: linear-gradient(135deg, #f2a4fc 0%, #f66d82 100%);
+  transform: translateY(-15px) scale(1.02);
+}
+
+.card-3 {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: #ffffff;
+}
+
+.card-3 .card-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.card-3 .card-icon svg {
+  color: #ffffff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.card-3 .card-description {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .card-3:hover {
-  background: rgba(255, 193, 7, 0.2);
+  background: linear-gradient(135deg, #60bbfe 0%, #1ff5fe 100%);
+  transform: translateY(-15px) scale(1.02);
+}
+
+.card-4 {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: #2c3e50;
+}
+
+.card-4 .card-icon {
+  background: rgba(44, 62, 80, 0.15);
+}
+
+.card-4 .card-icon svg {
+  color: #2c3e50;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.card-4 h3 {
+  color: #2c3e50;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.card-4 .card-description {
+  color: #34495e;
 }
 
 .card-4:hover {
-  background: rgba(220, 53, 69, 0.2);
+  background: linear-gradient(135deg, #fb81a8 0%, #fef356 100%);
+  transform: translateY(-15px) scale(1.02);
 }
 
 /* FAQ Section */
@@ -233,14 +307,15 @@
   opacity: 1;
 }
 
+/* UPDATED: FAQ answers are now always visible */
 .faq-answer {
-  max-height: 0;
-  overflow: hidden;
+  max-height: none; /* Changed from 0 to none */
+  overflow: visible; /* Changed from hidden to visible */
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .faq-answer.expanded {
-  max-height: 200px;
+  max-height: none; /* Keep it as none for expanded state */
 }
 
 .faq-answer-content {

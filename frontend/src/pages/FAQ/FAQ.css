@@ -1,10 +1,12 @@
-/* FAQ Wrapper with smooth slide-in animation */
+/* FAQ Wrapper with smooth slide-in animation - FULL WIDTH */
 .faq-wrapper {
-    padding: 10px 20px 40px 20px;
+  padding: 10px 0 40px 0; /* Remove horizontal padding */
   opacity: 0;
   transform: translateX(-100px);
   transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: transform, opacity;
+  width: 100vw; /* Full viewport width */
+  margin-left: calc(-50vw + 50%); /* Center and extend to full width */
 }
 
 .faq-wrapper.faq-slide-in {
@@ -12,15 +14,19 @@
   transform: translateX(0);
 }
 
-/* Main FAQ Container */
+/* Main FAQ Container - Full Width */
 .faq-container {
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: 0; /* Remove border radius for full width */
   padding: 50px 40px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: none; /* Remove side borders */
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
+  width: 100%;
+  max-width: none; /* Remove max-width constraint */
 }
 
 .faq-container::before {
@@ -31,7 +37,7 @@
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, #021026 0%, #051527 50%, #021a31 100%);
-  border-radius: 24px 24px 0 0;
+  border-radius: 0; /* Remove border radius */
 }
 
 /* FAQ Header */
@@ -41,6 +47,9 @@
   opacity: 0;
   transform: translateX(-80px);
   animation: slideInFromLeft 1s ease-out 0.5s forwards;
+  max-width: 1200px; /* Constrain content width */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .faq-title {
@@ -71,9 +80,11 @@
   margin: 0;
 }
 
-/* FAQ List */
+/* FAQ List - Constrained width within full-width container */
 .faq-list {
-  max-width: 100%;
+  max-width: 1200px; /* Constrain content width */
+  margin: 0 auto; /* Center the content */
+  width: 100%;
 }
 
 /* Individual FAQ Items */
@@ -242,7 +253,17 @@
 @media (max-width: 768px) {
   .faq-container {
     padding: 35px 25px;
-    border-radius: 20px;
+    border-radius: 0;
+  }
+  
+  .faq-header {
+    margin-bottom: 35px;
+    padding: 0 20px;
+  }
+  
+  .faq-list {
+    max-width: none;
+    padding: 0 20px;
   }
   
   .faq-title {
@@ -283,8 +304,16 @@
 
 @media (max-width: 480px) {
   .faq-container {
-    padding: 30px 20px;
-    border-radius: 16px;
+    padding: 30px 15px;
+    border-radius: 0;
+  }
+  
+  .faq-header {
+    padding: 0 15px;
+  }
+  
+  .faq-list {
+    padding: 0 15px;
   }
   
   .faq-title {

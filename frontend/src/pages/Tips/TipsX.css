@@ -433,6 +433,13 @@
   padding-top: 2rem;
   border-top: 1px solid rgba(51, 65, 85, 0.5);
 }
+.footer {
+  text-align: center;
+  padding: 1rem;
+  background: #222;
+  color: white;
+  /* margin-top: 2rem; */
+}
 
 .footer-text {
   color: #94a3b8;

@@ -11,7 +11,7 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
-import "./Admin.css"; // ✅ Make sure Admin.css is inside pages folder
+import "./Admin.css";
 
 // Register chart.js components
 ChartJS.register(

@@ -84,7 +84,8 @@ const BuyForm = ({ cart, onClose }) => {
             </label>
           </div>
 
-          {/* 🛒 Show Selected Items */}
+          {/* 
+          🛒 Show Selected Items 
           <div className="cart-summary">
             <h3>Selected Items</h3>
             {cart.map((item) => (
@@ -96,6 +97,7 @@ const BuyForm = ({ cart, onClose }) => {
               Total: ₹{cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}
             </strong>
           </div>
+          */}
 
           {/* ✅ Terms checkbox controls submit */}
           <label className="terms">
@@ -104,7 +106,14 @@ const BuyForm = ({ cart, onClose }) => {
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
             />{" "}
-            I agree to terms and conditions
+            I agree to
+            <a 
+              href="https://docs.google.com/document/d/1D3i-AaZjnGlKWdeBULW15TCOYlOWZ9RRDX0vZdsel3E/edit?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              >
+              Terms and Conditions
+            </a>
           </label>
 
           <button

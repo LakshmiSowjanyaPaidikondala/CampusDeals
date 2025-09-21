@@ -1,21 +1,13 @@
-<<<<<<< Updated upstream
-import React, { useState } from "react";
-import ProductCard from "../components/ProductCard";
-import BuyForm from "./UserForm"; // ✅ Import modal form
-=======
-import React, { useState, useEffect } from "react";
 
 import ProductCard from "../../components/ProductCard/ProductCard";
 import BuyForm from "../UserForm/UserForm";
->>>>>>> Stashed changes
 import "./Buy.css";
 
-// ✅ Import images
-import calciImg from "../assets/Calci.jpg";
-import drafterImg from "../assets/Drafter.jpeg";
-import chartHolderImg from "../assets/chart holder.jpg";
-import mechCoatImg from "../assets/Mechanical.jpeg";
-import chemCoatImg from "../assets/Chemical.jpeg";
+import calciImg from "../../assets/Calci.jpg";
+import drafterImg from "../../assets/Drafter.jpeg";
+import chartHolderImg from "../../assets/chart holder.jpg";
+import mechCoatImg from "../../assets/Mechanical.jpeg";
+import chemCoatImg from "../../assets/Chemical.jpeg";
 
 const Buy = () => {
 
@@ -169,7 +161,7 @@ const Buy = () => {
       </div>
 
       {/* 📝 Buyer Form as Modal */}
-      {showForm && <BuyForm cart={cart} onClose={handleCloseForm} />}
+      {/*{showForm && <BuyForm cart={cart} onClose={handleCloseForm} />}*/}
       
     </div>
   );
