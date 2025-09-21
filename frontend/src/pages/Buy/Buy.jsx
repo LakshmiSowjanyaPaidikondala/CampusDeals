@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 
 import ProductCard from "../../components/ProductCard/ProductCard";
 import BuyForm from "../UserForm/UserForm";
@@ -11,13 +10,85 @@ import mechCoatImg from "../../assets/Mechanical.jpeg";
 import chemCoatImg from "../../assets/Chemical.jpeg";
 
 const Buy = () => {
-  const products = [
-    { id: 1, name: "Scientific Calculator", price: 450, stock: 5, image: calciImg },
-    { id: 2, name: "Engineering Drafter", price: 800, stock: 3, image: drafterImg },
-    { id: 3, name: "Chart Holder", price: 50, stock: 15, image: chartHolderImg },
-    { id: 4, name: "Mechanical Lab Coat", price: 250, stock: 8, image: mechCoatImg },
-    { id: 5, name: "Chemical Lab Coat", price: 250, stock: 3, image: chemCoatImg }
-  ];
+
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Map image filenames to actual imported images
+    const imageMap = {
+      'Calci.jpg': calciImg,
+      'Drafter.jpeg': drafterImg,
+      'chart holder.jpg': chartHolderImg,
+      'Mechanical.jpeg': mechCoatImg,
+      'Chemical.jpeg': chemCoatImg
+    };
+
+    const fetchProducts = async () => {
+      try {
+        console.log('🚀 Fetching products from API...');
+        console.log('🌐 API URL:', "http://localhost:5000/api/products");
+        
+        const response = await fetch("http://localhost:5000/api/products", {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+        });
+        
+        console.log('📡 Response status:', response.status);
+        console.log('✅ Response ok:', response.ok);
+        console.log('📋 Response headers:', Object.fromEntries(response.headers));
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.log('❌ Error response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('📦 Raw API Response data:', data);
+        
+        // Handle both array and object responses
+        const productsArray = Array.isArray(data) ? data : (data.products || []);
+        console.log('🔄 Products array:', productsArray);
+        
+        // Map the image URLs to local imports
+        const productsWithImages = productsArray.map(product => ({
+          ...product,
+          image: imageMap[product.image] || product.image,
+          // Ensure all required fields exist
+          id: product.id || product.product_id,
+          name: product.name || product.product_name,
+          price: product.price || product.product_price,
+          stock: product.stock || product.quantity
+        }));
+        
+        console.log('🖼️ Products with images:', productsWithImages);
+        setProducts(productsWithImages);
+        setError(null); // Clear any previous errors
+      } catch (err) {
+        console.error('❌ Fetch error:', err);
+        setError(`Failed to fetch products: ${err.message}`);
+        
+        // Show fallback products so the page isn't empty
+        console.log('🔄 Using fallback products...');
+        const fallbackProducts = [
+          { id: 1, name: "Scientific Calculator", price: 450, stock: 5, image: calciImg },
+          { id: 2, name: "Engineering Drafter", price: 800, stock: 3, image: drafterImg },
+          { id: 3, name: "Chemical Lab Coat", price: 250, stock: 8, image: chemCoatImg },
+          { id: 4, name: "Mechanical Lab Coat", price: 250, stock: 3, image: mechCoatImg }
+        ];
+        setProducts(fallbackProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,7 +117,7 @@ const Buy = () => {
   };
 
   const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -65,7 +136,11 @@ const Buy = () => {
 
       {/* 🛒 Product Grid */}
       <div className="products-grid">
-        {filteredProducts.length > 0 ? (
+        {loading ? (
+          <p>Loading products...</p>
+        ) : error ? (
+          <p className="no-results">{error}</p>
+        ) : filteredProducts.length > 0 ? (
           filteredProducts.map((item) => (
             <ProductCard key={item.id} product={item} onAddToCart={handleAddToCart} />
           ))
