@@ -35,8 +35,8 @@ CREATE TABLE users (
 -- Products table
 CREATE TABLE products (
     product_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_name TEXT CHECK(product_name IN ('drafter','white_lab_coat','brown_lab_coat','calculator')) NOT NULL,
-    product_variant TEXT CHECK(product_variant IN ('premium_drafter','standard_drafter','budget_drafter', 'S','M','L','XL','XXL', 'MS','ES','ES-Plus')) NOT NULL,
+    product_name TEXT CHECK(product_name IN ('drafter','white_lab_coat','brown_lab_coat','calculator','chartbox')) NOT NULL,
+    product_variant TEXT CHECK(product_variant IN ('premium_drafter','standard_drafter','budget_drafter', 'S','M','L','XL','XXL', 'MS','ES','ES-Plus','chart holder')) NOT NULL,
     product_code TEXT UNIQUE,
     product_price REAL NOT NULL,
     product_images TEXT,
