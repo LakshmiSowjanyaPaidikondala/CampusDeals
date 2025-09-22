@@ -22,8 +22,8 @@ const ProfileDropdown = () => {
   useEffect(() => {
     // This would typically come from your auth context or API
     const mockUser = {
-      name: 'Maradana Manohar',
-      email: 'mardanamanohar333@gmail.com',
+      name: 'John Doe',
+      email: 'johndoe@example.com',
       avatar: null, // or avatar URL
       cartItems: 3,
       orderCount: 12
@@ -46,7 +46,9 @@ const ProfileDropdown = () => {
   }, []);
 
   const toggleDropdown = () => {
+    console.log('🔄 Toggle clicked! Current isOpen:', isOpen);
     setIsOpen(!isOpen);
+    console.log('🔄 New isOpen will be:', !isOpen);
   };
 
   const handleLogoutClick = () => {
@@ -104,7 +106,8 @@ const ProfileDropdown = () => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="dropdown-menu">
+        <div className="dropdown-menu" style={{backgroundColor: '#ff6b6b', border: '5px solid #4ecdc4', zIndex: 999999}}>
+          {console.log('🎯 Dropdown menu is rendering!')}
           {/* User Info Section */}
           <div className="user-info">
             <div className="user-avatar-large">
