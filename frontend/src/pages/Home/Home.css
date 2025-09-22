@@ -1,7 +1,7 @@
 /* Dark theme with vibrant blue background */
 .home {
   min-height: 100vh;
- background: linear-gradient(145deg, #82bfdd 0%, #91b5c2 100%);
+   background: linear-gradient(145deg, #82bfdd 0%, #91b5c2 100%);
   color: #ffffff;
   padding: 0;
   margin: 0;
@@ -55,7 +55,7 @@
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.card-overlay {
+erlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -173,7 +173,7 @@
 }
 
 .card-4 {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: linear-gradient(135deg, #66d348 0%, #20afbc 100%);
   color: #2c3e50;
 }
 
@@ -196,7 +196,7 @@
 }
 
 .card-4:hover {
-  background: linear-gradient(135deg, #fb81a8 0%, #fef356 100%);
+  background: linear-gradient(135deg, #74ae64 0%, #7ae3ed 100%);
   transform: translateY(-15px) scale(1.02);
 }
 

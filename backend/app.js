@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const productRoutes = require('./src/routes/productRoutes');
+const cartRoutes = require('./src/routes/cartRoutes');
 
 // Import middleware
 const { authenticateToken, authorizeRoles } = require('./src/middleware/auth');
@@ -27,7 +28,7 @@ app.use(express.json());
 const { db, query, run } = require('./src/config/db');
 
 // Test the connection
-(async () => {
+(() => {
   try {
     console.log("✅ SQLite Database Connected...");
     console.log("📁 Database location: ./database/campusdeals.db");
@@ -50,17 +51,18 @@ app.get('/api/test', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Protected routes for cart and orders
 /* ============================
    CART CRUD (Protected - User specific with Buy Authentication)
 ============================ */
-app.post("/api/cart", requireAuthForBuy, validateTransactionData(['product_id', 'quantity']), async (req, res) => {
+app.post("/api/cart", requireAuthForBuy, validateTransactionData(['product_id', 'quantity']), (req, res) => {
   try {
     const { product_id, quantity } = req.body;
     const user_id = req.user.userId; // Get user ID from JWT token
     
-    const [result] = await run("INSERT INTO cart (user_id, product_id, quantity) VALUES (?,?,?)", [user_id, product_id, quantity]);
+    const [result] = run("INSERT INTO cart (user_id, product_id, quantity) VALUES (?,?,?)", [user_id, product_id, quantity]);
     
     res.json({ 
       success: true,
@@ -80,7 +82,7 @@ app.post("/api/cart", requireAuthForBuy, validateTransactionData(['product_id', 
   }
 });
 
-app.get("/api/cart", requireAuthForBuy, async (req, res) => {
+app.get("/api/cart", requireAuthForBuy, (req, res) => {
   try {
     const user_id = req.user.userId; // Get user ID from JWT token
     
@@ -88,13 +90,13 @@ app.get("/api/cart", requireAuthForBuy, async (req, res) => {
                  FROM cart c 
                  JOIN products p ON c.product_id = p.product_id 
                  WHERE c.user_id=?`;
-    const [results] = await query(sql, [user_id]);
+    const [results] = query(sql, [user_id]);
     
     res.json({
       success: true,
-      message: "✅ Cart retrieved successfully",
+      message: "✅ Cart items retrieved successfully",
       cart: results,
-      user: {
+      buyer: {
         userId: user_id,
         name: req.userProfile.user_name
       }
@@ -109,14 +111,14 @@ app.get("/api/cart", requireAuthForBuy, async (req, res) => {
   }
 });
 
-app.put("/api/cart/:id", authenticateToken, async (req, res) => {
+app.put("/api/cart/:id", authenticateToken, (req, res) => {
   try {
     const { id } = req.params;
     const { quantity } = req.body;
     const user_id = req.user.userId;
     
     // Ensure user can only update their own cart items
-    const [result] = await run("UPDATE cart SET quantity=? WHERE cart_id=? AND user_id=?", [quantity, id, user_id]);
+    const [result] = run("UPDATE cart SET quantity=? WHERE cart_id=? AND user_id=?", [quantity, id, user_id]);
     
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "❌ Cart item not found or unauthorized" });
@@ -128,13 +130,13 @@ app.put("/api/cart/:id", authenticateToken, async (req, res) => {
   }
 });
 
-app.delete("/api/cart/:id", authenticateToken, async (req, res) => {
+app.delete("/api/cart/:id", authenticateToken, (req, res) => {
   try {
     const { id } = req.params;
     const user_id = req.user.userId;
     
     // Ensure user can only delete their own cart items
-    const [result] = await run("DELETE FROM cart WHERE cart_id=? AND user_id=?", [id, user_id]);
+    const [result] = run("DELETE FROM cart WHERE cart_id=? AND user_id=?", [id, user_id]);
     
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "❌ Cart item not found or unauthorized" });
@@ -149,12 +151,12 @@ app.delete("/api/cart/:id", authenticateToken, async (req, res) => {
 /* ============================
    ORDERS CRUD (Protected - User specific with Buy Authentication)
 ============================ */
-app.post("/api/orders", requireAuthForBuy, validateTransactionData(['total_amount', 'payment_method']), async (req, res) => {
+app.post("/api/orders", requireAuthForBuy, validateTransactionData(['total_amount', 'payment_method']), (req, res) => {
   try {
     const { serial_no, total_amount, payment_method, status = 'pending' } = req.body;
     const user_id = req.user.userId; // Get user ID from JWT token
     
-    const [result] = await run(
+    const [result] = run(
       "INSERT INTO orders (user_id, serial_no, total_amount, payment_method, status) VALUES (?,?,?,?,?)",
       [user_id, serial_no, total_amount, payment_method, status]
     );
@@ -177,11 +179,11 @@ app.post("/api/orders", requireAuthForBuy, validateTransactionData(['total_amoun
   }
 });
 
-app.get("/api/orders", requireAuthForBuy, async (req, res) => {
+app.get("/api/orders", requireAuthForBuy, (req, res) => {
   try {
     const user_id = req.user.userId; // Get user ID from JWT token
     
-    const [results] = await query("SELECT * FROM orders WHERE user_id=?", [user_id]);
+    const [results] = query("SELECT * FROM orders WHERE user_id=?", [user_id]);
     
     res.json({
       success: true,
@@ -203,13 +205,13 @@ app.get("/api/orders", requireAuthForBuy, async (req, res) => {
 });
 
 // Admin route to get all orders
-app.get("/api/orders/all", authenticateToken, authorizeRoles('admin'), async (req, res) => {
+app.get("/api/orders/all", authenticateToken, authorizeRoles('admin'), (req, res) => {
   try {
     const sql = `SELECT o.*, u.user_name, u.user_email 
                  FROM orders o 
                  JOIN users u ON o.user_id = u.user_id 
                  ORDER BY o.created_at DESC`;
-    const [results] = await query(sql);
+    const [results] = query(sql);
     
     res.json({
       success: true,
@@ -222,7 +224,7 @@ app.get("/api/orders/all", authenticateToken, authorizeRoles('admin'), async (re
   }
 });
 
-app.put("/api/orders/:id", authenticateToken, async (req, res) => {
+app.put("/api/orders/:id", authenticateToken, (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -238,7 +240,7 @@ app.put("/api/orders/:id", authenticateToken, async (req, res) => {
       params = [status, id, user_id];
     }
     
-    const [result] = await run(sql, params);
+    const [result] = run(sql, params);
     
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "❌ Order not found or unauthorized" });
@@ -251,14 +253,18 @@ app.put("/api/orders/:id", authenticateToken, async (req, res) => {
 });
 
 app.delete("/api/orders/:id", authenticateToken, authorizeRoles('admin'), (req, res) => {
-  const { id } = req.params;
-  db.query("DELETE FROM Orders WHERE order_id=?", [id], (err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: "❌ Error deleting order", error: err.message });
+  try {
+    const { id } = req.params;
+    const [result] = run("DELETE FROM orders WHERE order_id=?", [id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "❌ Order not found" });
     }
     res.json({ message: "🗑 Order Deleted!" });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "❌ Error deleting order", error: err.message });
+  }
 });
 
 // Error handling middleware

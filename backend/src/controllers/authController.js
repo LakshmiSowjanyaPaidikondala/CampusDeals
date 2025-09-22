@@ -63,7 +63,7 @@ const signup = async (req, res) => {
     }
 
     // Check if user already exists
-    const userExistence = await checkUserExists(user_email);
+    const userExistence = checkUserExists(user_email);
     if (userExistence.exists) {
       return res.status(409).json({ 
         success: false,
@@ -88,7 +88,7 @@ const signup = async (req, res) => {
     const hashedPassword = await hashPassword(user_password);
 
     // Insert new user
-    const [result] = await run(
+    const [result] = run(
       `INSERT INTO users 
        (user_name, user_email, user_password, role, user_phone, user_studyyear, user_branch, user_section, user_residency, payment_received, amount_given) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -166,7 +166,7 @@ const login = async (req, res) => {
     }
 
     // Check if user exists in database
-    const userExistence = await checkUserExists(user_email);
+    const userExistence = checkUserExists(user_email);
     if (!userExistence.exists) {
       return res.status(404).json({ 
         success: false,
@@ -177,7 +177,7 @@ const login = async (req, res) => {
     }
 
     // Get user details for authentication
-    const user = await getUserByEmail(user_email);
+    const user = getUserByEmail(user_email);
     if (!user) {
       return res.status(404).json({ 
         success: false,
@@ -237,7 +237,7 @@ const getProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const [users] = await db.query(
+    const [users] = query(
       `SELECT user_id, user_name, user_email, role, user_phone, user_studyyear, 
        user_branch, user_section, user_residency, payment_received, amount_given 
        FROM Users WHERE user_id = ?`,
@@ -280,7 +280,7 @@ const validateUserForTransaction = async (req, res) => {
     const userId = req.user.userId;
     const { operation } = req.body; // 'buy' or 'sell'
 
-    const user = await getUserById(userId);
+    const user = getUserById(userId);
     if (!user) {
       return res.status(404).json({ 
         success: false,

@@ -16,7 +16,7 @@ async function createUser(req, res) {
       amount_given = 0
     } = req.body;
 
-    const [result] = await run(
+    const [result] = run(
       `INSERT INTO users 
        (user_name, user_email, user_password, role, user_phone, user_studyyear, user_branch, user_section, user_residency, payment_received, amount_given) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,

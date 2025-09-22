@@ -1,11 +1,16 @@
--- SQLite Schema for campusDeals
+-- Better-SQLite3 Optimized Schema
+-- This file is optimized for better-sqlite3@12.2.0
 
--- Enable foreign key constraints
+-- Enable foreign key constraints and set optimal pragmas for better-sqlite3
 PRAGMA foreign_keys = ON;
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+PRAGMA cache_size = 1000;
+PRAGMA temp_store = memory;
 
--- Drop tables if they exist (in correct order to handle foreign keys)
+-- Drop tables if they exist (reverse order to respect foreign keys)
 DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS cart;
+DROP TABLE IF EXISTS cart;  
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS users;
 
@@ -31,9 +36,7 @@ CREATE TABLE users (
 CREATE TABLE products (
     product_id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_name TEXT CHECK(product_name IN ('drafter','white_lab_coat','brown_lab_coat','calculator')) NOT NULL,
-    product_variant TEXT CHECK(product_variant IN ('premium_drafter','standard_drafter','budget_drafter',
-                         'S','M','L','XL','XXL',
-                         'MS','ES','ES-Plus')) NOT NULL,
+    product_variant TEXT CHECK(product_variant IN ('premium_drafter','standard_drafter','budget_drafter', 'S','M','L','XL','XXL', 'MS','ES','ES-Plus')) NOT NULL,
     product_code TEXT UNIQUE,
     product_price REAL NOT NULL,
     product_images TEXT,
@@ -56,39 +59,28 @@ CREATE TABLE cart (
 -- Orders table
 CREATE TABLE orders (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,              -- FK from users
-    serial_no TEXT UNIQUE NOT NULL,        -- Example: CLC001
-    product_id INTEGER NOT NULL,           -- FK from products
+    user_id INTEGER NOT NULL,
+    serial_no TEXT UNIQUE NOT NULL,
+    product_id INTEGER NOT NULL,
     total_amount REAL NOT NULL,
     payment_method TEXT CHECK(payment_method IN ('cash','upi')) NOT NULL,
     status TEXT CHECK(status IN ('pending','completed','cancelled')) DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    cart_user_id INTEGER,                  -- FK from cart
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
-    FOREIGN KEY (cart_user_id) REFERENCES cart(user_id) ON DELETE SET NULL
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
--- Create indexes for better performance
-CREATE INDEX idx_users_email ON users(user_email);
-CREATE INDEX idx_products_name ON products(product_name);
-CREATE INDEX idx_products_code ON products(product_code);
-CREATE INDEX idx_cart_user ON cart(user_id);
-CREATE INDEX idx_orders_user ON orders(user_id);
-CREATE INDEX idx_orders_serial ON orders(serial_no);
+-- Create indexes for optimal performance with better-sqlite3
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(user_email);
+CREATE INDEX IF NOT EXISTS idx_products_name ON products(product_name);
+CREATE INDEX IF NOT EXISTS idx_products_code ON products(product_code);
+CREATE INDEX IF NOT EXISTS idx_products_variant ON products(product_variant);
+CREATE INDEX IF NOT EXISTS idx_cart_user ON cart(user_id);
+CREATE INDEX IF NOT EXISTS idx_cart_product ON cart(product_id);
+CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_serial ON orders(serial_no);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(created_at);
 
--- Trigger to update updated_at timestamp for users
-CREATE TRIGGER update_users_timestamp 
-    AFTER UPDATE ON users
-    FOR EACH ROW
-    BEGIN
-        UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE user_id = NEW.user_id;
-    END;
-
--- Trigger to update updated_at timestamp for products  
-CREATE TRIGGER update_products_timestamp 
-    AFTER UPDATE ON products
-    FOR EACH ROW
-    BEGIN
-        UPDATE products SET updated_at = CURRENT_TIMESTAMP WHERE product_id = NEW.product_id;
-    END;
+-- Analyze tables for query optimization
+ANALYZE;

@@ -39,9 +39,9 @@ const validateRequiredFields = (fields, requiredFields) => {
 };
 
 // Database utility functions
-const checkUserExists = async (email) => {
+const checkUserExists = (email) => {
   try {
-    const [users] = await query(
+    const [users] = query(
       'SELECT user_id, user_email FROM users WHERE user_email = ?',
       [email]
     );
@@ -55,9 +55,9 @@ const checkUserExists = async (email) => {
   }
 };
 
-const getUserByEmail = async (email) => {
+const getUserByEmail = (email) => {
   try {
-    const [users] = await query(
+    const [users] = query(
       'SELECT user_id, user_name, user_email, user_password, role FROM users WHERE user_email = ?',
       [email]
     );
@@ -68,9 +68,9 @@ const getUserByEmail = async (email) => {
   }
 };
 
-const getUserById = async (userId) => {
+const getUserById = (userId) => {
   try {
-    const [users] = await query(
+    const [users] = query(
       `SELECT user_id, user_name, user_email, role, user_phone, user_studyyear, 
        user_branch, user_section, user_residency, payment_received, amount_given 
        FROM users WHERE user_id = ?`,

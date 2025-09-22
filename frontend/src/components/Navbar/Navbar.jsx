@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
 import logo from "../../assets/logo.png";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdown";
 import "./Navbar.css";
@@ -7,7 +8,19 @@ import "./Navbar.css";
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
   const location = useLocation();
+
+  // Mock cart items for demonstration (you can replace this with your actual cart logic)
+  useEffect(() => {
+    // Simulate some cart items - replace with your actual cart state management
+    const mockCartItems = [
+      { id: 1, name: "Item 1", price: 50 },
+      { id: 2, name: "Item 2", price: 75 },
+      { id: 3, name: "Item 3", price: 100 }
+    ];
+    setCartItems(mockCartItems);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -27,7 +40,6 @@ const Navbar = () => {
         setMenuOpen(false);
       }
     };
-    
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [menuOpen]);
@@ -39,7 +51,6 @@ const Navbar = () => {
     } else {
       document.body.style.overflow = 'unset';
     }
-    
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -63,7 +74,6 @@ const Navbar = () => {
         >
           ☰
         </button>
-        
         <Link to="/" className="logo-container">
           <div className="logo-wrapper">
             <img src={logo} alt="Campus Deals Logo" className="logo" />
@@ -72,7 +82,7 @@ const Navbar = () => {
         </Link>
       </div>
 
-      {/* Right side with Desktop Links and Profile */}
+      {/* Right side with Desktop Links, Cart and Profile */}
       <div className="nav-right">
         {/* Desktop Links with Equal Spacing */}
         <div className="nav-links desktop">
@@ -89,6 +99,14 @@ const Navbar = () => {
           ))}
         </div>
 
+        {/* Premium Cart Icon */}
+        <Link to="/cart" className="cart-link">
+          <ShoppingCart className="cart-icon" size={24} />
+          {cartItems.length > 0 && (
+            <span className="cart-count">{cartItems.length}</span>
+          )}
+        </Link>
+
         {/* Profile Dropdown */}
         <ProfileDropdown />
       </div>
@@ -103,8 +121,8 @@ const Navbar = () => {
 
       {/* Sidebar for Mobile */}
       <div className={`sidebar ${menuOpen ? "open" : ""}`}>
-        <button 
-          className="close-btn" 
+        <button
+          className="close-btn"
           onClick={() => setMenuOpen(false)}
           aria-label="Close mobile menu"
         >
@@ -116,11 +134,19 @@ const Navbar = () => {
           <ProfileDropdown />
         </div>
 
+        {/* Cart in mobile sidebar */}
+        <div className="sidebar-cart">
+          <Link to="/cart" className="sidebar-cart-link" onClick={() => setMenuOpen(false)}>
+            <ShoppingCart size={18} />
+            <span>Cart ({cartItems.length})</span>
+          </Link>
+        </div>
+
         <ul>
           {navItems.map((item) => (
             <li key={item.path}>
-              <Link 
-                to={item.path} 
+              <Link
+                to={item.path}
                 onClick={() => setMenuOpen(false)}
                 className={location.pathname === item.path ? "active" : ""}
               >
