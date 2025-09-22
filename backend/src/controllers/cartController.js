@@ -21,11 +21,11 @@ const addToCart = async (req, res) => {
         }
         
         // Check if product exists and get product details
-        const product = db.get(`
+        const product = db.prepare(`
             SELECT product_id, product_name, product_variant, product_price, quantity as stock_quantity
             FROM products 
             WHERE product_id = ?
-        `, [product_id]);
+        `).get(product_id);
         
         if (!product) {
             return res.status(404).json({
@@ -43,11 +43,11 @@ const addToCart = async (req, res) => {
         }
         
         // Check if item already exists in cart for this user
-        const existingCartItem = db.get(`
+        const existingCartItem = db.prepare(`
             SELECT cart_id, quantity 
             FROM cart 
             WHERE user_id = ? AND product_id = ?
-        `, [user_id, product_id]);
+        `).get(user_id, product_id);
         
         let result;
         
@@ -63,19 +63,19 @@ const addToCart = async (req, res) => {
                 });
             }
             
-            result = db.run(`
+            result = db.prepare(`
                 UPDATE cart 
                 SET quantity = ?, created_at = CURRENT_TIMESTAMP
                 WHERE cart_id = ?
-            `, [newQuantity, existingCartItem.cart_id]);
+            `).run(newQuantity, existingCartItem.cart_id);
             
             console.log(`Updated cart item for user ${user_id}, product ${product_id}, new quantity: ${newQuantity}`);
         } else {
             // Add new item to cart
-            result = db.run(`
+            result = db.prepare(`
                 INSERT INTO cart (user_id, product_id, quantity)
                 VALUES (?, ?, ?)
-            `, [user_id, product_id, quantity]);
+            `).run(user_id, product_id, quantity);
             
             console.log(`Added new cart item for user ${user_id}, product ${product_id}, quantity: ${quantity}`);
         }
@@ -254,12 +254,12 @@ const updateCartItem = (req, res) => {
         }
         
         // Check if cart item exists and belongs to user
-        const cartItem = db.get(`
+        const cartItem = db.prepare(`
             SELECT c.cart_id, c.product_id, p.product_name, p.product_variant, p.product_price, p.quantity as stock_quantity
             FROM cart c
             INNER JOIN products p ON c.product_id = p.product_id
             WHERE c.cart_id = ? AND c.user_id = ?
-        `, [cart_id, user_id]);
+        `).get(cart_id, user_id);
         
         if (!cartItem) {
             return res.status(404).json({
@@ -277,11 +277,11 @@ const updateCartItem = (req, res) => {
         }
         
         // Update quantity
-        const result = db.run(`
+        const result = db.prepare(`
             UPDATE cart 
             SET quantity = ?, created_at = CURRENT_TIMESTAMP
             WHERE cart_id = ?
-        `, [quantity, cart_id]);
+        `).run(quantity, cart_id);
         
         if (result.changes === 0) {
             return res.status(500).json({
@@ -326,12 +326,12 @@ const removeFromCart = (req, res) => {
         const user_id = req.user.userId;
         
         // Check if cart item exists and belongs to user
-        const cartItem = db.get(`
+        const cartItem = db.prepare(`
             SELECT c.cart_id, p.product_name, p.product_variant
             FROM cart c
             INNER JOIN products p ON c.product_id = p.product_id
             WHERE c.cart_id = ? AND c.user_id = ?
-        `, [cartId, user_id]);
+        `).get(cartId, user_id);
         
         if (!cartItem) {
             return res.status(404).json({
@@ -341,10 +341,10 @@ const removeFromCart = (req, res) => {
         }
         
         // Remove item
-        const result = db.run(`
+        const result = db.prepare(`
             DELETE FROM cart 
             WHERE cart_id = ?
-        `, [cartId]);
+        `).run(cartId);
         
         if (result.changes === 0) {
             return res.status(500).json({
@@ -378,10 +378,10 @@ const clearCart = (req, res) => {
         const user_id = req.user.userId;
         
         // Remove all cart items for user
-        const result = db.run(`
+        const result = db.prepare(`
             DELETE FROM cart 
             WHERE user_id = ?
-        `, [user_id]);
+        `).run(user_id);
         
         console.log(`Cleared ${result.changes} items from cart for user ${user_id}`);
         
