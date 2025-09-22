@@ -27,7 +27,7 @@ const ProductCard = ({ product, onAddToCart }) => {
   }, []);
 
   const handleAddToCart = () => {
-    if (product.name === "Engineering Drafter" || product.name?.includes("Drafter")) {
+    if (product.name === "drafter" || product.name?.includes("drafter")) {
       setShowDropdown(!showDropdown);
     } else {
       onAddToCart(product); // ✅ send product to Buy.jsx
@@ -45,7 +45,7 @@ const ProductCard = ({ product, onAddToCart }) => {
     setShowDropdown(false);
   };
 
-  const isDrafter = product.name === "Engineering Drafter" || product.name?.includes("Drafter");
+  const isDrafter = product.name === "drafter" || product.name?.includes("drafter");
 
   return (
     <div className={`product-card ${product.loading ? 'loading' : ''} ${product.error ? 'error' : ''} ${showDropdown ? 'dropdown-active' : ''}`}>
@@ -56,8 +56,11 @@ const ProductCard = ({ product, onAddToCart }) => {
         loading="lazy"
       />
       <div className="product-details">
-        <h3 className="product-name">{"Product: " + product.name}</h3>
-        <p className="product-price">{"Price: ₹" + product.price}</p>
+        <h3 className="product-name">
+          {"Product: " + (product.name || "Unknown Product")}
+          {product.variant && ` (${product.variant})`}
+        </h3>
+        <p className="product-price">{"Price: ₹" + (product.price || 0)}</p>
         <p className={`product-stock ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}>
           {product.stock > 0 ? `${product.stock} items left` : 'Out of stock'}
         </p>

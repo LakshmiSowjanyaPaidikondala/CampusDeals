@@ -15,7 +15,11 @@ const { requireAuthForBuy, requireAuthForSell, validateTransactionData } = requi
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
 app.use(bodyParser.json());
 app.use(express.json());
 
@@ -32,6 +36,15 @@ const { db, query, run } = require('./src/config/db');
     process.exit(1);
   }
 })();
+
+// Test route
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: '✅ Backend server is working!', 
+    timestamp: new Date().toISOString() 
+  });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
