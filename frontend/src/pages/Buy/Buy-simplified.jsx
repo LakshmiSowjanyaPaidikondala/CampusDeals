@@ -16,8 +16,8 @@ const Buy = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Temporarily bypass API and show products directly
-    console.log('🚀 Loading products directly (bypassing API for testing)...');
+    // For now, let's just show the products directly without API call
+    console.log('🚀 Loading products directly...');
     
     const directProducts = [
       { 
@@ -39,7 +39,7 @@ const Buy = () => {
       { 
         id: 3, 
         name: "white_lab_coat", 
-        variant: "Chemical Lab Coat", 
+        variant: "Chemical Lab Coat (White)", 
         price: 450, 
         stock: 20, 
         image: chemCoatImg 
@@ -47,7 +47,7 @@ const Buy = () => {
       { 
         id: 4, 
         name: "brown_lab_coat", 
-        variant: "Mechanical Lab Coat", 
+        variant: "Mechanical Lab Coat (Brown)", 
         price: 500, 
         stock: 15, 
         image: mechCoatImg 
@@ -62,12 +62,10 @@ const Buy = () => {
       }
     ];
     
-    setTimeout(() => {
-      console.log('✅ Products loaded:', directProducts);
-      setProducts(directProducts);
-      setLoading(false);
-      setError(null);
-    }, 500); // Small delay to simulate loading
+    console.log('✅ Products loaded:', directProducts);
+    setProducts(directProducts);
+    setLoading(false);
+    setError(null);
   }, []);
 
   const [cart, setCart] = useState([]);
