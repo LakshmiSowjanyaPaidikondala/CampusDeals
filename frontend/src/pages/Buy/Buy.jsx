@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import BuyForm from "../UserForm/UserForm";
+import { isAuthenticated, saveCart, getCart } from "../../utils/auth";
 import "./Buy.css";
 
 import calciImg from "../../assets/Calci.jpg";
@@ -10,7 +12,7 @@ import mechCoatImg from "../../assets/Mechanical.jpeg";
 import chemCoatImg from "../../assets/Chemical.jpeg";
 
 const Buy = () => {
-
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,21 +76,43 @@ const Buy = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
 
+  // Restore cart from localStorage when component mounts
+  useEffect(() => {
+    if (isAuthenticated()) {
+      const savedCart = getCart();
+      setCart(savedCart);
+    }
+  }, []);
+
   const handleAddToCart = (product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
+      let newCart;
       if (existing) {
-        return prev.map((item) =>
+        newCart = prev.map((item) =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
+      } else {
+        newCart = [...prev, { ...product, quantity: 1 }];
       }
-      return [...prev, { ...product, quantity: 1 }];
+      
+      // Save cart to localStorage whenever it's updated
+      saveCart(newCart);
+      return newCart;
     });
   };
 
   const handleProceed = () => {
     if (cart.length > 0) {
-      setShowForm(true);
+      // Check if user is authenticated
+      if (!isAuthenticated()) {
+        // Save cart to localStorage before redirecting
+        saveCart(cart);
+        // Redirect to login page
+        navigate('/login');
+      } else {
+        setShowForm(true);
+      }
     }
   };
 
