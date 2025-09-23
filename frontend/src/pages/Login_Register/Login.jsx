@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { loginUser, getCart } from '../../utils/auth';
 import './Login.css';
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
 
 
 const Login = ({ onRegisterClick }) => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
@@ -41,7 +45,7 @@ const Login = ({ onRegisterClick }) => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = {};
 
     if (!loginData.email) {
@@ -52,15 +56,30 @@ const Login = ({ onRegisterClick }) => {
 
     if (!loginData.password) {
       newErrors.password = 'Password is required';
-    } else if (!validatePassword(loginData.password).isValid) {
-      newErrors.password = 'Password must contain at least 8 characters, 1 special character, and 1 number';
     }
 
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
-      // Handle successful login
-      alert('Login successful!');
+      setLoading(true);
+      
+      try {
+        const result = await loginUser(loginData.email, loginData.password);
+        
+        if (result.success) {
+          // Restore cart from localStorage (if any)
+          const savedCart = getCart();
+          
+          // Redirect back to Buy page
+          navigate('/buy');
+        } else {
+          setErrors({ general: result.message || 'Login failed. Please try again.' });
+        }
+      } catch (error) {
+        setErrors({ general: 'Network error. Please try again.' });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -130,15 +149,15 @@ const Login = ({ onRegisterClick }) => {
             </button>
           </div>
 
-          <button onClick={handleSubmit} className="submit-btn">
-            Sign In
+          <button onClick={handleSubmit} className="submit-btn" disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </div>
 
         <div className="link-section">
           <span className="link-text">Don't have an account? </span>
           <button 
-            onClick={onRegisterClick}
+            onClick={() => navigate('/register')}
             className="auth-link"
             type="button"
           >

@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { registerUser, getCart } from '../../utils/auth';
 import './Register.css';
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
 
 
 
 const Register = ({ onLoginClick }) => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [registerData, setRegisterData] = useState({
     name: '',
     email: '',
@@ -60,7 +64,7 @@ const Register = ({ onLoginClick }) => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = {};
 
     if (!registerData.name) {
@@ -90,8 +94,25 @@ const Register = ({ onLoginClick }) => {
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
-      // Handle successful registration
-      alert('Registration successful!');
+      setLoading(true);
+      
+      try {
+        const result = await registerUser(registerData.name, registerData.email, registerData.password);
+        
+        if (result.success) {
+          // Restore cart from localStorage (if any)
+          const savedCart = getCart();
+          
+          // Redirect back to Buy page
+          navigate('/buy');
+        } else {
+          setErrors({ general: result.message || 'Registration failed. Please try again.' });
+        }
+      } catch (error) {
+        setErrors({ general: 'Network error. Please try again.' });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -193,15 +214,15 @@ const Register = ({ onLoginClick }) => {
             </button>
           </div>
 
-          <button onClick={handleSubmit} className="submit-btn">
-            Create Account
+          <button onClick={handleSubmit} className="submit-btn" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </div>
 
         <div className="link-section">
           <span className="link-text">Already have an account? </span>
           <button 
-            onClick={onLoginClick}
+            onClick={() => navigate('/login')}
             className="auth-link"
             type="button"
           >
