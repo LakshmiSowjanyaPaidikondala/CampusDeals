@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  overflow: hidden;
+  overflow-y: auto;
   position: fixed;
   top: 0;
   left: 0;
@@ -23,6 +23,9 @@
   padding: 2rem;
   position: relative;
   animation: fadeInUp 0.7s ease-out;
+  margin: 1rem 0;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 @keyframes fadeInUp {
@@ -105,21 +108,20 @@
   font-size: 32px;
   font-weight: bold;
   text-align: center;
-  color: #046c81; /* normal color */
+  color: #046c81;
   margin-bottom: 2rem;
 }
 
 .highlight-letter {
-  font-size: 42px;   /* bigger size for first letter */
-  color: #173b6e;    /* blue or any highlight color */
+  font-size: 42px;
+  color: #173b6e;
   font-weight: 900;
 }
-
 
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .input-container {
@@ -131,31 +133,51 @@
 .input-icon {
   position: absolute;
   left: 14px;
-  color: #9ca3af;
+  color: #6b7280;
   z-index: 2;
   transition: all 0.3s ease;
 }
 
-.input-field {
+.input-field, 
+select.input-field {
   width: 100%;
-  padding: 14px 14px 14px 50px;
+  padding: 14px 14px 14px 50px !important; /* same padding for all */
   border: 2px solid #d1d5db;
   border-radius: 10px;
   font-size: 16px;
   outline: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: white !important;
+  background-color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
+  color: #1f2937;
+  appearance: none; /* keeps select clean */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+
+/* Custom dropdown arrow for select elements */
+select.input-field {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%236b7280' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
+  padding-right: 40px;
+  background-color: #ffffff;
+}
+
+select.input-field option {
+  color: #1f2937;
+  background: white;
+  padding: 8px;
 }
 
 .input-field::placeholder {
-  color: #9ca3af !important;
-  -webkit-text-fill-color: #9ca3af !important;
+  color: #6b7280;
+  opacity: 1;
 }
 
-.input-field:focus {
+.input-field:focus, select.input-field:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
@@ -165,26 +187,34 @@
   color: #3b82f6;
 }
 
-.input-field.valid {
+.input-field.valid, select.input-field.valid {
   border-color: #10b981;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%) !important;
+  background-color: #f0fdf4;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1), 0 4px 12px rgba(16, 185, 129, 0.1);
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
+  color: #1f2937;
 }
 
-.input-field.valid:focus {
+select.input-field.valid {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%2310b981' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+  background-color: #f0fdf4;
+}
+
+.input-field.valid:focus, select.input-field.valid:focus {
   border-color: #10b981;
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15), 0 4px 12px rgba(16, 185, 129, 0.2);
 }
 
-.input-field.invalid {
+.input-field.invalid, select.input-field.invalid {
   border-color: #ef4444;
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+  background-color: #fef2f2;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), 0 4px 12px rgba(239, 68, 68, 0.1);
   animation: shake 0.5s ease-in-out;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
+  color: #1f2937;
+}
+
+select.input-field.invalid {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%23ef4444' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+  background-color: #fef2f2;
 }
 
 @keyframes shake {
@@ -193,7 +223,7 @@
   20%, 40%, 60%, 80% { transform: translateX(2px); }
 }
 
-.input-field.invalid:focus {
+.input-field.invalid:focus, select.input-field.invalid:focus {
   border-color: #ef4444;
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15), 0 4px 12px rgba(239, 68, 68, 0.2);
 }
@@ -203,6 +233,11 @@
   right: 14px;
   z-index: 2;
   animation: popIn 0.3s ease-out;
+}
+
+/* Adjust validation icon position for select elements */
+select.input-field + .validation-icon {
+  right: 32px;
 }
 
 @keyframes popIn {
@@ -225,7 +260,7 @@
   right: 14px;
   background: none;
   border: none;
-  color: #9ca3af;
+  color: #6b7280;
   cursor: pointer;
   padding: 4px;
   z-index: 2;
@@ -234,7 +269,7 @@
 }
 
 .password-toggle:hover {
-  color: #6b7280;
+  color: #4b5563;
   background-color: #f3f4f6;
   transform: scale(1.1);
 }
@@ -253,6 +288,7 @@
   box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
   position: relative;
   overflow: hidden;
+  margin-top: 8px;
 }
 
 .submit-btn::before {
@@ -279,6 +315,12 @@
 .submit-btn:active {
   transform: translateY(-1px) scale(1.01);
   box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .link-section {
@@ -325,36 +367,21 @@
   transform: translateY(-1px);
 }
 
-/* Mobile Responsiveness - Perfect Centering */
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .register-container {
     padding: 0.75rem;
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    overflow-y: auto;
-  }
-  
-  .register-card {
-    width: 100%;
-    max-width: 400px;
-    min-height: auto;
-    padding: 1.5rem;
-    border-radius: 12px;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    transform: translateY(0);
-    margin-top: auto;
-    margin-bottom: auto;
+    overflow-y: visible;
   }
   
   .register-title {
@@ -381,17 +408,22 @@
     width: 100%;
   }
   
-  .input-field {
+  .input-field, select.input-field {
     padding: 12px 12px 12px 42px;
     font-size: 16px;
-    background: white !important;
-    color: #111827 !important;
-    -webkit-text-fill-color: #111827 !important;
+    background-color: #ffffff;
+    color: #1f2937;
+  }
+
+  select.input-field {
+    padding-right: 38px;
+    background-position: right 12px center;
+    background-color: #ffffff;
   }
 
   .input-field::placeholder {
-    color: #9ca3af !important;
-    -webkit-text-fill-color: #9ca3af !important;
+    color: #6b7280;
+    opacity: 1;
   }
   
   .input-icon {
@@ -403,6 +435,10 @@
   .validation-icon,
   .password-toggle {
     right: 12px;
+  }
+
+  select.input-field + .validation-icon {
+    right: 30px;
   }
   
   .submit-btn {
@@ -428,16 +464,18 @@
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     overflow-y: auto;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
   }
   
   .register-card {
     width: calc(100% - 1rem);
     max-width: 360px;
     padding: 1.25rem;
-    margin: auto;
+    margin: 0 auto;
     min-height: auto;
   }
   
@@ -460,9 +498,23 @@
     gap: 14px;
   }
   
-  .input-field {
+  .input-field, select.input-field {
     padding: 11px 11px 11px 38px;
     font-size: 16px;
+    color: #1f2937;
+    background-color: #ffffff;
+  }
+
+  select.input-field {
+    padding-right: 35px;
+    background-position: right 10px center;
+    background-size: 10px;
+    background-color: #ffffff;
+  }
+
+  .input-field::placeholder {
+    color: #6b7280;
+    opacity: 1;
   }
   
   .input-icon {
@@ -476,6 +528,10 @@
     right: 10px;
     width: 16px;
     height: 16px;
+  }
+
+  select.input-field + .validation-icon {
+    right: 26px;
   }
   
   .submit-btn {
@@ -499,6 +555,8 @@
 @media (max-width: 360px) {
   .register-container {
     padding: 0.25rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
   
   .register-card {
@@ -520,9 +578,23 @@
     gap: 12px;
   }
   
-  .input-field {
+  .input-field, select.input-field {
     padding: 10px 10px 10px 36px;
     font-size: 16px;
+    color: #1f2937;
+    background-color: #ffffff;
+  }
+
+  select.input-field {
+    padding-right: 32px;
+    background-position: right 8px center;
+    background-size: 9px;
+    background-color: #ffffff;
+  }
+
+  .input-field::placeholder {
+    color: #6b7280;
+    opacity: 1;
   }
   
   .input-icon {
@@ -536,6 +608,10 @@
     right: 9px;
     width: 15px;
     height: 15px;
+  }
+
+  select.input-field + .validation-icon {
+    right: 24px;
   }
 }
 
@@ -554,51 +630,91 @@
     align-items: center;
     justify-content: center;
     padding: 8px 12px;
-    overflow: hidden;
+    overflow-y: auto;
   }
   
-  .register-card {
-    width: 100%;
-    max-width: none;
-    height: auto;
-    min-height: 98vh;
-    padding: 15px 25px;
-    border-radius: 16px;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
+  
   
   .logo-section {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
   
   .logo-placeholder {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     margin-bottom: 0.25rem;
   }
   
   .register-title {
-    font-size: 20px;
-    margin-bottom: 0.75rem;
+    font-size: 18px;
+    margin-bottom: 0.5rem;
   }
   
   .form-container {
-    gap: 10px;
+    gap: 8px;
   }
   
-  .input-field {
+  .input-field, select.input-field {
     padding: 8px 8px 8px 32px;
+    font-size: 14px;
+    color: #1f2937;
+    background-color: #ffffff;
+  }
+
+  select.input-field {
+    padding-right: 28px;
+    background-position: right 8px center;
+    background-size: 8px;
+    background-color: #ffffff;
+  }
+
+  .input-field::placeholder {
+    color: #6b7280;
+    opacity: 1;
   }
   
   .submit-btn {
     padding: 8px;
     font-size: 14px;
+    margin-top: 4px;
   }
   
   .link-section {
-    margin-top: 12px;
+    margin-top: 8px;
   }
+
+  .input-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .validation-icon,
+  .password-toggle {
+    width: 14px;
+    height: 14px;
+  }
+
+  select.input-field + .validation-icon {
+    right: 22px;
+  }
+}
+
+/* Scrollbar styling for the card */
+
+
+.register-card {
+    width: 100%;
+    max-width: 400px;
+    min-height: auto;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 0 auto;
+    display: flex
+;
+    flex-direction: column;
+    justify-content: flex-start;
+    max-height: none;
+    overflow-y: visible;
+    margin-top: 100px;
+    margin-bottom: 55px;
 }
