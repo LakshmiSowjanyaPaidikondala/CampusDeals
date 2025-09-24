@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./hooks/useAuth.jsx";
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home/Home";
 import Buy from "./pages/Buy/Buy";
@@ -15,31 +16,33 @@ import logo from "./assets/logo.png";
 
 const App = () => {
   return (
-    <Router>
-      <div className="App">
-        {/* Logo at top */}
-        
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          {/* Logo at top */}
+          
 
-        {/* Navbar */}
-        <Navbar />
+          {/* Navbar */}
+          <Navbar />
 
-       
+         
 
-        {/* Pages */}
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/buy" element={<Buy />} />
-          <Route path="/sell" element={<Sell />} />
-          <Route path="/tips" element={<TipsX />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-        </Routes>
+          {/* Pages */}
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/buy" element={<Buy />} />
+            <Route path="/sell" element={<Sell />} />
+            <Route path="/tips" element={<TipsX />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Routes>
 
-        {/* Footer */}
-        <Footer />
-        {/* <ScrollToTop /> */}
-      </div>
-    </Router>
+          {/* Footer */}
+          <Footer />
+          {/* <ScrollToTop /> */}
+        </div>
+      </Router>
+    </AuthProvider>
   );
 };
 
