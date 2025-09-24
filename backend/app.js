@@ -286,6 +286,8 @@ app.use((err, req, res, next) => {
 /* ============================
    SERVER START
 ============================ */
-app.listen(5000, () => {
+app.listen(5000, '0.0.0.0', () => {
   console.log("🚀 Server running on http://localhost:5000");
+  console.log("🚀 Server also accessible on http://0.0.0.0:5000");
+  console.log("🌐 CORS enabled for frontend origins");
 });

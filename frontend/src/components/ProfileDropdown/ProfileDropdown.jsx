@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './ProfileDropdown.css';
+import { useAuth } from '../../hooks/useAuth.jsx';
 import { 
   FaUser, 
   FaShoppingCart, 
@@ -13,23 +14,12 @@ import {
 
 const ProfileDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-
-  // Mock user data - replace with actual user data from context/state management
-  useEffect(() => {
-    // This would typically come from your auth context or API
-    const mockUser = {
-      name: 'Maradana Manohar',
-      email: 'mardanamanohar333@gmail.com',
-      avatar: null, // or avatar URL
-      cartItems: 3,
-      orderCount: 12
-    };
-    setUser(mockUser);
-  }, []);
+  
+  // Get user data and logout function from auth context
+  const { user, logout: authLogout, isAuthenticated, isLoading } = useAuth();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -55,11 +45,11 @@ const ProfileDropdown = () => {
   };
 
   const confirmLogout = () => {
-    // Add your logout logic here
-    // This might involve clearing tokens, updating auth context, etc.
-    console.log('Logging out...');
+    // Call the logout function from auth context
+    authLogout();
     setShowLogoutModal(false);
-    // navigate('/login'); // Uncomment when you have a login page
+    // Navigate to login page after logout
+    navigate('/login');
   };
 
   const cancelLogout = () => {
@@ -71,6 +61,7 @@ const ProfileDropdown = () => {
   };
 
   const getInitials = (name) => {
+    if (!name) return 'U';
     return name
       .split(' ')
       .map(word => word[0])
@@ -78,8 +69,9 @@ const ProfileDropdown = () => {
       .toUpperCase();
   };
 
-  if (!user) {
-    return null; // or a loading spinner
+  // Don't render if user is not authenticated or still loading
+  if (isLoading || !isAuthenticated || !user) {
+    return null;
   }
 
   return (
@@ -92,9 +84,9 @@ const ProfileDropdown = () => {
       >
         <div className="profile-avatar">
           {user.avatar ? (
-            <img src={user.avatar} alt={user.name} />
+            <img src={user.avatar} alt={user.user_name || user.name} />
           ) : (
-            <span className="avatar-initials">{getInitials(user.name)}</span>
+            <span className="avatar-initials">{getInitials(user.user_name || user.name)}</span>
           )}
         </div>
         <FaChevronDown 
@@ -109,14 +101,14 @@ const ProfileDropdown = () => {
           <div className="user-info">
             <div className="user-avatar-large">
               {user.avatar ? (
-                <img src={user.avatar} alt={user.name} />
+                <img src={user.avatar} alt={user.user_name || user.name} />
               ) : (
-                <span className="avatar-initials-large">{getInitials(user.name)}</span>
+                <span className="avatar-initials-large">{getInitials(user.user_name || user.name)}</span>
               )}
             </div>
             <div className="user-details">
-              <h4>{user.name}</h4>
-              <p>{user.email}</p>
+              <h4>{user.user_name || user.name}</h4>
+              <p>{user.user_email || user.email}</p>
             </div>
           </div>
 
@@ -140,7 +132,7 @@ const ProfileDropdown = () => {
             >
               <FaShoppingCart className="item-icon" />
               <span>Cart</span>
-              {user.cartItems > 0 && (
+              {user.cartItems && user.cartItems > 0 && (
                 <span className="badge">{user.cartItems}</span>
               )}
             </Link>
@@ -152,7 +144,9 @@ const ProfileDropdown = () => {
             >
               <FaHistory className="item-icon" />
               <span>Order History</span>
-              <span className="order-count">({user.orderCount})</span>
+              {user.orderCount && (
+                <span className="order-count">({user.orderCount})</span>
+              )}
             </Link>
 
             <Link 
@@ -191,6 +185,7 @@ const ProfileDropdown = () => {
             </div>
             <div className="logout-modal-body">
               <p>You will be signed out of your account and redirected to the login page.</p>
+              <p><strong>Note:</strong> Any unsaved changes will be lost.</p>
             </div>
             <div className="logout-modal-actions">
               <button 
