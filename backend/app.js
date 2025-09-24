@@ -17,7 +17,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'],
   credentials: true,
   optionsSuccessStatus: 200
 }));
@@ -43,6 +43,16 @@ app.get('/api/test', (req, res) => {
   res.json({ 
     success: true, 
     message: '✅ Backend server is working!', 
+    timestamp: new Date().toISOString() 
+  });
+});
+
+// Test auth endpoint
+app.post('/api/test-auth', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: '✅ Auth endpoint is reachable!', 
+    receivedData: req.body,
     timestamp: new Date().toISOString() 
   });
 });
