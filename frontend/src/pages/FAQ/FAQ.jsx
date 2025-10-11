@@ -5,6 +5,7 @@ import './FAQ.css';
 const FAQ = () => {
   const [activeQuestion, setActiveQuestion] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
 
   const faqData = [
     {
@@ -73,41 +74,52 @@ const FAQ = () => {
     setActiveQuestion(activeQuestion === questionId ? null : questionId);
   };
 
+  const toggleFaqSection = () => {
+    setIsFaqOpen(!isFaqOpen);
+  };
+
   return (
     <div className={`faq-wrapper ${isVisible ? 'faq-slide-in' : ''}`}>
       <div className="faq-container">
-        <div className="faq-header">
-          <h2 className="faq-title">Frequently Asked Questions</h2>
+        <div className="faq-header" onClick={toggleFaqSection}>
+          <h2 className="faq-title">
+            Frequently Asked Questions
+            <div className={`faq-section-icon ${isFaqOpen ? 'rotated' : ''}`}>
+              <FaChevronDown />
+            </div>
+          </h2>
           <p className="faq-subtitle">Everything you need to know about Campus Deals</p>
         </div>
 
-        <div className="faq-list">
-          {faqData.map((faq, index) => (
-            <div
-              key={faq.id}
-              className={`faq-item ${activeQuestion === faq.id ? 'active' : ''} ${isVisible ? 'faq-item-slide-in' : ''}`}
-              style={{ 
-                animationDelay: `${0.8 + (index * 0.15)}s`,
-                transform: isVisible ? 'translateX(0)' : 'translateX(-100px)'
-              }}
-            >
-              <div 
-                className="faq-question" 
-                onClick={() => toggleQuestion(faq.id)}
+        <div className={`faq-content ${isFaqOpen ? 'expanded' : ''}`}>
+          <div className="faq-list">
+            {faqData.map((faq, index) => (
+              <div
+                key={faq.id}
+                className={`faq-item ${activeQuestion === faq.id ? 'active' : ''} ${isVisible ? 'faq-item-slide-in' : ''}`}
+                style={{ 
+                  animationDelay: `${0.8 + (index * 0.15)}s`,
+                  transform: isVisible ? 'translateX(0)' : 'translateX(-100px)'
+                }}
               >
-                <h3>{faq.question}</h3>
-                <div className={`faq-icon ${activeQuestion === faq.id ? 'rotated' : ''}`}>
-                  <FaChevronDown />
+                <div 
+                  className="faq-question" 
+                  onClick={() => toggleQuestion(faq.id)}
+                >
+                  <h3>{faq.question}</h3>
+                  <div className={`faq-icon ${activeQuestion === faq.id ? 'rotated' : ''}`}>
+                    <FaChevronDown />
+                  </div>
                 </div>
-              </div>
 
-              <div className={`faq-answer ${activeQuestion === faq.id ? 'expanded' : ''}`}>
-                <div className="faq-answer-content">
-                  <p>{faq.answer}</p>
+                <div className={`faq-answer ${activeQuestion === faq.id ? 'expanded' : ''}`}>
+                  <div className="faq-answer-content">
+                    <p>{faq.answer}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
