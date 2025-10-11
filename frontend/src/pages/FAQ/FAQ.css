@@ -50,6 +50,15 @@
   max-width: 1200px; /* Constrain content width */
   margin-left: auto;
   margin-right: auto;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.faq-header:hover {
+  background: rgba(0, 102, 255, 0.02);
+  transform: translateX(0) scale(1.02);
 }
 
 .faq-title {
@@ -59,6 +68,10 @@
   color: #0e0545;
   letter-spacing: -1px;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
 }
 
 .faq-title::after {
@@ -71,6 +84,34 @@
   height: 3px;
   background: linear-gradient(90deg, #081a35 0%, #041b35 100%);
   border-radius: 2px;
+}
+
+/* FAQ Section Icon */
+.faq-section-icon {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  color: #031530;
+  opacity: 0.8;
+  font-size: 1.5rem;
+}
+
+.faq-section-icon.rotated {
+  transform: rotate(180deg);
+  opacity: 1;
+  color: #071832;
+}
+
+/* FAQ Content Container */
+.faq-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0;
+}
+
+.faq-content.expanded {
+  max-height: 2000px;
+  opacity: 1;
+  transition: max-height 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease 0.2s;
 }
 
 .faq-subtitle {
@@ -258,7 +299,7 @@
   
   .faq-header {
     margin-bottom: 35px;
-    padding: 0 20px;
+    padding: 15px 20px;
   }
   
   .faq-list {
@@ -268,6 +309,11 @@
   
   .faq-title {
     font-size: 2.2rem;
+    gap: 15px;
+  }
+  
+  .faq-section-icon {
+    font-size: 1.3rem;
   }
   
   .faq-subtitle {
@@ -309,7 +355,7 @@
   }
   
   .faq-header {
-    padding: 0 15px;
+    padding: 10px 15px;
   }
   
   .faq-list {
@@ -318,6 +364,12 @@
   
   .faq-title {
     font-size: 2rem;
+    gap: 12px;
+    flex-direction: column;
+  }
+  
+  .faq-section-icon {
+    font-size: 1.2rem;
   }
   
   .faq-subtitle {
