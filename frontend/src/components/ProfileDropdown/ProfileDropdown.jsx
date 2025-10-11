@@ -13,7 +13,7 @@ import {
 
 
 const ProfileDropdown = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true); // Force dropdown to be open for debugging
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -45,11 +45,27 @@ const ProfileDropdown = () => {
   };
 
   const confirmLogout = () => {
-    // Call the logout function from auth context
-    authLogout();
-    setShowLogoutModal(false);
-    // Navigate to login page after logout
-    navigate('/login');
+    try {
+      // Clear any local storage data
+      localStorage.removeItem('cartItems');
+      localStorage.removeItem('userData');
+      
+      // Call the logout function from auth context
+      authLogout();
+      setShowLogoutModal(false);
+      
+      // Show success message (optional)
+      console.log('Successfully logged out');
+      
+      // Navigate to login page after logout
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Still proceed with logout even if there's an error
+      authLogout();
+      setShowLogoutModal(false);
+      navigate('/login');
+    }
   };
 
   const cancelLogout = () => {
@@ -69,9 +85,49 @@ const ProfileDropdown = () => {
       .toUpperCase();
   };
 
-  // Don't render if user is not authenticated or still loading
-  if (isLoading || !isAuthenticated || !user) {
-    return null;
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="profile-dropdown">
+        <div className="profile-button loading">
+          <div className="profile-avatar loading-avatar">
+            <div className="loading-spinner"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // For debugging - always show the dropdown even if not authenticated
+  // Comment this out once authentication is working properly
+  const forceShowDropdown = true;
+
+  // Use mock user data if no real user is available (for testing)
+  const mockUser = {
+    user_name: 'John Doe',
+    user_email: 'john.doe@campus.edu',
+    user_college: 'Campus University',
+    user_branch: 'Computer Science',
+    user_year: '3',
+    cartItems: 5,
+    orderCount: 12
+  };
+
+  const displayUser = user || mockUser;
+  const showAsAuthenticated = isAuthenticated || forceShowDropdown;
+
+  // Show login prompt if not authenticated and not forcing dropdown
+  if (!showAsAuthenticated) {
+    return (
+      <div className="profile-dropdown">
+        <Link to="/login" className="profile-button login-prompt">
+          <div className="profile-avatar">
+            <span className="avatar-initials">?</span>
+          </div>
+          <span className="login-text">Login</span>
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -81,12 +137,16 @@ const ProfileDropdown = () => {
         className="profile-button"
         onClick={toggleDropdown}
         aria-label="Profile menu"
+        style={{
+          border: isOpen ? '2px solid #ff6b6b' : '2px solid rgba(255,255,255,0.3)',
+          position: 'relative'
+        }}
       >
         <div className="profile-avatar">
-          {user.avatar ? (
-            <img src={user.avatar} alt={user.user_name || user.name} />
+          {displayUser.avatar ? (
+            <img src={displayUser.avatar} alt={displayUser.user_name || displayUser.name} />
           ) : (
-            <span className="avatar-initials">{getInitials(user.user_name || user.name)}</span>
+            <span className="avatar-initials">{getInitials(displayUser.user_name || displayUser.name)}</span>
           )}
         </div>
         <FaChevronDown 
@@ -100,15 +160,25 @@ const ProfileDropdown = () => {
           {/* User Info Section */}
           <div className="user-info">
             <div className="user-avatar-large">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.user_name || user.name} />
+              {displayUser.avatar ? (
+                <img src={displayUser.avatar} alt={displayUser.user_name || displayUser.name} />
               ) : (
-                <span className="avatar-initials-large">{getInitials(user.user_name || user.name)}</span>
+                <span className="avatar-initials-large">{getInitials(displayUser.user_name || displayUser.name)}</span>
               )}
             </div>
             <div className="user-details">
-              <h4>{user.user_name || user.name}</h4>
-              <p>{user.user_email || user.email}</p>
+              <h4>{displayUser.user_name || displayUser.name || 'Campus User'}</h4>
+              <p className="user-email">{displayUser.user_email || displayUser.email || 'user@campus.edu'}</p>
+              {displayUser.user_college && (
+                <p className="user-college">{displayUser.user_college}</p>
+              )}
+              {displayUser.user_branch && (
+                <p className="user-branch">{displayUser.user_branch} - Year {displayUser.user_year || 'N/A'}</p>
+              )}
+              <p className="user-status">
+                <span className="status-indicator"></span>
+                Online
+              </p>
             </div>
           </div>
 
@@ -132,8 +202,8 @@ const ProfileDropdown = () => {
             >
               <FaShoppingCart className="item-icon" />
               <span>Cart</span>
-              {user.cartItems && user.cartItems > 0 && (
-                <span className="badge">{user.cartItems}</span>
+              {displayUser.cartItems && displayUser.cartItems > 0 && (
+                <span className="badge">{displayUser.cartItems}</span>
               )}
             </Link>
 
@@ -184,8 +254,23 @@ const ProfileDropdown = () => {
               <p>Are you sure you want to logout?</p>
             </div>
             <div className="logout-modal-body">
+              <div className="logout-user-info">
+                <div className="logout-user-avatar">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.user_name || user.name} />
+                  ) : (
+                    <span className="logout-avatar-initials">{getInitials(user.user_name || user.name)}</span>
+                  )}
+                </div>
+                <div className="logout-user-details">
+                  <h4>{user.user_name || user.name}</h4>
+                  <p>{user.user_email || user.email}</p>
+                </div>
+              </div>
               <p>You will be signed out of your account and redirected to the login page.</p>
-              <p><strong>Note:</strong> Any unsaved changes will be lost.</p>
+              <div className="logout-warning">
+                <strong>⚠️ Note:</strong> Any unsaved changes will be lost.
+              </div>
             </div>
             <div className="logout-modal-actions">
               <button 

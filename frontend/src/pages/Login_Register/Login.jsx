@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
-import { loginUser, getCart } from '../../utils/auth';
+import { useAuth } from '../../hooks/useAuth.jsx';
+import { getCart } from '../../utils/auth';
 import './Login.css';
 import logo from "../../assets/logo.png";
 
 
 const Login = ({ onRegisterClick }) => {
   const navigate = useNavigate();
+  const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
@@ -61,10 +62,8 @@ const Login = ({ onRegisterClick }) => {
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
-      setLoading(true);
-      
       try {
-        const result = await loginUser(loginData.email, loginData.password);
+        const result = await login(loginData.email, loginData.password);
         
         if (result.success) {
           // Restore cart from localStorage (if any)
@@ -73,12 +72,11 @@ const Login = ({ onRegisterClick }) => {
           // Redirect back to Buy page
           navigate('/buy');
         } else {
-          setErrors({ general: result.message || 'Login failed. Please try again.' });
+          setErrors({ general: result.error || 'Login failed. Please try again.' });
         }
       } catch (error) {
+        console.error('Login error:', error);
         setErrors({ general: 'Network error. Please try again.' });
-      } finally {
-        setLoading(false);
       }
     }
   };
@@ -149,8 +147,8 @@ const Login = ({ onRegisterClick }) => {
             </button>
           </div>
 
-          <button onClick={handleSubmit} className="submit-btn" disabled={loading}>
-            {loading ? 'Signing In...' : 'Sign In'}
+          <button onClick={handleSubmit} className="submit-btn" disabled={isLoading}>
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </div>
 

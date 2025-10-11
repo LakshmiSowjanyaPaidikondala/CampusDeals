@@ -1,5 +1,5 @@
 // JWT Authentication Hook for React Frontend
-// Save this as: frontend/src/hooks/useAuth.js
+// Save this as: frontend/src/hooks/useAuth.jsx
 
 import { useState, useEffect, createContext, useContext } from 'react';
 
