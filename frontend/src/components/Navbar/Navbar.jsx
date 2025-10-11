@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import logo from "../../assets/logo.png";
-import ProfileDropdown from "../ProfileDropdown/ProfileDropdown";
+import ProfileDropdown from "../ProfileDropdown/ProfileDropdownDebug";
 import "./Navbar.css";
 
 const Navbar = () => {

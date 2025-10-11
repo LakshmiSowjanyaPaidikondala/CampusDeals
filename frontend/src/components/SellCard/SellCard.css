@@ -1,0 +1,385 @@
+.sell-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sell-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.sell-card-image-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+}
+
+.sell-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.sell-card:hover .sell-card-image {
+  transform: scale(1.1);
+}
+
+.sell-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+}
+
+.status-badge {
+  background: #10b981;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.owner-actions {
+  position: relative;
+}
+
+.actions-button {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #374151;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+
+.actions-button:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.actions-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  min-width: 160px;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.actions-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #374151;
+  transition: background 0.2s ease;
+}
+
+.action-item:hover {
+  background: #f3f4f6;
+}
+
+.action-item.delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.action-item.edit:hover {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.action-item.view:hover {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.sell-card-content {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sell-card-header {
+  margin-bottom: 1rem;
+}
+
+.sell-card-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+}
+
+.sell-card-price {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #059669;
+  margin: 0;
+  background: linear-gradient(135deg, #059669, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sell-card-details {
+  flex: 1;
+  margin-bottom: 1rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.detail-row.description {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 0.9rem;
+  color: #374151;
+  flex: 1;
+}
+
+.condition-badge {
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.description-text {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #4b5563;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seller-info {
+  font-weight: 500;
+  color: #4f46e5;
+}
+
+.sell-card-actions {
+  margin-top: auto;
+}
+
+.contact-seller-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  border: none;
+  padding: 0.875rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contact-seller-btn:hover {
+  background: linear-gradient(135deg, #4338ca, #6d28d9);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+}
+
+.owner-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.views-count,
+.inquiries-count {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Loading state */
+.sell-card.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.sell-card.loading .sell-card-image {
+  filter: grayscale(100%);
+}
+
+/* Error state */
+.sell-card.error {
+  border-color: #ef4444;
+  background: rgba(254, 242, 242, 0.95);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sell-card {
+    margin-bottom: 1rem;
+  }
+
+  .sell-card-image-container {
+    height: 180px;
+  }
+
+  .sell-card-content {
+    padding: 1.25rem;
+  }
+
+  .sell-card-name {
+    font-size: 1.1rem;
+  }
+
+  .sell-card-price {
+    font-size: 1.2rem;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .detail-label {
+    min-width: auto;
+    font-weight: 700;
+  }
+
+  .actions-menu {
+    right: -10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sell-card-overlay {
+    padding: 0.75rem;
+  }
+
+  .status-badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.65rem;
+  }
+
+  .actions-button {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .sell-card-content {
+    padding: 1rem;
+  }
+}
+
+/* Grid layout for sell cards */
+.sell-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  margin: 2rem auto;
+  max-width: 1400px;
+  padding: 0 1rem;
+}
+
+@media (max-width: 768px) {
+  .sell-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .sell-products-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+  }
+}
