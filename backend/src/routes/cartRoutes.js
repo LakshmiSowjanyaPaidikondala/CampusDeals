@@ -33,12 +33,12 @@ router.get('/', authenticateToken, getCartItems);
 router.put('/update', authenticateToken, updateCartItem);
 
 /**
- * @route   DELETE /api/cart/remove/:cartId
+ * @route   DELETE /api/cart/remove/:productId
  * @desc    Remove specific item from cart
  * @access  Private (requires authentication)
- * @params  cartId: cart item ID
+ * @params  productId: product ID to remove from cart
  */
-router.delete('/remove/:cartId', authenticateToken, removeFromCart);
+router.delete('/remove/:productId', authenticateToken, removeFromCart);
 
 /**
  * @route   DELETE /api/cart/clear

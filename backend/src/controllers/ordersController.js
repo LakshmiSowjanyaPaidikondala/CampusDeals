@@ -152,13 +152,13 @@ const createBuyOrder = async (req, res) => {
 
             // Verify cart item exists and belongs to user (mandatory cart table reference)
             const cartItem = db.prepare(`
-                SELECT c.cart_id, c.product_id, c.quantity as cart_quantity, c.user_id,
+                SELECT c.cart_id, c.product_id, c.quantity as cart_quantity,
                        p.product_name, p.product_variant, p.product_price, 
                        p.quantity as stock_quantity, p.product_code, p.product_images
                 FROM cart c
                 JOIN products p ON c.product_id = p.product_id
-                WHERE c.cart_id = ? AND c.user_id = ? AND c.product_id = ?
-            `).get(cart_id, user_id, product_id);
+                WHERE c.cart_id = ? AND c.product_id = ?
+            `).get(cart_id, product_id);
 
             if (!cartItem) {
                 return res.status(404).json({

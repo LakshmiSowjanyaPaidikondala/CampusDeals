@@ -39,7 +39,7 @@ const autoSeedDatabase = () => {
         // First, ensure tables exist
         ensureTablesExist();
 
-        // Pre-check if seeding is needed at all (with error handling)
+        // Check existing data counts
         let userCount = { count: 0 };
         let productCount = { count: 0 };
         
@@ -47,27 +47,32 @@ const autoSeedDatabase = () => {
             userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
             productCount = db.prepare('SELECT COUNT(*) as count FROM products').get();
         } catch (error) {
-            console.log('📊 Tables created, starting fresh seeding...');
+            console.log('📊 Tables created, proceeding with seeding...');
         }
         
-        // If both users and products exist, skip seeding entirely
-        if (userCount.count >= 5 && productCount.count > 0) {
-            console.log(`📊 Database already populated: ${userCount.count} users, ${productCount.count} products`);
-            console.log('✅ Auto-seeding skipped - data already exists');
-            return;
-        }
-
         console.log('🔍 Checking data requirements...');
         console.log(`📊 Current data: ${userCount.count} users, ${productCount.count} products`);
+        
+        // If data already exists, skip seeding entirely
+        if (userCount.count > 0 && productCount.count > 0) {
+            console.log('✅ Database already contains data - skipping auto-seeding');
+            console.log(`📊 Found: ${userCount.count} users, ${productCount.count} products`);
+            
+            // Show final status
+            const cartCount = db.prepare('SELECT COUNT(*) as count FROM cart').get();
+            const orderCount = db.prepare('SELECT COUNT(*) as count FROM orders').get();
+            console.log(`📊 Database Status: ${userCount.count} users, ${productCount.count} products, ${cartCount.count} cart items, ${orderCount.count} orders`);
+            console.log('🔑 Use existing credentials or create new ones via registration');
+            return;
+        }
+        
+        console.log('🌱 Database is empty or incomplete - starting seeding...');
 
         // Start transaction for optimal performance
         const transaction = db.transaction(() => {
             
-            // Check if users already exist
-            console.log(`📊 Current users: ${userCount.count}`);
-            
-            // Only insert users if table is empty or has few users
-            if (userCount.count < 5) {
+            // Only insert users if table is empty
+            if (userCount.count === 0) {
                 console.log('👥 Inserting sample users...');
                 
                 // Insert Users (Buyers, Sellers, and Admin)
@@ -100,10 +105,7 @@ const autoSeedDatabase = () => {
                 console.log('ℹ️ Users already exist, skipping user insertion');
             }
             
-            // Check if products already exist
-            console.log(`📊 Current products: ${productCount.count}`);
-            
-            // Insert products (this will use our updated product code format)
+            // Only insert products if table is empty
             if (productCount.count === 0) {
                 console.log('📦 Inserting sample products...');
                 

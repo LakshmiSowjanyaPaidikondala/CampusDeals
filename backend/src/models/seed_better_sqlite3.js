@@ -36,7 +36,7 @@ class BetterSQLiteSeeder {
         `);
 
         this.insertCartItem = this.db.prepare(`
-            INSERT INTO cart (user_id, product_id, quantity) 
+            INSERT INTO cart (cart_id, product_id, quantity) 
             VALUES (?, ?, ?)
         `);
 
