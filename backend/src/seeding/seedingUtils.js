@@ -105,7 +105,7 @@ const seedSampleCart = (userId = 1, productIds = [1, 2, 3]) => {
         
         const transaction = db.transaction(() => {
             const insertCart = db.prepare(`
-                INSERT OR IGNORE INTO cart (user_id, product_id, quantity) 
+                INSERT OR IGNORE INTO cart (cart_id, product_id, quantity) 
                 VALUES (?, ?, ?)
             `);
             

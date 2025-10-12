@@ -8,14 +8,9 @@ PRAGMA synchronous = NORMAL;
 PRAGMA cache_size = 1000;
 PRAGMA temp_store = memory;
 
--- Drop tables if they exist (reverse order to respect foreign keys)
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS cart;  
-DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS users;
-
+-- Create tables only if they don't exist (preserve existing data)
 -- Users table
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_name TEXT NOT NULL,
     user_email TEXT UNIQUE NOT NULL,
@@ -33,7 +28,7 @@ CREATE TABLE users (
 );
 
 -- Products table
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
     product_id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_name TEXT CHECK(product_name IN ('drafter','white_lab_coat','brown_lab_coat','calculator','chartbox')) NOT NULL,
     product_variant TEXT CHECK(product_variant IN ('premium_drafter','standard_drafter','budget_drafter', 'S','M','L','XL','XXL', 'MS','ES','ES-Plus','chart holder')) NOT NULL,
@@ -46,18 +41,18 @@ CREATE TABLE products (
 );
 
 -- Cart table
-CREATE TABLE cart (
-    cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS cart (
+    cart_id INTEGER NOT NULL,
     product_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    PRIMARY KEY (cart_id, product_id),
+    FOREIGN KEY (cart_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
 -- Orders table
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     serial_no TEXT UNIQUE NOT NULL,
@@ -75,7 +70,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(user_email);
 CREATE INDEX IF NOT EXISTS idx_products_name ON products(product_name);
 CREATE INDEX IF NOT EXISTS idx_products_code ON products(product_code);
 CREATE INDEX IF NOT EXISTS idx_products_variant ON products(product_variant);
-CREATE INDEX IF NOT EXISTS idx_cart_user ON cart(user_id);
+CREATE INDEX IF NOT EXISTS idx_cart_cart ON cart(cart_id);
 CREATE INDEX IF NOT EXISTS idx_cart_product ON cart(product_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_serial ON orders(serial_no);

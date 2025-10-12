@@ -93,7 +93,7 @@ app.post("/api/cart", requireAuthForBuy, validateTransactionData(['product_id', 
     const { product_id, quantity } = req.body;
     const user_id = req.user.userId;
     
-    const [result] = run("INSERT INTO cart (user_id, product_id, quantity) VALUES (?,?,?)", [user_id, product_id, quantity]);
+    const [result] = run("INSERT INTO cart (cart_id, product_id, quantity) VALUES (?,?,?)", [user_id, product_id, quantity]);
     
     res.json({ 
       success: true,
