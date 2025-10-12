@@ -2,9 +2,10 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const config = require('./environment');
 
 // Database file path
-const dbPath = process.env.DB_PATH || path.join(__dirname, '../../database/campusdeals.db');
+const dbPath = config.database.path || path.join(__dirname, '../../database/campusdeals.db');
 
 // Ensure database directory exists
 const dbDir = path.dirname(dbPath);
@@ -15,7 +16,9 @@ if (!fs.existsSync(dbDir)) {
 // Create better-sqlite3 connection
 let db;
 try {
-  db = new Database(dbPath, { verbose: console.log });
+  // Use verbose logging based on config
+  const verboseLogging = config.database.verbose ? console.log : null;
+  db = new Database(dbPath, { verbose: verboseLogging });
   console.log('Connected to SQLite database');
   
   // Enable foreign keys
