@@ -126,7 +126,7 @@ const Sell = () => {
 
   return (
     <div className="sell-page">
-      <h1 className="sell-title">Available Products</h1>
+      <h1 className="sell-title">The Student Seller Hub</h1>
 
       {/* 🔍 Search Bar */}
       <div className="search-bar">
