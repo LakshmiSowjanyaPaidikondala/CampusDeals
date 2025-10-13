@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -32,6 +33,14 @@ const { db, query, run } = require('./src/config/db');
   try {
     console.log("✅ SQLite Database Connected...");
     console.log("📁 Database location: ./database/campusdeals.db");
+    
+    // Verify JWT_SECRET is loaded
+    if (process.env.JWT_SECRET) {
+      console.log("✅ JWT_SECRET loaded successfully");
+    } else {
+      console.error("❌ JWT_SECRET not found in environment variables");
+      console.error("🔍 Available JWT-related env vars:", Object.keys(process.env).filter(key => key.includes('JWT')));
+    }
   } catch (err) {
     console.error("❌ SQLite Connection Error:", err);
     process.exit(1);

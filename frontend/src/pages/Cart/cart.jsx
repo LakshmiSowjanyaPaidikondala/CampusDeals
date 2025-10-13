@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check } from 'lucide-react';
 import './cart.css';
-import Drafter from "../assets/Drafter.jpeg";
-import Calculator from "../assets/Calci.jpg";
-import MechanicalCoat from "../assets/Mechanical.jpeg";
-import ChartHolder from "../assets/chart holder.jpg";
-import Chemical from "../assets/Chemical.jpeg";
+import Drafter from "../../assets/Drafter.jpeg";
+import Calculator from "../../assets/Calci.jpg";
+import MechanicalCoat from "../../assets/Mechanical.jpeg";
+import ChartHolder from "../../assets/chart holder.jpg";
+import Chemical from "../../assets/Chemical.jpeg";
 
 
 

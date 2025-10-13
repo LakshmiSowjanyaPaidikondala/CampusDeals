@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home/Home";
 import Buy from "./pages/Buy/Buy";
 import Sell from "./pages/Sell/Sell";
+import Cart from "./pages/Cart/cart";
 import TipsX from "./pages/Tips/TipsX";
 import Login from "./pages/Login_Register/Login";
 import Register from "./pages/Login_Register/Register";
@@ -32,6 +33,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/buy" element={<Buy />} />
             <Route path="/sell" element={<Sell />} />
+            <Route path="/cart" element={<Cart />} />
             <Route path="/tips" element={<TipsX />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
