@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
-<<<<<<< HEAD
-=======
 import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
->>>>>>> 855ae4c163c5ae2e4e6f8e63b9be2fa6bc8a2292
 import ProductCard from "../../components/ProductCard/ProductCard";
 import BuyForm from "../UserForm/UserForm";
 import "./Buy.css";
