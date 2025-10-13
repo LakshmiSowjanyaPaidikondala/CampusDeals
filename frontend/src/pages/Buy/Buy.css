@@ -187,6 +187,98 @@
 }
 
 /* Responsive Design */
+/* Loading and Error States */
+.loading-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.loading-state p {
+  color: #fff;
+  font-size: 1.2rem;
+  margin: 0;
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.retry-button {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.retry-button:hover {
+  background: linear-gradient(135deg, #2980b9, #3498db);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #fff;
+  margin-top: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.no-results p {
+  margin: 0.5rem 0;
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+.clear-search {
+  background: none;
+  border: none;
+  color: #3498db;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  margin: 0 0.2rem;
+}
+
+.clear-search:hover {
+  color: #2980b9;
+}
+
 @media (max-width: 768px) {
   .buy-page {
     padding: 1rem;
@@ -209,5 +301,10 @@
   .buy-button {
     padding: 0.8rem 2rem;
     font-size: 1rem;
+  }
+  
+  .loading-state, .error-state {
+    padding: 2rem 1rem;
+    margin: 1.5rem auto;
   }
 }
