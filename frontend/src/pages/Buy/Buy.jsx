@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaSearch } from "react-icons/fa";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import BuyForm from "../UserForm/UserForm";
 import { isAuthenticated, saveCart, getCart } from "../../utils/auth";
@@ -126,16 +127,19 @@ const Buy = () => {
 
   return (
     <div className="buy-page">
-      <h1 className="buy-title">Available Products</h1>
+      <h1 className="buy-title">Budget Buys</h1>
 
       {/* 🔍 Search Bar */}
       <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search for products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <div className="search-input-container">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search for products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
 
       {/* 🛒 Product Grid */}
