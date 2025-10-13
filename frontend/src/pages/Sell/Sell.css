@@ -67,6 +67,17 @@
   margin-bottom: 2rem;
 }
 
+.search-icon {
+  position: absolute;
+  left: 345px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 1.1rem;
+  z-index: 2;
+  transition: color 0.3s ease;
+}
+
 .search-bar input {
   width: 400px;
   max-width: 90%;
