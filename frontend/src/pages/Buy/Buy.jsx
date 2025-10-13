@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
+=======
+import { useNavigate } from "react-router-dom";
+import { FaSearch } from "react-icons/fa";
+>>>>>>> 855ae4c163c5ae2e4e6f8e63b9be2fa6bc8a2292
 import ProductCard from "../../components/ProductCard/ProductCard";
 import BuyForm from "../UserForm/UserForm";
 import "./Buy.css";
@@ -213,16 +218,19 @@ const Buy = () => {
 
   return (
     <div className="buy-page">
-      <h1 className="buy-title">Available Products</h1>
+      <h1 className="buy-title">Budget Buys</h1>
 
       {/* 🔍 Search Bar */}
       <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search for products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <div className="search-input-container">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search for products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
 
       {/* 🛒 Product Grid */}
