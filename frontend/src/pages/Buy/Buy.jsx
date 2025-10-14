@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import BuyForm from "../UserForm/UserForm";
+import { useCart } from "../../contexts/CartContext";
 import "./Buy.css";
 
 import calciImg from "../../assets/Calci.jpg";
@@ -16,6 +17,8 @@ const Buy = () => {
   const [groupedProducts, setGroupedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { addToCart, cartItems } = useCart();
+  const navigate = useNavigate();
 
   const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -183,30 +186,36 @@ const Buy = () => {
     fetchProducts();
   }, []);
 
-  const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
 
   const handleAddToCart = (product) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
+    // Add product with proper structure for cart
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      variant: product.variant,
+      price: product.price,
+      originalPrice: product.price * 1.2, // Add some savings
+      stock: product.stock,
+      inStock: product.stock,
+      productCode: product.productCode,
+      image: product.image,
+      description: `${product.name} - ${product.variant}`,
+      seller: 'Campus Deals',
+      category: product.name
+    };
+    
+    addToCart(cartItem);
+    
+    // Optional: Show a toast notification
+    alert(`${product.name} (${product.variant}) added to cart!`);
   };
 
   const handleProceed = () => {
-    if (cart.length > 0) {
-      setShowForm(true);
+    if (cartItems.length > 0) {
+      navigate('/cart');
     }
-  };
-
-  const handleCloseForm = () => {
-    setShowForm(false);
   };
 
   const filteredProducts = groupedProducts.filter((p) =>
@@ -262,14 +271,14 @@ const Buy = () => {
         <button
           className="buy-button"
           onClick={handleProceed}
-          disabled={cart.length === 0}
+          disabled={cartItems.length === 0}
         >
-          Proceed to Buy ({cart.length} items)
+          Go to Cart ({cartItems.length} items)
         </button>
       </div>
 
       {/* 📝 Buyer Form as Modal */}
-      {/*{showForm && <BuyForm cart={cart} onClose={handleCloseForm} />}*/}
+      {/*{showForm && <BuyForm cart={cartItems} onClose={handleCloseForm} />}*/}
       
     </div>
   );
