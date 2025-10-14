@@ -376,6 +376,18 @@ const clearCart = (req, res) => {
     try {
         const user_id = req.user.userId;
         
+        // Get current cart items count before clearing
+        const currentItems = db.prepare(`
+            SELECT COUNT(*) as count FROM cart WHERE cart_id = ?
+        `).get(user_id);
+        
+        if (currentItems.count === 0) {
+            return res.status(200).json({
+                success: true,
+                message: 'Cart is already empty'
+            });
+        }
+        
         // Remove all cart items for user (cart_id = user_id)
         const result = db.prepare(`
             DELETE FROM cart 
@@ -386,7 +398,11 @@ const clearCart = (req, res) => {
         
         res.status(200).json({
             success: true,
-            message: `Cart cleared successfully. ${result.changes} items removed.`
+            message: `Cart cleared successfully. ${result.changes} items removed.`,
+            data: {
+                itemsRemoved: result.changes,
+                clearedAt: new Date().toISOString()
+            }
         });
         
     } catch (error) {
@@ -398,10 +414,210 @@ const clearCart = (req, res) => {
     }
 };
 
+/**
+ * Batch update multiple cart items
+ * PUT /api/cart/batch-update
+ */
+const batchUpdateCartItems = (req, res) => {
+    try {
+        const { items } = req.body; // Array of {product_id, quantity}
+        const user_id = req.user.userId;
+        
+        // Validate input
+        if (!Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Items array is required and must not be empty'
+            });
+        }
+        
+        // Validate each item
+        for (const item of items) {
+            if (!item.product_id || !item.quantity || !Number.isInteger(item.quantity) || item.quantity <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Each item must have valid product_id and positive quantity'
+                });
+            }
+        }
+        
+        const results = [];
+        const errors = [];
+        
+        // Process each item
+        for (const item of items) {
+            try {
+                // Check if cart item exists
+                const cartItem = db.prepare(`
+                    SELECT c.cart_id, c.product_id, p.product_name, p.product_variant, p.product_price, p.quantity as stock_quantity
+                    FROM cart c
+                    INNER JOIN products p ON c.product_id = p.product_id
+                    WHERE c.cart_id = ? AND c.product_id = ?
+                `).get(user_id, item.product_id);
+                
+                if (!cartItem) {
+                    errors.push({
+                        product_id: item.product_id,
+                        error: 'Cart item not found'
+                    });
+                    continue;
+                }
+                
+                // Check stock availability
+                if (item.quantity > cartItem.stock_quantity) {
+                    errors.push({
+                        product_id: item.product_id,
+                        error: `Insufficient stock. Only ${cartItem.stock_quantity} items available`
+                    });
+                    continue;
+                }
+                
+                // Update quantity
+                const result = db.prepare(`
+                    UPDATE cart 
+                    SET quantity = ?, created_at = CURRENT_TIMESTAMP
+                    WHERE cart_id = ? AND product_id = ?
+                `).run(item.quantity, user_id, item.product_id);
+                
+                if (result.changes > 0) {
+                    results.push({
+                        product_id: item.product_id,
+                        product_name: cartItem.product_name,
+                        quantity: item.quantity,
+                        success: true
+                    });
+                }
+                
+            } catch (itemError) {
+                errors.push({
+                    product_id: item.product_id,
+                    error: itemError.message
+                });
+            }
+        }
+        
+        console.log(`Batch updated ${results.length} cart items for user ${user_id}, ${errors.length} errors`);
+        
+        const responseStatus = errors.length === 0 ? 200 : (results.length > 0 ? 207 : 400); // 207 = Multi-Status
+        
+        res.status(responseStatus).json({
+            success: results.length > 0,
+            message: `Batch update completed. ${results.length} items updated, ${errors.length} errors.`,
+            data: {
+                updated: results,
+                errors: errors,
+                summary: {
+                    totalItems: items.length,
+                    successful: results.length,
+                    failed: errors.length
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Batch update cart error:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error during batch update'
+        });
+    }
+};
+
+/**
+ * Batch remove multiple cart items
+ * DELETE /api/cart/batch-remove
+ */
+const batchRemoveCartItems = (req, res) => {
+    try {
+        const { product_ids } = req.body; // Array of product IDs
+        const user_id = req.user.userId;
+        
+        // Validate input
+        if (!Array.isArray(product_ids) || product_ids.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'product_ids array is required and must not be empty'
+            });
+        }
+        
+        const results = [];
+        const errors = [];
+        
+        // Process each product ID
+        for (const product_id of product_ids) {
+            try {
+                // Check if cart item exists
+                const cartItem = db.prepare(`
+                    SELECT c.cart_id, p.product_name, p.product_variant
+                    FROM cart c
+                    INNER JOIN products p ON c.product_id = p.product_id
+                    WHERE c.cart_id = ? AND c.product_id = ?
+                `).get(user_id, product_id);
+                
+                if (!cartItem) {
+                    errors.push({
+                        product_id: product_id,
+                        error: 'Cart item not found'
+                    });
+                    continue;
+                }
+                
+                // Remove item
+                const result = db.prepare(`
+                    DELETE FROM cart 
+                    WHERE cart_id = ? AND product_id = ?
+                `).run(user_id, product_id);
+                
+                if (result.changes > 0) {
+                    results.push({
+                        product_id: product_id,
+                        product_name: cartItem.product_name,
+                        product_variant: cartItem.product_variant,
+                        success: true
+                    });
+                }
+                
+            } catch (itemError) {
+                errors.push({
+                    product_id: product_id,
+                    error: itemError.message
+                });
+            }
+        }
+        
+        console.log(`Batch removed ${results.length} cart items for user ${user_id}, ${errors.length} errors`);
+        
+        const responseStatus = errors.length === 0 ? 200 : (results.length > 0 ? 207 : 400);
+        
+        res.status(responseStatus).json({
+            success: results.length > 0,
+            message: `Batch removal completed. ${results.length} items removed, ${errors.length} errors.`,
+            data: {
+                removed: results,
+                errors: errors,
+                summary: {
+                    totalItems: product_ids.length,
+                    successful: results.length,
+                    failed: errors.length
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Batch remove cart error:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error during batch removal'
+        });
+    }
+};
+
 module.exports = {
     addToCart,
     getCartItems,
     updateCartItem,
     removeFromCart,
-    clearCart
+    clearCart,
+    batchUpdateCartItems,
+    batchRemoveCartItems
 };

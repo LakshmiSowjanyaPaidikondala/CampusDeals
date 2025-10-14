@@ -1,5 +1,7 @@
 const { db, run, query } = require('../config/db');
-const { generateToken, hashPassword, comparePassword } = require('../utils/auth');
+const { generateToken, generateTokenPair, hashPassword, comparePassword } = require('../utils/auth');
+const { blacklistToken } = require('../utils/tokenBlacklist');
+const { validateRefreshToken, revokeRefreshToken, revokeUserRefreshTokens } = require('../utils/refreshToken');
 const { 
   validateEmail, 
   validatePassword, 
@@ -107,13 +109,26 @@ const signup = async (req, res) => {
       ]
     );
 
-    // Generate JWT token
-    const token = generateToken(result.insertId, user_email, role);
+    // Generate token pair (access + refresh)
+    const tokenPair = await generateTokenPair(result.insertId, user_email, role);
+    
+    if (!tokenPair.success) {
+      return res.status(500).json({
+        success: false,
+        message: '❌ Failed to generate authentication tokens',
+        error: tokenPair.error
+      });
+    }
 
     res.status(201).json({
       success: true,
       message: '✅ User registered successfully',
-      token,
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.refreshToken,
+      tokenExpiry: {
+        accessToken: tokenPair.accessTokenExpiresIn,
+        refreshToken: tokenPair.refreshTokenExpiresIn
+      },
       user: {
         userId: result.insertId,
         name: user_name,
@@ -121,8 +136,10 @@ const signup = async (req, res) => {
         role: role
       },
       instructions: {
-        message: 'Save this token for future requests',
-        usage: 'Include token in Authorization header as: Bearer YOUR_TOKEN'
+        message: 'Save both tokens for authentication',
+        accessToken: 'Short-lived token for API requests',
+        refreshToken: 'Short-lived token for getting new access tokens (15 minutes)',
+        usage: 'Include access token in Authorization header as: Bearer YOUR_ACCESS_TOKEN'
       }
     });
 
@@ -198,13 +215,26 @@ const login = async (req, res) => {
       });
     }
 
-    // Generate JWT token for successful login
-    const token = generateToken(user.user_id, user.user_email, user.role);
+    // Generate token pair for successful login
+    const tokenPair = await generateTokenPair(user.user_id, user.user_email, user.role);
+    
+    if (!tokenPair.success) {
+      return res.status(500).json({
+        success: false,
+        message: '❌ Failed to generate authentication tokens',
+        error: tokenPair.error
+      });
+    }
 
     res.json({
       success: true,
       message: '✅ Login successful',
-      token,
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.refreshToken,
+      tokenExpiry: {
+        accessToken: tokenPair.accessTokenExpiresIn,
+        refreshToken: tokenPair.refreshTokenExpiresIn
+      },
       user: {
         userId: user.user_id,
         name: user.user_name,
@@ -218,7 +248,9 @@ const login = async (req, res) => {
       },
       instructions: {
         message: 'You can now access buy/sell features',
-        usage: 'Include token in Authorization header as: Bearer YOUR_TOKEN'
+        accessToken: 'Use for API requests (expires in 15 minutes)',
+        refreshToken: 'Use to get new access tokens (expires in 15 minutes)',
+        usage: 'Include access token in Authorization header as: Bearer YOUR_ACCESS_TOKEN'
       }
     });
 
@@ -335,9 +367,131 @@ const validateUserForTransaction = async (req, res) => {
   }
 };
 
+// Logout functionality with token blacklisting and refresh token revocation
+const logout = async (req, res) => {
+  try {
+    // Get user info from the authenticated request
+    const userId = req.user?.userId;
+    const userEmail = req.user?.email;
+    const token = req.token; // Access token attached by auth middleware
+    const { refreshToken } = req.body; // Refresh token from request body
+    
+    // Blacklist the current access token to prevent reuse
+    if (token) {
+      blacklistToken(token);
+    }
+    
+    // Revoke the refresh token if provided
+    if (refreshToken) {
+      await revokeRefreshToken(refreshToken);
+    }
+    
+    // Optionally revoke all refresh tokens for this user (more secure)
+    if (userId) {
+      await revokeUserRefreshTokens(userId);
+    }
+    
+    console.log(`🚪 User logout: ${userEmail || 'Unknown'} (ID: ${userId || 'Unknown'})`);
+    
+    res.status(200).json({
+      success: true,
+      message: '✅ Logout successful',
+      data: {
+        userId: userId,
+        email: userEmail,
+        loggedOutAt: new Date().toISOString(),
+        accessTokenInvalidated: !!token,
+        refreshTokenRevoked: !!refreshToken,
+        instruction: 'Both tokens have been invalidated. Please remove from client storage.'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: '❌ Internal server error during logout',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Please try again later'
+    });
+  }
+};
+
+// Refresh access token using refresh token
+const refreshAccessToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: '❌ Refresh token is required'
+      });
+    }
+    
+    // Validate the refresh token
+    const validation = await validateRefreshToken(refreshToken);
+    
+    if (!validation.valid) {
+      return res.status(401).json({
+        success: false,
+        message: '❌ Invalid or expired refresh token',
+        error: validation.message
+      });
+    }
+    
+    // Generate new token pair
+    const tokenPair = await generateTokenPair(
+      validation.userId, 
+      validation.email, 
+      validation.role
+    );
+    
+    if (!tokenPair.success) {
+      return res.status(500).json({
+        success: false,
+        message: '❌ Failed to generate new tokens',
+        error: tokenPair.error
+      });
+    }
+    
+    // Revoke the old refresh token
+    await revokeRefreshToken(refreshToken);
+    
+    res.json({
+      success: true,
+      message: '✅ Tokens refreshed successfully',
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.refreshToken,
+      tokenExpiry: {
+        accessToken: tokenPair.accessTokenExpiresIn,
+        refreshToken: tokenPair.refreshTokenExpiresIn
+      },
+      user: {
+        userId: validation.userId,
+        email: validation.email,
+        role: validation.role
+      },
+      instructions: {
+        message: 'Use new tokens for future requests',
+        note: 'Old refresh token has been revoked'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: '❌ Internal server error during token refresh',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Please try again later'
+    });
+  }
+};
+
 module.exports = {
   signup,
   login,
+  logout,
+  refreshAccessToken,
   getProfile,
   validateUserForTransaction,
   // Keep backward compatibility
