@@ -149,31 +149,95 @@ const Buy = () => {
     try {
       setLoading(true);
       console.log('🚀 Fetching products from API...');
+      console.log('🔗 API URL:', `${API_BASE_URL}/products`);
       
-      const response = await fetch(`${API_BASE_URL}/products`);
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+      });
+      
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch products: ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('📦 Raw API response:', data);
       
       if (data.success && data.products) {
-        console.log('✅ Products fetched:', data.products);
+        console.log('✅ Products fetched:', data.products.length, 'products');
         setProducts(data.products);
         
-        // Group products by name for variant display
-        const grouped = groupProductsByName(data.products);
-        console.log('✅ Grouped products:', grouped);
-        setGroupedProducts(grouped);
+        // Group products by name with all their variants
+        const groupedProductsList = groupProductsByName(data.products);
+        console.log('✅ Grouped products:', groupedProductsList.length, 'product groups');
+        console.log('📊 Product grouping details:', groupedProductsList.map(p => ({ name: p.name, variants: p.variants.length })));
+        setGroupedProducts(groupedProductsList);
         
         setError(null);
       } else {
-        throw new Error(data.message || 'Failed to load products');
+        throw new Error(data.message || 'Invalid API response format');
       }
     } catch (error) {
       console.error('❌ Error fetching products:', error);
-      setError(`Failed to load products: ${error.message}`);
+      
+      // More specific error messages
+      let errorMessage = 'Failed to load products';
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorMessage = 'Cannot connect to server. Loading sample data instead.';
+        console.log('🔄 Loading fallback data...');
+        
+        // Load fallback data when API is unavailable - All 17 products from database
+        const fallbackProducts = [
+          // Drafter products
+          { product_id: 1, product_name: 'drafter', product_variant: 'premium_drafter', product_price: 400, quantity: 15, product_code: 'DFT-P', product_images: 'Drafter.jpeg' },
+          { product_id: 2, product_name: 'drafter', product_variant: 'standard_drafter', product_price: 350, quantity: 25, product_code: 'DFT-S', product_images: 'Drafter.jpeg' },
+          { product_id: 3, product_name: 'drafter', product_variant: 'budget_drafter', product_price: 300, quantity: 30, product_code: 'DFT-B', product_images: 'Drafter.jpeg' },
+          
+          // White lab coat products
+          { product_id: 4, product_name: 'white_lab_coat', product_variant: 'S', product_price: 230, quantity: 12, product_code: 'WLC-S', product_images: 'Chemical.jpeg' },
+          { product_id: 5, product_name: 'white_lab_coat', product_variant: 'M', product_price: 230, quantity: 20, product_code: 'WLC-M', product_images: 'Chemical.jpeg' },
+          { product_id: 6, product_name: 'white_lab_coat', product_variant: 'L', product_price: 230, quantity: 18, product_code: 'WLC-L', product_images: 'Chemical.jpeg' },
+          { product_id: 7, product_name: 'white_lab_coat', product_variant: 'XL', product_price: 230, quantity: 10, product_code: 'WLC-XL', product_images: 'Chemical.jpeg' },
+          { product_id: 8, product_name: 'white_lab_coat', product_variant: 'XXL', product_price: 230, quantity: 5, product_code: 'WLC-XXL', product_images: 'Chemical.jpeg' },
+          
+          // Brown lab coat products
+          { product_id: 9, product_name: 'brown_lab_coat', product_variant: 'S', product_price: 230, quantity: 8, product_code: 'BLC-S', product_images: 'Mechanical.jpeg' },
+          { product_id: 10, product_name: 'brown_lab_coat', product_variant: 'M', product_price: 230, quantity: 15, product_code: 'BLC-M', product_images: 'Mechanical.jpeg' },
+          { product_id: 11, product_name: 'brown_lab_coat', product_variant: 'L', product_price: 230, quantity: 12, product_code: 'BLC-L', product_images: 'Mechanical.jpeg' },
+          { product_id: 12, product_name: 'brown_lab_coat', product_variant: 'XL', product_price: 230, quantity: 7, product_code: 'BLC-XL', product_images: 'Mechanical.jpeg' },
+          { product_id: 13, product_name: 'brown_lab_coat', product_variant: 'XXL', product_price: 230, quantity: 3, product_code: 'BLC-XXL', product_images: 'Mechanical.jpeg' },
+          
+          // Calculator products
+          { product_id: 14, product_name: 'calculator', product_variant: 'MS', product_price: 950, quantity: 20, product_code: 'CALC-MS', product_images: 'Calci.jpg' },
+          { product_id: 15, product_name: 'calculator', product_variant: 'ES', product_price: 950, quantity: 25, product_code: 'CALC-ES', product_images: 'Calci.jpg' },
+          { product_id: 16, product_name: 'calculator', product_variant: 'ES-Plus', product_price: 1000, quantity: 15, product_code: 'CALC-ES-Plus', product_images: 'Calci.jpg' },
+          
+          // Chart box product
+          { product_id: 17, product_name: 'chartbox', product_variant: 'chart holder', product_price: 60, quantity: 20, product_code: 'CRT', product_images: 'chart holder.jpg' }
+        ];
+        
+        setProducts(fallbackProducts);
+        // Group fallback products by name with all their variants
+        const groupedFallbackProducts = groupProductsByName(fallbackProducts);
+        console.log('✅ Grouped fallback products:', groupedFallbackProducts.length, 'product groups');
+        console.log('📊 Fallback grouping details:', groupedFallbackProducts.map(p => ({ name: p.name, variants: p.variants.length })));
+        setGroupedProducts(groupedFallbackProducts);
+        setError(null); // Clear error when fallback works
+        return;
+      } else if (error.message.includes('HTTP')) {
+        errorMessage = `Server error: ${error.message}`;
+      } else {
+        errorMessage = `${errorMessage}: ${error.message}`;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
