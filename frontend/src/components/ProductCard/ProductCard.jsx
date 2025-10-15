@@ -2,15 +2,17 @@ import React, { useState, useRef, useEffect } from "react";
 import "./ProductCard.css";
 
 const ProductCard = ({ product, onAddToCart }) => {
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Drafter options
-  const drafterOptions = [
-    { type: "Budget Friendly", price: 300, description: "Basic functionality" },
-    { type: "Standard", price: 350, description: "Good quality & durability" },
-    { type: "Premium", price: 400, description: "Professional grade" },
-  ];
+  // Set the first available variant as default
+  useEffect(() => {
+    if (product.variants && product.variants.length > 0) {
+      const firstAvailableVariant = product.variants.find(v => v.stock > 0) || product.variants[0];
+      setSelectedVariant(firstAvailableVariant);
+    }
+  }, [product.variants]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -26,82 +28,257 @@ const ProductCard = ({ product, onAddToCart }) => {
     };
   }, []);
 
-  const handleAddToCart = () => {
-    if (product.name === "drafter" || product.name?.includes("drafter")) {
-      setShowDropdown(!showDropdown);
-    } else {
-      onAddToCart(product); // ✅ send product to Buy.jsx
-    }
-  };
-
-  const handleOptionSelect = (option) => {
-    const selectedDrafter = {
-      ...product,
-      name: `${option.type} Drafter`,
-      price: option.price,
-      id: `${product.id}-${option.type.toLowerCase().replace(/\s+/g, '-')}`,
-    };
-    onAddToCart(selectedDrafter); // ✅ send selected option
+  const handleVariantSelect = (variant) => {
+    setSelectedVariant(variant);
     setShowDropdown(false);
   };
 
-  const isDrafter = product.name === "drafter" || product.name?.includes("drafter");
+  const handleAddToCart = () => {
+    if (!selectedVariant) {
+      alert('Please select a variant first');
+      return;
+    }
+
+    const cartItem = {
+      id: selectedVariant.id,
+      name: product.name,
+      variant: selectedVariant.variant,
+      price: selectedVariant.price,
+      stock: selectedVariant.stock,
+      productCode: selectedVariant.productCode,
+      image: product.image
+    };
+    
+    onAddToCart(cartItem);
+  };
+
+  const formatVariantName = (variant) => {
+    // Format variant names for better display
+    const formatMap = {
+      'premium_drafter': 'Premium Drafter',
+      'standard_drafter': 'Standard Drafter', 
+      'budget_drafter': 'Budget Drafter',
+      'MS': 'MS Calculator',
+      'ES': 'ES Calculator',
+      'ES-Plus': 'ES-Plus Calculator',
+      'chart holder': 'Chart Holder'
+    };
+    return formatMap[variant] || variant.toUpperCase();
+  };
+
+  const getVariantDescription = (variant) => {
+    const descriptions = {
+      'premium_drafter': 'Professional grade with precision accuracy',
+      'standard_drafter': 'Good quality and durable for regular use',
+      'budget_drafter': 'Basic functionality at affordable price',
+      'MS': 'Basic scientific calculator for simple calculations',
+      'ES': 'Enhanced scientific calculator with more functions',
+      'ES-Plus': 'Advanced scientific calculator with programming features',
+      'S': 'Small size - fits most students',
+      'M': 'Medium size - comfortable fit',
+      'L': 'Large size - spacious and comfortable',
+      'XL': 'Extra Large size',
+      'XXL': 'Double Extra Large size',
+      'chart holder': 'Sturdy holder for organizing technical drawings'
+    };
+    return descriptions[variant] || 'Quality product for student use';
+  };
+
+  // Check if product has multiple variants
+  const hasMultipleVariants = product.variants && product.variants.length > 1;
 
   return (
-    <div className={`product-card ${product.loading ? 'loading' : ''} ${product.error ? 'error' : ''} ${showDropdown ? 'dropdown-active' : ''}`}>
-      <img 
-        src={product.image} 
-        alt={product.name} 
-        className="product-image"
-        loading="lazy"
-      />
-      <div className="product-details">
-        <h3 className="product-name">
-          {"Product: " + (product.name || "Unknown Product")}
-          {product.variant && ` (${product.variant})`}
-        </h3>
-        <p className="product-price">{"Price: ₹" + (product.price || 0)}</p>
-        <p className={`product-stock ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}>
-          {product.stock > 0 ? `${product.stock} items left` : 'Out of stock'}
-        </p>
+    <div className={`product-card ${showDropdown ? 'dropdown-active' : ''}`}>
+      <div className="product-image-container">
+        <img 
+          src={product.image} 
+          alt={product.name} 
+          className="product-image"
+          loading="lazy"
+        />
       </div>
-
-      {isDrafter ? (
-        <div className="drafter-dropdown" ref={dropdownRef}>
-          <button 
-            className={`dropdown-toggle ${showDropdown ? 'open' : ''}`}
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-          >
-            Choose Drafter Type
-            <span className="dropdown-arrow">▼</span>
-          </button>
-          
-          <div className={`dropdown-menu ${showDropdown ? 'open' : ''}`}>
-            {drafterOptions.map((option, index) => (
-              <button
-                key={index}
-                className="dropdown-option"
-                onClick={() => handleOptionSelect(option)}
-              >
-                <div>
-                  <strong>{option.type}</strong> – ₹{option.price}
-                  <br />
-                  <small>{option.description}</small>
-                </div>
-              </button>
-            ))}
-          </div>
+      
+      <div className="product-content">
+        <div className="product-header">
+          <h3 className="product-name">
+            {product.name.split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ')}
+          </h3>
         </div>
-      ) : (
+
+        <div className="product-description">
+          <p className="description-text">
+            {typeof product.description === 'string' 
+              ? product.description 
+              : product.description?.main || "Quality product for student use."
+            }
+          </p>
+          
+          {/* Product Features */}
+          {product.description?.features && Array.isArray(product.description.features) && (
+            <div className="product-features">
+              <h4 className="features-title">Key Features:</h4>
+              <ul className="features-list">
+                {product.description.features.map((feature, index) => (
+                  <li key={index} className="feature-item">• {feature}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Product Specifications */}
+          {product.description?.specifications && 
+           typeof product.description.specifications === 'object' && 
+           Object.keys(product.description.specifications).length > 0 && (
+            <div className="product-specifications">
+              <h4 className="specs-title">Specifications:</h4>
+              <div className="specs-grid">
+                {Object.entries(product.description.specifications).map(([key, value]) => (
+                  <div key={key} className="spec-item">
+                    <span className="spec-label">{key}:</span>
+                    <span className="spec-value">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Use Case */}
+          {product.description?.useCase && (
+            <div className="product-usecase">
+              <h4 className="usecase-title">Best For:</h4>
+              <p className="usecase-text">{product.description.useCase}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Variant Selection */}
+        {hasMultipleVariants ? (
+          <div className="variant-selection" ref={dropdownRef}>
+            <label className="variant-label">Select Variant:</label>
+            <button 
+              className={`variant-dropdown-toggle ${showDropdown ? 'open' : ''}`}
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              <span className="selected-variant">
+                {selectedVariant ? formatVariantName(selectedVariant.variant) : 'Choose variant'}
+              </span>
+              <span className="dropdown-arrow">▼</span>
+            </button>
+            
+            <div className={`variant-dropdown-menu ${showDropdown ? 'open' : ''}`}>
+              {product.variants.map((variant, index) => (
+                <button
+                  key={index}
+                  className={`variant-option ${selectedVariant?.id === variant.id ? 'selected' : ''} ${variant.stock === 0 ? 'out-of-stock' : ''}`}
+                  onClick={() => handleVariantSelect(variant)}
+                  disabled={variant.stock === 0}
+                >
+                  <div className="variant-info">
+                    <div className="variant-name-price">
+                      <strong>{variant.variantDetails?.name || formatVariantName(variant.variant)}</strong>
+                      <span className="variant-price">₹{variant.price}</span>
+                    </div>
+                    <div className="variant-details">
+                      <small className="variant-description">
+                        {variant.variantDetails?.description || getVariantDescription(variant.variant)}
+                      </small>
+                      <small className={`variant-stock ${variant.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                        {variant.stock > 0 ? `${variant.stock} left` : 'Out of stock'}
+                      </small>
+                    </div>
+                    {/* Variant Features */}
+                    {variant.variantDetails?.features && Array.isArray(variant.variantDetails.features) && (
+                      <div className="variant-features">
+                        <small className="features-label">Features:</small>
+                        <div className="features-tags">
+                          {variant.variantDetails.features.map((feature, fIndex) => (
+                            <span key={fIndex} className="feature-tag">{feature}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* Best For */}
+                    {variant.variantDetails?.bestFor && (
+                      <div className="variant-best-for">
+                        <small className="best-for-label">Best For:</small>
+                        <small className="best-for-text">{variant.variantDetails.bestFor}</small>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Selected Variant Info */}
+        {selectedVariant && (
+          <div className="selected-variant-info">
+            <div className="variant-header">
+              <h4 className="selected-variant-title">
+                {selectedVariant.variantDetails?.name || formatVariantName(selectedVariant.variant)}
+              </h4>
+              <div className="variant-price-stock">
+                <span className="price">₹{selectedVariant.price}</span>
+                <span className={`stock ${selectedVariant.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                  {selectedVariant.stock > 0 ? `${selectedVariant.stock} in stock` : 'Out of stock'}
+                </span>
+              </div>
+            </div>
+            
+            {/* Product Code */}
+            {selectedVariant.productCode && (
+              <div className="product-code">
+                <span className="code-label">Product Code:</span>
+                <span className="code-value">{selectedVariant.productCode}</span>
+              </div>
+            )}
+            
+            {/* Variant Description */}
+            <div className="variant-description-detail">
+              <p className="variant-desc">
+                {selectedVariant.variantDetails?.description || getVariantDescription(selectedVariant.variant)}
+              </p>
+            </div>
+            
+            {/* Variant Features for single variant or selected variant details */}
+            {selectedVariant.variantDetails?.features && Array.isArray(selectedVariant.variantDetails.features) && (
+              <div className="selected-variant-features">
+                <h5 className="variant-features-title">Key Features:</h5>
+                <ul className="variant-features-list">
+                  {selectedVariant.variantDetails.features.map((feature, index) => (
+                    <li key={index} className="variant-feature-item">✓ {feature}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Best For Section */}
+            {selectedVariant.variantDetails?.bestFor && (
+              <div className="selected-variant-bestfor">
+                <h5 className="bestfor-title">Recommended For:</h5>
+                <p className="bestfor-text">{selectedVariant.variantDetails.bestFor}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Add to Cart Button */}
         <button 
-          className="add-to-cart" 
+          className="add-to-cart-btn" 
           onClick={handleAddToCart}
-          disabled={product.stock === 0}
+          disabled={!selectedVariant || selectedVariant.stock === 0}
         >
-          {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+          {!selectedVariant 
+            ? "Select Variant" 
+            : selectedVariant.stock > 0 
+              ? "Add to Cart" 
+              : "Out of Stock"
+          }
         </button>
-      )}
+      </div>
     </div>
   );
 };
