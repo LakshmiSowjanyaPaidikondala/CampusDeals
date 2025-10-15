@@ -106,9 +106,10 @@ const Home = () => {
         </div>
 
       </div>
-          {/* FAQ Section Wrapper */}
-          <FAQ />
+          
     </div>
+    {/* FAQ Section Wrapper */}
+          <FAQ />
     {/* Contacts Section Wrapper */}
     <Contacts />
     </>
