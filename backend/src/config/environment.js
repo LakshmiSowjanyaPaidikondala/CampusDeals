@@ -23,7 +23,8 @@ const config = {
   // JWT Configuration
   jwt: {
     secret: process.env.JWT_SECRET || 'campusdeals_secret_key_2024',
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+    expiresIn: process.env.JWT_EXPIRES_IN || '15m', // Short-lived access token
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '15m' // Short-lived refresh token
   },
   
   // CORS Configuration
