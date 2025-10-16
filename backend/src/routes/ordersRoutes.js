@@ -13,13 +13,11 @@ const { authenticateToken } = require('../middleware/auth');
 
 /**
  * @route   POST /api/orders/buy
- * @desc    Create a new buy order (for buyers purchasing products)
+ * @desc    Create a new buy order (for buyers purchasing products from cart)
  * @access  Private (buyer role)
  * @body    { 
- *            product_id: number, 
- *            quantity: number (optional, default: 1), 
- *            payment_method: string ('cash' | 'upi'),
- *            total_amount: number
+ *            cart_id: number,
+ *            payment_method: string ('cash' | 'upi') (optional, default: 'cash')
  *          }
  */
 router.post('/buy', authenticateToken, createBuyOrder);
@@ -40,8 +38,6 @@ router.post('/sell', authenticateToken, createSellOrder);
  * @desc    Get all buy orders for the authenticated user
  * @access  Private
  * @query   status: string (optional) - filter by order status
- *          page: number (optional, default: 1) - page number for pagination
- *          limit: number (optional, default: 10) - items per page
  */
 router.get('/buy', authenticateToken, getBuyOrders);
 
@@ -58,8 +54,6 @@ router.put('/buy/:orderId', authenticateToken, updateBuyOrder);
  * @desc    Get all sell orders for the authenticated seller
  * @access  Private (seller role)
  * @query   status: string (optional) - filter by order status
- *          page: number (optional, default: 1) - page number for pagination
- *          limit: number (optional, default: 10) - items per page
  */
 router.get('/sell', authenticateToken, getSellOrders);
 

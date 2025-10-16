@@ -95,8 +95,9 @@ const createBuyOrder = async (req, res) => {
                 throw new Error('Cart is empty');
             }
 
-            // Calculate total amount for the entire order
+            // Calculate total amount and total quantity for the entire order
             let orderTotalAmount = 0;
+            let totalQuantity = 0;
             const orderItems = [];
 
             // Process each cart item and calculate totals
@@ -104,6 +105,7 @@ const createBuyOrder = async (req, res) => {
                 const { product_id, quantity, product_name, product_variant, product_price } = cartItem;
                 const itemTotal = quantity * product_price;
                 orderTotalAmount += itemTotal;
+                totalQuantity += quantity; // Sum of all quantities
 
                 orderItems.push({
                     product_id,
@@ -156,7 +158,7 @@ const createBuyOrder = async (req, res) => {
                     user_id, serial_no, order_type, product_id, quantity, 
                     cart_id, total_amount, payment_method, status
                 ) VALUES (?, ?, 'buy', ?, ?, ?, ?, ?, 'pending')
-            `).run(user_id, serialNo, orderItems[0].product_id, orderItems.length, cart_id, orderTotalAmount, payment_method);
+            `).run(user_id, serialNo, orderItems[0].product_id, totalQuantity, cart_id, orderTotalAmount, payment_method);
 
             const orderId = insertResult.lastInsertRowid;
 
@@ -176,12 +178,11 @@ const createBuyOrder = async (req, res) => {
             return {
                 order_id: orderId,
                 serial_no: serialNo,
-                cart_id: cart_id,
                 total_amount: orderTotalAmount,
                 payment_method: payment_method,
                 status: 'pending',
                 items: orderItems,
-                total_items: orderItems.length
+                total_items: totalQuantity
             };
         });
 
@@ -273,44 +274,63 @@ const createSellOrder = async (req, res) => {
                 throw new Error('Cart is empty');
             }
 
-            const createdOrders = [];
+            // Calculate total amount and total quantity for the entire order
+            let orderTotalAmount = 0;
+            let totalQuantity = 0;
+            const orderItems = [];
 
+            // Process each cart item and calculate totals
             for (const cartItem of cartItems) {
                 const { product_id, quantity, product_name, product_variant, product_price } = cartItem;
+                const itemTotal = quantity * product_price;
+                orderTotalAmount += itemTotal;
+                totalQuantity += quantity; // Sum of all quantities
 
-                // For sell orders, we can directly create them as inventory
-                // Calculate total amount for this sell order
-                const totalAmount = quantity * product_price;
-
-                // Generate unique serial number
-                const serialNo = generateSerialNo();
-
-                // Create sell order linked to cart using cart_id foreign key
-                const insertResult = db.prepare(`
-                    INSERT INTO orders (
-                        user_id, serial_no, order_type, product_id, quantity, 
-                        cart_id, total_amount, payment_method, status
-                    ) VALUES (?, ?, 'sell', ?, ?, ?, ?, ?, 'pending')
-                `).run(user_id, serialNo, product_id, quantity, cart_id, totalAmount, payment_method);
-
-                createdOrders.push({
-                    order_id: insertResult.lastInsertRowid,
-                    serial_no: serialNo,
-                    order_type: 'sell',
-                    product_name: product_name,
-                    product_variant: product_variant,
-                    quantity: quantity,
-                    cart_id: cart_id,
-                    total_amount: totalAmount,
-                    payment_method: payment_method,
-                    status: 'pending'
+                orderItems.push({
+                    product_id,
+                    product_name,
+                    product_variant,
+                    quantity,
+                    price_per_item: product_price,
+                    item_total: itemTotal
                 });
             }
 
-            // Clear the cart after creating sell orders
+            // Generate unique serial number for the single order
+            const serialNo = generateSerialNo();
+
+            // Create ONE sell order for the entire cart (use first product_id for compatibility)
+            const insertResult = db.prepare(`
+                INSERT INTO orders (
+                    user_id, serial_no, order_type, product_id, quantity, 
+                    cart_id, total_amount, payment_method, status
+                ) VALUES (?, ?, 'sell', ?, ?, ?, ?, ?, 'pending')
+            `).run(user_id, serialNo, orderItems[0].product_id, totalQuantity, cart_id, orderTotalAmount, payment_method);
+
+            const orderId = insertResult.lastInsertRowid;
+
+            // Insert all items into order_items table
+            const insertOrderItem = db.prepare(`
+                INSERT INTO order_items (order_id, product_id, quantity, price_per_item, item_total)
+                VALUES (?, ?, ?, ?, ?)
+            `);
+
+            for (const item of orderItems) {
+                insertOrderItem.run(orderId, item.product_id, item.quantity, item.price_per_item, item.item_total);
+            }
+
+            // Clear the cart after creating order
             db.prepare(`DELETE FROM cart WHERE cart_id = ?`).run(cart_id);
 
-            return createdOrders;
+            return {
+                order_id: orderId,
+                serial_no: serialNo,
+                total_amount: orderTotalAmount,
+                payment_method: payment_method,
+                status: 'pending',
+                items: orderItems,
+                total_items: totalQuantity
+            };
         });
 
         const result = transaction();
@@ -320,9 +340,7 @@ const createSellOrder = async (req, res) => {
             message: 'Sell order created successfully from cart',
             data: {
                 seller_id: user_id,
-                cart_id: cart_id,
-                total_orders: result.length,
-                orders: result
+                order: result
             }
         });
     } catch (error) {
@@ -342,7 +360,7 @@ const createSellOrder = async (req, res) => {
 const getBuyOrders = async (req, res) => {
     try {
         const user_id = req.user.userId;
-        const { status, page = 1, limit = 10 } = req.query;
+    const { status } = req.query;
 
         let whereClause = 'WHERE o.user_id = ?';
         let queryParams = [user_id];
@@ -352,7 +370,6 @@ const getBuyOrders = async (req, res) => {
             queryParams.push(status);
         }
 
-        const offset = (page - 1) * limit;
 
         // Get buy orders with their items from order_items table
         const orders = db.prepare(`
@@ -362,8 +379,7 @@ const getBuyOrders = async (req, res) => {
             ${whereClause}
             AND (o.order_type = 'buy' OR o.order_type IS NULL)
             ORDER BY o.created_at DESC
-            LIMIT ? OFFSET ?
-        `).all(...queryParams, limit, offset);
+        `).all(...queryParams);
 
         // For each order, get its items from order_items table
         const ordersWithItems = orders.map(order => {
@@ -382,24 +398,11 @@ const getBuyOrders = async (req, res) => {
             };
         });
 
-        // Get total count
-        const totalCount = db.prepare(`
-            SELECT COUNT(*) as total
-            FROM orders o
-            ${whereClause}
-            AND (o.order_type = 'buy' OR o.order_type IS NULL)
-        `).get(...queryParams);
 
         res.json({
             success: true,
             data: {
-                orders: ordersWithItems,
-                pagination: {
-                    current_page: parseInt(page),
-                    total_pages: Math.ceil(totalCount.total / limit),
-                    total_orders: totalCount.total,
-                    orders_per_page: parseInt(limit)
-                }
+                orders: ordersWithItems
             }
         });
     } catch (error) {
@@ -419,7 +422,7 @@ const getBuyOrders = async (req, res) => {
 const getSellOrders = async (req, res) => {
     try {
         const user_id = req.user.userId;
-        const { status, page = 1, limit = 10 } = req.query;
+        const { status } = req.query;
 
         let whereClause = 'WHERE o.user_id = ?';
         let queryParams = [user_id];
@@ -429,37 +432,37 @@ const getSellOrders = async (req, res) => {
             queryParams.push(status);
         }
 
-        const offset = (page - 1) * limit;
-
+        // Get sell orders with their items from order_items table
         const orders = db.prepare(`
-            SELECT o.order_id, o.serial_no, o.quantity,
-                   o.total_amount, o.payment_method, o.status, o.created_at,
-                   p.product_name, p.product_variant, p.product_price
+            SELECT o.order_id, o.serial_no, o.quantity as total_items, o.cart_id,
+                   o.total_amount, o.payment_method, o.status, o.created_at
             FROM orders o
-            JOIN products p ON o.product_id = p.product_id
             ${whereClause}
             AND o.order_type = 'sell'
             ORDER BY o.created_at DESC
-            LIMIT ? OFFSET ?
-        `).all(...queryParams, limit, offset);
+        `).all(...queryParams);
 
-        const totalCount = db.prepare(`
-            SELECT COUNT(*) as total
-            FROM orders o
-            ${whereClause}
-            AND o.order_type = 'sell'
-        `).get(...queryParams);
+        // For each order, get its items from order_items table
+        const ordersWithItems = orders.map(order => {
+            const orderItems = db.prepare(`
+                SELECT oi.product_id, oi.quantity, oi.price_per_item, oi.item_total,
+                       p.product_name, p.product_variant
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.product_id
+                WHERE oi.order_id = ?
+                ORDER BY oi.created_at
+            `).all(order.order_id);
+
+            return {
+                ...order,
+                items: orderItems
+            };
+        });
 
         res.json({
             success: true,
             data: {
-                orders: orders,
-                pagination: {
-                    current_page: parseInt(page),
-                    total_pages: Math.ceil(totalCount.total / limit),
-                    total_orders: totalCount.total,
-                    orders_per_page: parseInt(limit)
-                }
+                orders: ordersWithItems
             }
         });
     } catch (error) {
