@@ -181,7 +181,7 @@ const Cart = () => {
     <div className="cart-container">
       {/* Header */}
       <div className="cart-header">
-        <div className="header-content">
+        <div className="cart-header-content">
           <button className="back-btn" onClick={() => navigate(-1)}>
             <ArrowLeft size={24} />
           </button>
