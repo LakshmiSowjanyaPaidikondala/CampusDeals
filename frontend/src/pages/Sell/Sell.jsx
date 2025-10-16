@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import SellForm from "../UserForm/UserForm";
-import { isAuthenticated, saveCart, getCart } from "../../utils/auth";
+import { useCart } from "../../contexts/CartContext";
 import "./Sell.css";
 
 import calciImg from "../../assets/Calci.jpg";
@@ -13,115 +13,276 @@ import mechCoatImg from "../../assets/Mechanical.jpeg";
 import chemCoatImg from "../../assets/Chemical.jpeg";
 
 const Sell = () => {
-  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
+  const [groupedProducts, setGroupedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { addToCart, cartItems } = useCart();
+  const navigate = useNavigate();
+
+  const API_BASE_URL = 'http://localhost:5000/api';
+
+  // Image mapping for products
+  const productImages = {
+    calculator: calciImg,
+    drafter: drafterImg,
+    chartbox: chartHolderImg,
+    white_lab_coat: chemCoatImg,
+    brown_lab_coat: mechCoatImg
+  };
+
+  // Comprehensive product descriptions with detailed specifications
+  const productDescriptions = {
+    calculator: {
+      main: "High-quality scientific calculators designed specifically for engineering, mathematics, and scientific computations.",
+      
+    },
+    drafter: {
+      main: "Professional-grade drafting instruments essential for precise engineering drawings, architectural designs, and technical illustrations.",
+      
+    },
+    chartbox: {
+      main: "Sturdy, portable chart holders designed for organizing and displaying technical drawings, blueprints, and presentation materials.",
+      
+    },
+    white_lab_coat: {
+      main: "Professional white lab coats meeting safety standards for chemistry, medical, and research laboratory environments.",
+    
+    },
+    brown_lab_coat: {
+      main: "Heavy-duty brown lab coats specifically designed for mechanical workshops, industrial labs, and engineering practicals.",
+     
+    }
+  };
+
+  // Detailed variant specifications and descriptions
+  const variantDetails = {
+    // Calculator variants
+    'MS': {
+      name: 'MS (Multi-function Scientific)'
+      
+    },
+    'ES': {
+      name: 'ES (Engineering Scientific)'
+      
+    },
+    'ES-Plus': {
+      name: 'ES-Plus (Engineering Scientific Plus)'
+    },
+    
+    // Drafter variants
+    'premium_drafter': {
+      name: 'Premium Professional Drafter'
+    },
+    'standard_drafter': {
+      name: 'Standard Engineering Drafter'
+    },
+    'budget_drafter': {
+      name: 'Budget-Friendly Drafter'
+    },
+    
+    // Lab coat size details
+    'S': {
+      name: 'Small Size'
+     
+    },
+    'M': {
+      name: 'Medium Size'
+    },
+    'L': {
+      name: 'Large Size'
+    },
+    'XL': {
+      name: 'Extra Large Size'
+    },
+    'XXL': {
+      name: 'Double Extra Large Size'
+    },
+    
+    // Chart holder variant
+    'chart holder': {
+      name: 'Standard Chart Holder'
+    }
+  };
+
+  // Function to group products by name and create variants with detailed information
+  const groupProductsByName = (productList) => {
+    const grouped = {};
+    
+    productList.forEach(product => {
+      const productName = product.product_name;
+      
+      if (!grouped[productName]) {
+        grouped[productName] = {
+          name: productName,
+          image: productImages[productName] || calciImg,
+          description: productDescriptions[productName] || {
+            main: "Quality product for student use.",
+            features: ["Durable construction", "Student-friendly design"],
+            specifications: {},
+            useCase: "Suitable for academic and professional use."
+          },
+          variants: []
+        };
+      }
+      
+      const variantInfo = variantDetails[product.product_variant] || {
+        name: product.product_variant,
+        description: "Quality variant for your needs",
+        features: ["Standard quality", "Reliable performance"],
+        bestFor: "General academic use"
+      };
+      
+      grouped[productName].variants.push({
+        id: product.product_id,
+        variant: product.product_variant,
+        price: product.product_price,
+        stock: product.quantity,
+        productCode: product.product_code,
+        images: product.product_images,
+        variantDetails: variantInfo
+      });
+    });
+    
+    return Object.values(grouped);
+  };
+
+  // Fetch products from API
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      console.log('🚀 Fetching products from API...');
+      console.log('🔗 API URL:', `${API_BASE_URL}/products`);
+      
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+      });
+      
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('📦 Raw API response:', data);
+      
+      if (data.success && data.products) {
+        console.log('✅ Products fetched:', data.products.length, 'products');
+        setProducts(data.products);
+        
+        // Group products by name with all their variants
+        const groupedProductsList = groupProductsByName(data.products);
+        console.log('✅ Grouped products:', groupedProductsList.length, 'product groups');
+        console.log('📊 Product grouping details:', groupedProductsList.map(p => ({ name: p.name, variants: p.variants.length })));
+        setGroupedProducts(groupedProductsList);
+        
+        setError(null);
+      } else {
+        throw new Error(data.message || 'Invalid API response format');
+      }
+    } catch (error) {
+      console.error('❌ Error fetching products:', error);
+      
+      // More specific error messages
+      let errorMessage = 'Failed to load products';
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorMessage = 'Cannot connect to server. Loading sample data instead.';
+        console.log('🔄 Loading fallback data...');
+        
+        // Load fallback data when API is unavailable - All 17 products from database
+        const fallbackProducts = [
+          // Drafter products
+          { product_id: 1, product_name: 'drafter', product_variant: 'premium_drafter', product_price: 400, quantity: 15, product_code: 'DFT-P', product_images: 'Drafter.jpeg' },
+          { product_id: 2, product_name: 'drafter', product_variant: 'standard_drafter', product_price: 350, quantity: 25, product_code: 'DFT-S', product_images: 'Drafter.jpeg' },
+          { product_id: 3, product_name: 'drafter', product_variant: 'budget_drafter', product_price: 300, quantity: 30, product_code: 'DFT-B', product_images: 'Drafter.jpeg' },
+          
+          // White lab coat products
+          { product_id: 4, product_name: 'white_lab_coat', product_variant: 'S', product_price: 230, quantity: 12, product_code: 'WLC-S', product_images: 'Chemical.jpeg' },
+          { product_id: 5, product_name: 'white_lab_coat', product_variant: 'M', product_price: 230, quantity: 20, product_code: 'WLC-M', product_images: 'Chemical.jpeg' },
+          { product_id: 6, product_name: 'white_lab_coat', product_variant: 'L', product_price: 230, quantity: 18, product_code: 'WLC-L', product_images: 'Chemical.jpeg' },
+          { product_id: 7, product_name: 'white_lab_coat', product_variant: 'XL', product_price: 230, quantity: 10, product_code: 'WLC-XL', product_images: 'Chemical.jpeg' },
+          { product_id: 8, product_name: 'white_lab_coat', product_variant: 'XXL', product_price: 230, quantity: 5, product_code: 'WLC-XXL', product_images: 'Chemical.jpeg' },
+          
+          // Brown lab coat products
+          { product_id: 9, product_name: 'brown_lab_coat', product_variant: 'S', product_price: 230, quantity: 8, product_code: 'BLC-S', product_images: 'Mechanical.jpeg' },
+          { product_id: 10, product_name: 'brown_lab_coat', product_variant: 'M', product_price: 230, quantity: 15, product_code: 'BLC-M', product_images: 'Mechanical.jpeg' },
+          { product_id: 11, product_name: 'brown_lab_coat', product_variant: 'L', product_price: 230, quantity: 12, product_code: 'BLC-L', product_images: 'Mechanical.jpeg' },
+          { product_id: 12, product_name: 'brown_lab_coat', product_variant: 'XL', product_price: 230, quantity: 7, product_code: 'BLC-XL', product_images: 'Mechanical.jpeg' },
+          { product_id: 13, product_name: 'brown_lab_coat', product_variant: 'XXL', product_price: 230, quantity: 3, product_code: 'BLC-XXL', product_images: 'Mechanical.jpeg' },
+          
+          // Calculator products
+          { product_id: 14, product_name: 'calculator', product_variant: 'MS', product_price: 950, quantity: 20, product_code: 'CALC-MS', product_images: 'Calci.jpg' },
+          { product_id: 15, product_name: 'calculator', product_variant: 'ES', product_price: 950, quantity: 25, product_code: 'CALC-ES', product_images: 'Calci.jpg' },
+          { product_id: 16, product_name: 'calculator', product_variant: 'ES-Plus', product_price: 1000, quantity: 15, product_code: 'CALC-ES-Plus', product_images: 'Calci.jpg' },
+          
+          // Chart box product
+          { product_id: 17, product_name: 'chartbox', product_variant: 'chart holder', product_price: 60, quantity: 20, product_code: 'CRT', product_images: 'chart holder.jpg' }
+        ];
+        
+        setProducts(fallbackProducts);
+        // Group fallback products by name with all their variants
+        const groupedFallbackProducts = groupProductsByName(fallbackProducts);
+        console.log('✅ Grouped fallback products:', groupedFallbackProducts.length, 'product groups');
+        console.log('📊 Fallback grouping details:', groupedFallbackProducts.map(p => ({ name: p.name, variants: p.variants.length })));
+        setGroupedProducts(groupedFallbackProducts);
+        setError(null); // Clear error when fallback works
+        return;
+      } else if (error.message.includes('HTTP')) {
+        errorMessage = `Server error: ${error.message}`;
+      } else {
+        errorMessage = `${errorMessage}: ${error.message}`;
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Temporarily bypass API and show products directly
-    console.log('🚀 Loading products directly (bypassing API for testing)...');
-    
-    const directProducts = [
-      { 
-        id: 1, 
-        name: "calculator", 
-        variant: "Scientific Calculator", 
-        price: 1200, 
-        stock: 20, 
-        image: calciImg 
-      },
-      { 
-        id: 2, 
-        name: "drafter", 
-        variant: "Engineering Drafter", 
-        price: 2500, 
-        stock: 15, 
-        image: drafterImg 
-      },
-      { 
-        id: 3, 
-        name: "white_lab_coat", 
-        variant: "Chemical Lab Coat", 
-        price: 450, 
-        stock: 20, 
-        image: chemCoatImg 
-      },
-      { 
-        id: 4, 
-        name: "brown_lab_coat", 
-        variant: "Mechanical Lab Coat", 
-        price: 500, 
-        stock: 15, 
-        image: mechCoatImg 
-      },
-      {
-        id: 5,
-        name: "chart_holder",
-        variant: "Chart Holder",
-        price: 300,
-        stock: 10,
-        image: chartHolderImg
-      }
-    ];
-    
-    setTimeout(() => {
-      console.log('✅ Products loaded:', directProducts);
-      setProducts(directProducts);
-      setLoading(false);
-      setError(null);
-    }, 500); // Small delay to simulate loading
+    fetchProducts();
   }, []);
 
-  const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  // Restore cart from localStorage when component mounts
-  useEffect(() => {
-    if (isAuthenticated()) {
-      const savedCart = getCart();
-      setCart(savedCart);
-    }
-  }, []);
-
   const handleAddToCart = (product) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      let newCart;
-      if (existing) {
-        newCart = prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      } else {
-        newCart = [...prev, { ...product, quantity: 1 }];
-      }
-      
-      // Save cart to localStorage whenever it's updated
-      saveCart(newCart);
-      return newCart;
-    });
+    // Add product with proper structure for cart
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      variant: product.variant,
+      price: product.price,
+      originalPrice: product.price * 1.2, // Add some savings
+      stock: product.stock,
+      inStock: product.stock,
+      productCode: product.productCode,
+      image: product.image,
+      description: `${product.name} - ${product.variant}`,
+      seller: 'Campus Deals',
+      category: product.name
+    };
+    
+    addToCart(cartItem);
+    
+    // Optional: Show a toast notification
+    alert(`${product.name} (${product.variant}) added to cart!`);
   };
 
   const handleProceed = () => {
-    if (cart.length > 0) {
-      // Check if user is authenticated
-      if (!isAuthenticated()) {
-        // Save cart to localStorage before redirecting
-        saveCart(cart);
-        // Redirect to login page
-        navigate('/login');
-      } else {
-        setShowForm(true);
-      }
+    if (cartItems.length > 0) {
+      navigate('/cart');
     }
   };
 
-  const handleCloseForm = () => {
-    setShowForm(false);
-  };
-
-  const filteredProducts = products.filter((p) =>
+  const filteredProducts = groupedProducts.filter((p) =>
     p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -145,15 +306,27 @@ const Sell = () => {
       {/* 🛒 Product Grid */}
       <div className="products-grid">
         {loading ? (
-          <p>Loading products...</p>
+          <div className="loading-state">
+            <p>Loading products...</p>
+          </div>
         ) : error ? (
-          <p className="no-results">{error}</p>
+          <div className="error-state">
+            <p className="error-message">{error}</p>
+            <button onClick={fetchProducts} className="retry-button">
+              Retry Loading
+            </button>
+          </div>
         ) : filteredProducts.length > 0 ? (
-          filteredProducts.map((item) => (
-            <ProductCard key={item.id} product={item} onAddToCart={handleAddToCart} />
+          filteredProducts.map((item, index) => (
+            <ProductCard key={`${item.name}-${index}`} product={item} onAddToCart={handleAddToCart} />
           ))
         ) : (
-          <p className="no-results">No products found.</p>
+          <div className="no-results">
+            <p>No products found.</p>
+            {searchTerm && (
+              <p>Try searching with different keywords or <button onClick={() => setSearchTerm('')} className="clear-search">clear the search</button>.</p>
+            )}
+          </div>
         )}
       </div>
 
@@ -162,14 +335,14 @@ const Sell = () => {
         <button
           className="sell-button"
           onClick={handleProceed}
-          disabled={cart.length === 0}
+          disabled={cartItems.length === 0}
         >
-          Proceed to Sell ({cart.length} items)
+          Go to Cart ({cartItems.length} items)
         </button>
       </div>
 
       {/* 📝 Seller Form as Modal */}
-      {/*{showForm && <SellForm cart={cart} onClose={handleCloseForm} />}*/}
+      {/*{showForm && <SellForm cart={cartItems} onClose={handleCloseForm} />}*/}
       
     </div>
   );

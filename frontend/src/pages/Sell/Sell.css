@@ -1,7 +1,7 @@
 .sell-page {
   padding: 2rem;
   text-align: center;
-  background: linear-gradient(135deg, #c4f2fc 0%, #7bc9ed 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
   min-height: 100vh;
   position: relative;
 }
@@ -67,21 +67,6 @@
   margin-bottom: 2rem;
 }
 
-.search-bar input {
-  width: 400px;
-  max-width: 90%;
-  padding: 1rem 1.5rem;
-  font-size: 1.1rem;
-  border: none;
-  border-radius: 50px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  outline: none;
-  transition: all 0.3s ease;
-  color: #333;
-}
-
 .search-input-container {
   position: relative;
   width: 400px;
@@ -99,6 +84,21 @@
   transition: color 0.3s ease;
 }
 
+.search-bar input {
+  width: 100%;
+  padding: 1rem 1.5rem 1rem 55px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  outline: none;
+  transition: all 0.3s ease;
+  color: #333;
+  box-sizing: border-box;
+}
+
 .search-bar input::placeholder {
   color: #666;
   font-style: italic;
@@ -110,8 +110,16 @@
   transform: translateY(-2px);
 }
 
+.search-bar input:focus + .search-icon,
+.search-input-container:hover .search-icon {
+  color: #333;
+}
+
 /* No results */
 .no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   font-size: 1.2rem;
   color: #fff;
@@ -121,6 +129,28 @@
   border-radius: 20px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.no-results p {
+  margin: 0.5rem 0;
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+.clear-search {
+  background: none;
+  border: none;
+  color: #10b981;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  margin: 0 0.2rem;
+}
+
+.clear-search:hover {
+  color: #059669;
 }
 
 .sell-button-container {
@@ -158,23 +188,95 @@
   transform: none;
 }
 
-/* Products Grid - Main container only */
+/* Products Grid - 3 cards per row with equal sizes */
 .products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
   margin: 2rem auto;
   max-width: 1200px;
+  padding: 0 1rem;
+}
+
+/* Responsive grid layout */
+@media (max-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Loading and Error States */
+.loading-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.loading-state p {
+  color: #fff;
+  font-size: 1.2rem;
+  margin: 0;
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.retry-button {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.retry-button:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
 }
 
 /* Loading state */
 .sell-page p {
-  color: #fff;
+  color: #000000;
   font-size: 1.2rem;
-  background: rgba(255, 255, 255, 0.1);
-  /* padding: 2rem; */
+  background: rgb(147, 224, 235);
   border-radius: 20px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  /* margin: 2rem auto; */
-  max-width: 400px;
+  max-width: 500px;
 }
 
 /* 🔹 Custom Scrollbar */
@@ -216,7 +318,12 @@
   .search-bar input {
     width: 100%;
     font-size: 1rem;
-    padding: 0.8rem 1.2rem;
+    padding: 0.8rem 1.2rem 0.8rem 50px;
+  }
+  
+  .search-icon {
+    left: 22px;
+    font-size: 1rem;
   }
   
   .products-grid {
@@ -226,5 +333,10 @@
   .sell-button {
     padding: 0.8rem 2rem;
     font-size: 1rem;
+  }
+  
+  .loading-state, .error-state {
+    padding: 2rem 1rem;
+    margin: 1.5rem auto;
   }
 }
