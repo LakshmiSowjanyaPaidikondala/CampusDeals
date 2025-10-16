@@ -5,7 +5,9 @@ const {
     getCartItems, 
     updateCartItem, 
     removeFromCart, 
-    clearCart 
+    clearCart,
+    batchUpdateCartItems,
+    batchRemoveCartItems
 } = require('../controllers/cartController');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -28,9 +30,17 @@ router.get('/', authenticateToken, getCartItems);
  * @route   PUT /api/cart/update
  * @desc    Update cart item quantity
  * @access  Private (requires authentication)
- * @body    { cart_id: number, quantity: number }
+ * @body    { product_id: number, quantity: number }
  */
 router.put('/update', authenticateToken, updateCartItem);
+
+/**
+ * @route   PUT /api/cart/batch-update
+ * @desc    Update multiple cart items at once
+ * @access  Private (requires authentication)
+ * @body    { items: [{product_id: number, quantity: number}, ...] }
+ */
+router.put('/batch-update', authenticateToken, batchUpdateCartItems);
 
 /**
  * @route   DELETE /api/cart/remove/:productId
@@ -39,6 +49,14 @@ router.put('/update', authenticateToken, updateCartItem);
  * @params  productId: product ID to remove from cart
  */
 router.delete('/remove/:productId', authenticateToken, removeFromCart);
+
+/**
+ * @route   DELETE /api/cart/batch-remove
+ * @desc    Remove multiple items from cart at once
+ * @access  Private (requires authentication)
+ * @body    { product_ids: [number, number, ...] }
+ */
+router.delete('/batch-remove', authenticateToken, batchRemoveCartItems);
 
 /**
  * @route   DELETE /api/cart/clear

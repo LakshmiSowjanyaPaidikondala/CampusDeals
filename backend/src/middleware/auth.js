@@ -1,4 +1,5 @@
 const { verifyToken } = require('../utils/auth');
+const { isTokenBlacklisted } = require('../utils/tokenBlacklist');
 
 // Middleware to authenticate JWT token
 const authenticateToken = (req, res, next) => {
@@ -9,9 +10,17 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ message: '❌ Access token required' });
   }
 
+  // Check if token is blacklisted (logged out)
+  if (isTokenBlacklisted(token)) {
+    return res.status(401).json({ 
+      message: '❌ Token has been invalidated. Please login again.' 
+    });
+  }
+
   try {
     const decoded = verifyToken(token);
     req.user = decoded; // Add user info to request object
+    req.token = token; // Store token for potential blacklisting
     next();
   } catch (error) {
     return res.status(403).json({ message: '❌ Invalid or expired token' });

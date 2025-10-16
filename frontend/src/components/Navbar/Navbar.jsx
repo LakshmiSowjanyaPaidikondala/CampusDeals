@@ -3,24 +3,17 @@ import { Link, useLocation } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import logo from "../../assets/logo.png";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdownDebug";
+import { useCart } from "../../contexts/CartContext";
 import "./Navbar.css";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
+  const { getCartCount } = useCart();
   const location = useLocation();
 
-  // Mock cart items for demonstration (you can replace this with your actual cart logic)
-  useEffect(() => {
-    // Simulate some cart items - replace with your actual cart state management
-    const mockCartItems = [
-      { id: 1, name: "Item 1", price: 50 },
-      { id: 2, name: "Item 2", price: 75 },
-      { id: 3, name: "Item 3", price: 100 }
-    ];
-    setCartItems(mockCartItems);
-  }, []);
+  // Get cart count from context
+  const cartCount = getCartCount();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -102,8 +95,8 @@ const Navbar = () => {
         {/* Premium Cart Icon */}
         <Link to="/cart" className="cart-link">
           <ShoppingCart className="cart-icon" size={24} />
-          {cartItems.length > 0 && (
-            <span className="cart-count">{cartItems.length}</span>
+          {cartCount > 0 && (
+            <span className="cart-count">{cartCount}</span>
           )}
         </Link>
 
@@ -138,7 +131,7 @@ const Navbar = () => {
         <div className="sidebar-cart">
           <Link to="/cart" className="sidebar-cart-link" onClick={() => setMenuOpen(false)}>
             <ShoppingCart size={18} />
-            <span>Cart ({cartItems.length})</span>
+            <span>Cart ({cartCount})</span>
           </Link>
         </div>
 

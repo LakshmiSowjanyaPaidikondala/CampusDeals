@@ -19,24 +19,28 @@ const Contacts = () => {
   ];
 
   return (
-    <section className="contacts-full-width">
-      <div className="contacts-wrapper">
-        <div className="contacts-half left-half">
-          {leftContacts.map((contact, index) => (
-            <div key={contact.id} className="contact-row" style={{ animationDelay: `${index * 0.1}s` }}>
-              <span className="contact-name">{contact.name}</span>
-              <span className="contact-phone">{contact.phone}</span>
-            </div>
-          ))}
-        </div>
+    <section className="contacts-section">
+      <div className="contacts-container">
+        <h2 className="contacts-heading">Our Contacts</h2>
         
-        <div className="contacts-half right-half">
-          {rightContacts.map((contact, index) => (
-            <div key={contact.id} className="contact-row" style={{ animationDelay: `${(index + 5) * 0.1}s` }}>
-              <span className="contact-name">{contact.name}</span>
-              <span className="contact-phone">{contact.phone}</span>
-            </div>
-          ))}
+        <div className="contacts-wrapper">
+          <div className="contacts-column">
+            {leftContacts.map((contact) => (
+              <div key={contact.id} className="contact-card">
+                <div className="contact-name">{contact.name}</div>
+                <div className="contact-phone">{contact.phone}</div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="contacts-column">
+            {rightContacts.map((contact) => (
+              <div key={contact.id} className="contact-card">
+                <div className="contact-name">{contact.name}</div>
+                <div className="contact-phone">{contact.phone}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
