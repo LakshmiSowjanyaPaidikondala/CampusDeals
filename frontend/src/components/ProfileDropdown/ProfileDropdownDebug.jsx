@@ -121,20 +121,6 @@ const ProfileDropdownDebug = () => {
   return (
     <>
       <div className="profile-dropdown" ref={dropdownRef}>
-        {/* Debug info */}
-        <div style={{
-          position: 'absolute',
-          top: '-20px',
-          right: '0',
-          fontSize: '10px',
-          color: 'white',
-          background: 'rgba(0,0,0,0.7)',
-          padding: '2px 4px',
-          borderRadius: '3px',
-          whiteSpace: 'nowrap'
-        }}>
-          Auth: {showAsAuthenticated ? 'Yes' : 'No'} | User: {displayUser ? 'Yes' : 'No'}
-        </div>
 
         {/* Profile Icon/Button */}
         <button 
