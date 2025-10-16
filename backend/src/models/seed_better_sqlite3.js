@@ -41,8 +41,8 @@ class BetterSQLiteSeeder {
         `);
 
         this.insertOrder = this.db.prepare(`
-            INSERT INTO orders (user_id, serial_no, product_id, total_amount, payment_method, status) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO orders (user_id, serial_no, order_type, product_id, quantity, cart_id, linked_order_id, total_amount, payment_method, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
     }
 
@@ -129,13 +129,19 @@ class BetterSQLiteSeeder {
         });
         console.log(`✅ Inserted ${cartItems.length} cart items successfully`);
 
-        // Sample orders
+        // Sample orders with new schema fields
+        // [user_id, serial_no, order_type, product_id, quantity, cart_id, linked_order_id, total_amount, payment_method, status]
         const orders = [
-            [1, 'ORD-001-2024', 1, 2500.00, 'upi', 'completed'],
-            [2, 'ORD-002-2024', 4, 900.00, 'cash', 'pending'],
-            [3, 'ORD-003-2024', 14, 1200.00, 'upi', 'completed'],
-            [4, 'ORD-004-2024', 6, 450.00, 'cash', 'pending'],
-            [5, 'ORD-005-2024', 2, 1800.00, 'upi', 'completed']
+            // Buy orders
+            [1, 'ORD-001-2024', 'buy', 1, 1, 1, null, 2500.00, 'upi', 'completed'],
+            [2, 'ORD-002-2024', 'buy', 4, 2, 2, null, 900.00, 'cash', 'pending'],
+            [3, 'ORD-003-2024', 'buy', 14, 1, 3, null, 1200.00, 'upi', 'completed'],
+            [4, 'ORD-004-2024', 'buy', 6, 1, 4, null, 450.00, 'cash', 'pending'],
+            [5, 'ORD-005-2024', 'buy', 2, 1, 5, null, 1800.00, 'upi', 'completed'],
+            // Sell orders (sellers offering products)
+            [6, 'ORD-006-2024', 'sell', 1, 2, null, null, 5000.00, 'cash', 'pending'],
+            [7, 'ORD-007-2024', 'sell', 14, 3, null, null, 3600.00, 'cash', 'pending'],
+            [8, 'ORD-008-2024', 'sell', 4, 1, null, null, 450.00, 'cash', 'pending']
         ];
 
         console.log('Seeding sample orders...');

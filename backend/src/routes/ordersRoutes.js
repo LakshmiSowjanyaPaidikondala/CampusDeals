@@ -1,11 +1,13 @@
-const express = require('express');
+ const express = require('express');
 const router = express.Router();
 const { 
     createBuyOrder, 
     createSellOrder,
     getBuyOrders,
     getSellOrders,
-    getOrderById
+    getOrderById,
+    updateBuyOrder,
+    updateSellOrder
 } = require('../controllers/ordersController');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -24,14 +26,11 @@ router.post('/buy', authenticateToken, createBuyOrder);
 
 /**
  * @route   POST /api/orders/sell
- * @desc    Create a new sell order (for sellers listing products for sale)
+ * @desc    Create sell orders from cart (for sellers listing products for sale)
  * @access  Private (seller role)
  * @body    { 
- *            product_name: string,
- *            product_variant: string,
- *            product_price: number,
- *            quantity: number,
- *            product_images: string (optional)
+ *            cart_id: number,
+ *            payment_method: string ('cash' | 'upi') (optional, default: 'cash')
  *          }
  */
 router.post('/sell', authenticateToken, createSellOrder);
@@ -47,6 +46,14 @@ router.post('/sell', authenticateToken, createSellOrder);
 router.get('/buy', authenticateToken, getBuyOrders);
 
 /**
+ * @route   PUT /api/orders/buy/:orderId
+ * @desc    Update a buy order
+ * @access  Private (buyer or admin)
+ * @body    { status?, quantity?, payment_method? }
+ */
+router.put('/buy/:orderId', authenticateToken, updateBuyOrder);
+
+/**
  * @route   GET /api/orders/sell
  * @desc    Get all sell orders for the authenticated seller
  * @access  Private (seller role)
@@ -55,6 +62,14 @@ router.get('/buy', authenticateToken, getBuyOrders);
  *          limit: number (optional, default: 10) - items per page
  */
 router.get('/sell', authenticateToken, getSellOrders);
+
+/**
+ * @route   PUT /api/orders/sell/:orderId
+ * @desc    Update a sell order
+ * @access  Private (seller or admin)
+ * @body    { status?, quantity?, total_amount? }
+ */
+router.put('/sell/:orderId', authenticateToken, updateSellOrder);
 
 /**
  * @route   GET /api/orders/:orderId

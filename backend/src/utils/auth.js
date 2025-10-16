@@ -1,13 +1,18 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { generateRefreshToken, storeRefreshToken } = require('./refreshToken');
+const config = require('../config/environment');
 
 // Generate JWT access token (short-lived)
 const generateToken = (userId, email, role) => {
+  // Use centralized config which already provides a safe default for the JWT secret
+  const secret = config.jwt && config.jwt.secret ? config.jwt.secret : process.env.JWT_SECRET;
+  const expiresIn = (config.jwt && config.jwt.expiresIn) || process.env.JWT_EXPIRES_IN || '15m';
+
   return jwt.sign(
     { userId, email, role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '15m' } // Short-lived access token
+    secret,
+    { expiresIn }
   );
 };
 
@@ -60,7 +65,8 @@ const comparePassword = async (password, hashedPassword) => {
 
 // Verify JWT token
 const verifyToken = (token) => {
-  return jwt.verify(token, process.env.JWT_SECRET);
+  const secret = config.jwt && config.jwt.secret ? config.jwt.secret : process.env.JWT_SECRET;
+  return jwt.verify(token, secret);
 };
 
 module.exports = {

@@ -56,13 +56,19 @@ CREATE TABLE IF NOT EXISTS orders (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     serial_no TEXT UNIQUE NOT NULL,
+    order_type TEXT CHECK(order_type IN ('buy','sell')) DEFAULT 'buy',
     product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    cart_id INTEGER NULL,
+    linked_order_id INTEGER NULL,
     total_amount REAL NOT NULL,
     payment_method TEXT CHECK(payment_method IN ('cash','upi')) NOT NULL,
     status TEXT CHECK(status IN ('pending','completed','cancelled')) DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+    FOREIGN KEY (cart_id) REFERENCES users(user_id) ON DELETE SET NULL,
+    FOREIGN KEY (linked_order_id) REFERENCES orders(order_id) ON DELETE SET NULL
 );
 
 -- Refresh Tokens table

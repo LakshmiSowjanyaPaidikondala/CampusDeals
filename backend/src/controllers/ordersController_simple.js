@@ -54,20 +54,8 @@ const createBuyOrder = async (req, res) => {
             });
         }
 
-        // Verify cart belongs to the user by checking if cart has items for this user
-        const cartCheck = db.prepare(`
-            SELECT COUNT(*) as count FROM cart WHERE cart_id = ?
-        `).get(parseInt(cart_id));
-
-        if (!cartCheck || cartCheck.count === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Cart is empty or does not exist'
-            });
-        }
-
-        // Verify cart_id matches user_id (cart_id should be the user's ID)
-        if (parseInt(cart_id) !== parseInt(user_id)) {
+        // Verify cart belongs to the user
+        if (cart_id !== user_id) {
             return res.status(403).json({
                 success: false,
                 message: 'Unauthorized access to cart'
@@ -95,26 +83,12 @@ const createBuyOrder = async (req, res) => {
                 throw new Error('Cart is empty');
             }
 
-            // Calculate total amount for the entire order
-            let orderTotalAmount = 0;
-            const orderItems = [];
+            const createdOrders = [];
 
-            // Process each cart item and calculate totals
             for (const cartItem of cartItems) {
                 const { product_id, quantity, product_name, product_variant, product_price } = cartItem;
-                const itemTotal = quantity * product_price;
-                orderTotalAmount += itemTotal;
 
-                orderItems.push({
-                    product_id,
-                    product_name,
-                    product_variant,
-                    quantity,
-                    price_per_item: product_price,
-                    item_total: itemTotal
-                });
-
-                // Handle FIFO allocation for sellers (existing logic)
+                // Find available sell orders for this product (FIFO - oldest first)
                 const availableSellOrders = db.prepare(`
                     SELECT order_id, user_id, quantity, total_amount, created_at
                     FROM orders 
@@ -126,12 +100,14 @@ const createBuyOrder = async (req, res) => {
                 `).all(product_id);
 
                 let remainingQuantity = quantity;
+                let allocatedQuantity = 0;
 
                 // Allocate from available sell orders using FIFO
                 for (const sellOrder of availableSellOrders) {
                     if (remainingQuantity <= 0) break;
 
                     const currentAllocation = Math.min(remainingQuantity, sellOrder.quantity);
+                    allocatedQuantity += currentAllocation;
 
                     // Update sell order quantity
                     const newSellQuantity = sellOrder.quantity - currentAllocation;
@@ -145,44 +121,39 @@ const createBuyOrder = async (req, res) => {
 
                     remainingQuantity -= currentAllocation;
                 }
+
+                // Calculate total amount for this order
+                const totalAmount = quantity * product_price;
+
+                // Generate unique serial number
+                const serialNo = generateSerialNo();
+
+                // Create buy order linked to cart using cart_id foreign key
+                const insertResult = db.prepare(`
+                    INSERT INTO orders (
+                        user_id, serial_no, order_type, product_id, quantity, 
+                        cart_id, total_amount, payment_method, status
+                    ) VALUES (?, ?, 'buy', ?, ?, ?, ?, ?, 'pending')
+                `).run(user_id, serialNo, product_id, quantity, cart_id, totalAmount, payment_method);
+
+                createdOrders.push({
+                    order_id: insertResult.lastInsertRowid,
+                    serial_no: serialNo,
+                    product_name: product_name,
+                    product_variant: product_variant,
+                    quantity: quantity,
+                    allocated_quantity: allocatedQuantity,
+                    cart_id: cart_id,
+                    total_amount: totalAmount,
+                    payment_method: payment_method,
+                    status: 'pending'
+                });
             }
 
-            // Generate unique serial number for the single order
-            const serialNo = generateSerialNo();
-
-            // Create ONE buy order for the entire cart (use first product_id for compatibility)
-            const insertResult = db.prepare(`
-                INSERT INTO orders (
-                    user_id, serial_no, order_type, product_id, quantity, 
-                    cart_id, total_amount, payment_method, status
-                ) VALUES (?, ?, 'buy', ?, ?, ?, ?, ?, 'pending')
-            `).run(user_id, serialNo, orderItems[0].product_id, orderItems.length, cart_id, orderTotalAmount, payment_method);
-
-            const orderId = insertResult.lastInsertRowid;
-
-            // Insert all items into order_items table
-            const insertOrderItem = db.prepare(`
-                INSERT INTO order_items (order_id, product_id, quantity, price_per_item, item_total)
-                VALUES (?, ?, ?, ?, ?)
-            `);
-
-            for (const item of orderItems) {
-                insertOrderItem.run(orderId, item.product_id, item.quantity, item.price_per_item, item.item_total);
-            }
-
-            // Clear the cart after creating order
+            // Clear the cart after creating orders
             db.prepare(`DELETE FROM cart WHERE cart_id = ?`).run(cart_id);
 
-            return {
-                order_id: orderId,
-                serial_no: serialNo,
-                cart_id: cart_id,
-                total_amount: orderTotalAmount,
-                payment_method: payment_method,
-                status: 'pending',
-                items: orderItems,
-                total_items: orderItems.length
-            };
+            return createdOrders;
         });
 
         const result = transaction();
@@ -193,7 +164,8 @@ const createBuyOrder = async (req, res) => {
             data: {
                 buyer_id: user_id,
                 cart_id: cart_id,
-                order: result
+                total_orders: result.length,
+                orders: result
             }
         });
     } catch (error) {
@@ -206,13 +178,13 @@ const createBuyOrder = async (req, res) => {
 };
 
 /**
- * Create sell order from cart
+ * Create sell order
  * @route POST /api/orders/sell
  * @access Private (seller role)
  */
 const createSellOrder = async (req, res) => {
     try {
-        const { cart_id, payment_method = 'cash' } = req.body;
+        const { product_name, product_variant, product_price, quantity, product_images } = req.body;
         const user_id = req.user.userId;
         const user_role = req.user.role;
 
@@ -225,111 +197,64 @@ const createSellOrder = async (req, res) => {
         }
 
         // Validate required fields
-        if (!cart_id) {
+        if (!product_name || !product_variant || !product_price || !quantity) {
             return res.status(400).json({
                 success: false,
-                message: 'cart_id is required to link sell order with cart'
+                message: 'Product name, variant, price, and quantity are required'
             });
         }
 
-        // Verify cart belongs to the seller by checking if cart has items for this user
-        const cartCheck = db.prepare(`
-            SELECT COUNT(*) as count FROM cart WHERE cart_id = ?
-        `).get(parseInt(cart_id));
+        // Find or create product
+        let product = db.prepare(`
+            SELECT product_id FROM products 
+            WHERE product_name = ? AND product_variant = ?
+        `).get(product_name, product_variant);
 
-        if (!cartCheck || cartCheck.count === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Cart is empty or does not exist'
-            });
+        let product_id;
+        if (!product) {
+            // Create new product
+            const newProduct = db.prepare(`
+                INSERT INTO products (product_name, product_variant, product_price, product_images, quantity)
+                VALUES (?, ?, ?, ?, 0)
+            `).run(product_name, product_variant, product_price, product_images || '');
+            product_id = newProduct.lastInsertRowid;
+        } else {
+            product_id = product.product_id;
         }
 
-        // Verify cart_id matches user_id (cart_id should be the seller's ID)
-        if (parseInt(cart_id) !== parseInt(user_id)) {
-            return res.status(403).json({
-                success: false,
-                message: 'Unauthorized access to cart'
-            });
-        }
+        // Calculate total amount
+        const total_amount = product_price * quantity;
 
-        if (!payment_method || !['cash', 'upi'].includes(payment_method)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Payment method must be either cash or upi'
-            });
-        }
+        // Generate serial number
+        const serial_no = generateSerialNo();
 
-        const transaction = db.transaction(() => {
-            // Get all items from the seller's cart
-            const cartItems = db.prepare(`
-                SELECT c.cart_id, c.product_id, c.quantity, 
-                       p.product_name, p.product_variant, p.product_price
-                FROM cart c
-                JOIN products p ON c.product_id = p.product_id
-                WHERE c.cart_id = ?
-            `).all(cart_id);
+        // Create sell order (cart_id is NULL for sell orders)
+        const insertResult = db.prepare(`
+            INSERT INTO orders (
+                user_id, serial_no, order_type, product_id, quantity, 
+                cart_id, total_amount, payment_method, status
+            ) VALUES (?, ?, 'sell', ?, ?, NULL, ?, 'cash', 'pending')
+        `).run(user_id, serial_no, product_id, quantity, total_amount);
 
-            if (cartItems.length === 0) {
-                throw new Error('Cart is empty');
-            }
-
-            const createdOrders = [];
-
-            for (const cartItem of cartItems) {
-                const { product_id, quantity, product_name, product_variant, product_price } = cartItem;
-
-                // For sell orders, we can directly create them as inventory
-                // Calculate total amount for this sell order
-                const totalAmount = quantity * product_price;
-
-                // Generate unique serial number
-                const serialNo = generateSerialNo();
-
-                // Create sell order linked to cart using cart_id foreign key
-                const insertResult = db.prepare(`
-                    INSERT INTO orders (
-                        user_id, serial_no, order_type, product_id, quantity, 
-                        cart_id, total_amount, payment_method, status
-                    ) VALUES (?, ?, 'sell', ?, ?, ?, ?, ?, 'pending')
-                `).run(user_id, serialNo, product_id, quantity, cart_id, totalAmount, payment_method);
-
-                createdOrders.push({
-                    order_id: insertResult.lastInsertRowid,
-                    serial_no: serialNo,
-                    order_type: 'sell',
-                    product_name: product_name,
-                    product_variant: product_variant,
-                    quantity: quantity,
-                    cart_id: cart_id,
-                    total_amount: totalAmount,
-                    payment_method: payment_method,
-                    status: 'pending'
-                });
-            }
-
-            // Clear the cart after creating sell orders
-            db.prepare(`DELETE FROM cart WHERE cart_id = ?`).run(cart_id);
-
-            return createdOrders;
-        });
-
-        const result = transaction();
-        
         res.status(201).json({
             success: true,
-            message: 'Sell order created successfully from cart',
+            message: 'Sell order created successfully',
             data: {
-                seller_id: user_id,
-                cart_id: cart_id,
-                total_orders: result.length,
-                orders: result
+                order_id: insertResult.lastInsertRowid,
+                serial_no: serial_no,
+                order_type: 'sell',
+                product_name: product_name,
+                product_variant: product_variant,
+                quantity: quantity,
+                total_amount: total_amount,
+                status: 'pending'
             }
         });
     } catch (error) {
         console.error('Create sell order error:', error);
         res.status(500).json({
             success: false,
-            message: error.message || 'Failed to create sell order'
+            message: 'Failed to create sell order'
         });
     }
 };
@@ -344,7 +269,7 @@ const getBuyOrders = async (req, res) => {
         const user_id = req.user.userId;
         const { status, page = 1, limit = 10 } = req.query;
 
-        let whereClause = 'WHERE o.user_id = ?';
+        let whereClause = 'WHERE o.user_id = ? AND o.order_type = \'buy\'';
         let queryParams = [user_id];
 
         if (status) {
@@ -354,46 +279,29 @@ const getBuyOrders = async (req, res) => {
 
         const offset = (page - 1) * limit;
 
-        // Get buy orders with their items from order_items table
+        // Get orders with cart information
         const orders = db.prepare(`
-            SELECT o.order_id, o.serial_no, o.quantity as total_items, o.cart_id,
-                   o.total_amount, o.payment_method, o.status, o.created_at
+            SELECT o.order_id, o.serial_no, o.order_type, o.quantity, o.cart_id,
+                   o.total_amount, o.payment_method, o.status, o.created_at,
+                   p.product_name, p.product_variant, p.product_price
             FROM orders o
+            JOIN products p ON o.product_id = p.product_id
             ${whereClause}
-            AND (o.order_type = 'buy' OR o.order_type IS NULL)
             ORDER BY o.created_at DESC
             LIMIT ? OFFSET ?
         `).all(...queryParams, limit, offset);
-
-        // For each order, get its items from order_items table
-        const ordersWithItems = orders.map(order => {
-            const orderItems = db.prepare(`
-                SELECT oi.product_id, oi.quantity, oi.price_per_item, oi.item_total,
-                       p.product_name, p.product_variant
-                FROM order_items oi
-                JOIN products p ON oi.product_id = p.product_id
-                WHERE oi.order_id = ?
-                ORDER BY oi.created_at
-            `).all(order.order_id);
-
-            return {
-                ...order,
-                items: orderItems
-            };
-        });
 
         // Get total count
         const totalCount = db.prepare(`
             SELECT COUNT(*) as total
             FROM orders o
             ${whereClause}
-            AND (o.order_type = 'buy' OR o.order_type IS NULL)
         `).get(...queryParams);
 
         res.json({
             success: true,
             data: {
-                orders: ordersWithItems,
+                orders: orders,
                 pagination: {
                     current_page: parseInt(page),
                     total_pages: Math.ceil(totalCount.total / limit),
@@ -421,7 +329,7 @@ const getSellOrders = async (req, res) => {
         const user_id = req.user.userId;
         const { status, page = 1, limit = 10 } = req.query;
 
-        let whereClause = 'WHERE o.user_id = ?';
+        let whereClause = 'WHERE o.user_id = ? AND o.order_type = \'sell\'';
         let queryParams = [user_id];
 
         if (status) {
@@ -432,13 +340,12 @@ const getSellOrders = async (req, res) => {
         const offset = (page - 1) * limit;
 
         const orders = db.prepare(`
-            SELECT o.order_id, o.serial_no, o.quantity,
+            SELECT o.order_id, o.serial_no, o.order_type, o.quantity,
                    o.total_amount, o.payment_method, o.status, o.created_at,
                    p.product_name, p.product_variant, p.product_price
             FROM orders o
             JOIN products p ON o.product_id = p.product_id
             ${whereClause}
-            AND o.order_type = 'sell'
             ORDER BY o.created_at DESC
             LIMIT ? OFFSET ?
         `).all(...queryParams, limit, offset);
@@ -447,7 +354,6 @@ const getSellOrders = async (req, res) => {
             SELECT COUNT(*) as total
             FROM orders o
             ${whereClause}
-            AND o.order_type = 'sell'
         `).get(...queryParams);
 
         res.json({
