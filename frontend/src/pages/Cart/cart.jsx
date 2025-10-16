@@ -1,87 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../contexts/CartContext';
 import './cart.css';
-import Drafter from "../assets/Drafter.jpeg";
-import Calculator from "../assets/Calci.jpg";
-import MechanicalCoat from "../assets/Mechanical.jpeg";
-import ChartHolder from "../assets/chart holder.jpg";
-import Chemical from "../assets/Chemical.jpeg";
+import Drafter from "../../assets/Drafter.jpeg";
+import Calculator from "../../assets/Calci.jpg";
+import MechanicalCoat from "../../assets/Mechanical.jpeg";
+import ChartHolder from "../../assets/chart holder.jpg";
+import Chemical from "../../assets/Chemical.jpeg";
 
 
 
 const Cart = () => {
-  // Sample cart items
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: 'Premium Drafter Set',
-      category: 'Drafters',
-      subcategory: 'Premium',
-      price: 2500,
-      originalPrice: 3200,
-      image: Drafter,
-      description: 'Professional grade drafter with precision tools and compass set',
-      seller: 'Final Year - Mechanical',
-      quantity: 1,
-      inStock: 3
-    },
-    {
-      id: 2,
-      name: 'Scientific Calculator',
-      category: 'Calculators',
-      price: 1200,
-      originalPrice: 1500,
-      image: Calculator,
-      description: 'Advanced scientific calculator with 240+ functions',
-      seller: 'Third Year - ECE',
-      quantity: 2,
-      inStock: 5
-    },
-    {
-      id: 3,
-      name: 'Mechanical Lab Coat',
-      category: 'Lab Coats',
-      price: 800,
-      originalPrice: 1000,
-      image: MechanicalCoat,
-      description: 'Professional white lab coat with multiple pockets',
-      seller: 'Fourth Year - Mech',
-      quantity: 1,
-      inStock: 2
-    },
-    {
-      id: 4,
-      name: 'Standard Drafter Set',
-      category: 'Drafters',
-      subcategory: 'Standard',
-      price: 1500,
-      originalPrice: 1800,
-      image: Chemical,
-      description: 'Good quality drafter set for regular engineering use',
-      seller: 'Second Year - Civil',
-      quantity: 1,
-      inStock: 4
-    }
-  ]);
-
-  const [selectedItems, setSelectedItems] = useState(cartItems.map(item => item.id));
+  const navigate = useNavigate();
+  const { cartItems: contextCartItems, updateQuantity: updateContextQuantity, removeFromCart: removeFromContext, clearCart } = useCart();
+  
+  // Use cart items from context, or show sample data if cart is empty (for demo purposes)
+  const [cartItems, setCartItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Initialize cart items and selected items
+  useEffect(() => {
+    if (contextCartItems.length > 0) {
+      setCartItems(contextCartItems);
+      setSelectedItems(contextCartItems.map(item => item.id));
+    } else {
+      // Sample cart items for demo (remove this in production)
+      const sampleItems = [
+        {
+          id: 1,
+          name: 'Premium Drafter Set',
+          category: 'Drafters',
+          subcategory: 'Premium',
+          price: 2500,
+          originalPrice: 3200,
+          image: Drafter,
+          description: 'Professional grade drafter with precision tools and compass set',
+          seller: 'Final Year - Mechanical',
+          quantity: 1,
+          inStock: 3
+        },
+        {
+          id: 2,
+          name: 'Scientific Calculator',
+          category: 'Calculators',
+          price: 1200,
+          originalPrice: 1500,
+          image: Calculator,
+          description: 'Advanced scientific calculator with 240+ functions',
+          seller: 'Third Year - ECE',
+          quantity: 2,
+          inStock: 5
+        }
+      ];
+      setCartItems(sampleItems);
+      setSelectedItems(sampleItems.map(item => item.id));
+    }
+  }, [contextCartItems]);
 
   const updateQuantity = (id, newQuantity) => {
     if (newQuantity === 0) {
       removeFromCart(id);
       return;
     }
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, quantity: Math.min(newQuantity, item.inStock) } : item
-      )
-    );
+    updateContextQuantity(id, newQuantity);
   };
 
   const removeFromCart = (id) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+    removeFromContext(id);
     setSelectedItems(prev => prev.filter(itemId => itemId !== id));
   };
 
@@ -125,6 +113,7 @@ const Cart = () => {
       // Reset after success animation
       setTimeout(() => {
         setShowSuccess(false);
+        clearCart();
         setCartItems([]);
         setSelectedItems([]);
       }, 3000);
@@ -178,7 +167,7 @@ const Cart = () => {
             <ShoppingBag size={80} className="empty-cart-icon" />
             <h2>Your cart is empty!</h2>
             <p>Add some items to get started</p>
-            <button className="continue-shopping-btn">
+            <button className="continue-shopping-btn" onClick={() => navigate('/buy')}>
               <ArrowLeft size={20} />
               Continue Shopping
             </button>
@@ -193,7 +182,7 @@ const Cart = () => {
       {/* Header */}
       <div className="cart-header">
         <div className="header-content">
-          <button className="back-btn">
+          <button className="back-btn" onClick={() => navigate(-1)}>
             <ArrowLeft size={24} />
           </button>
           <div className="header-info">

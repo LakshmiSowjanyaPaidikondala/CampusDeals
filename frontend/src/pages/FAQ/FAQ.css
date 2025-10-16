@@ -12,6 +12,7 @@
 .faq-wrapper.faq-slide-in {
   opacity: 1;
   transform: translateX(0);
+  padding: 0%;
 }
 
 /* Main FAQ Container - Full Width */
