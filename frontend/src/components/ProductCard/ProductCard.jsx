@@ -63,25 +63,13 @@ const ProductCard = ({ product, onAddToCart }) => {
       'ES-Plus': 'ES-Plus Calculator',
       'chart holder': 'Chart Holder'
     };
+    
+    // Handle undefined or null variants
+    if (!variant) {
+      return 'Standard';
+    }
+    
     return formatMap[variant] || variant.toUpperCase();
-  };
-
-  const getVariantDescription = (variant) => {
-    const descriptions = {
-      'premium_drafter': 'Professional grade with precision accuracy',
-      'standard_drafter': 'Good quality and durable for regular use',
-      'budget_drafter': 'Basic functionality at affordable price',
-      'MS': 'Basic scientific calculator for simple calculations',
-      'ES': 'Enhanced scientific calculator with more functions',
-      'ES-Plus': 'Advanced scientific calculator with programming features',
-      'S': 'Small size - fits most students',
-      'M': 'Medium size - comfortable fit',
-      'L': 'Large size - spacious and comfortable',
-      'XL': 'Extra Large size',
-      'XXL': 'Double Extra Large size',
-      'chart holder': 'Sturdy holder for organizing technical drawings'
-    };
-    return descriptions[variant] || 'Quality product for student use';
   };
 
   // Check if product has multiple variants
@@ -107,51 +95,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           </h3>
         </div>
 
-        <div className="product-description">
-          <p className="description-text">
-            {typeof product.description === 'string' 
-              ? product.description 
-              : product.description?.main || "Quality product for student use."
-            }
-          </p>
-          
-          {/* Product Features */}
-          {product.description?.features && Array.isArray(product.description.features) && (
-            <div className="product-features">
-              <h4 className="features-title">Key Features:</h4>
-              <ul className="features-list">
-                {product.description.features.map((feature, index) => (
-                  <li key={index} className="feature-item">• {feature}</li>
-                ))}
-              </ul>
-            </div>
-          )}
 
-          {/* Product Specifications */}
-          {product.description?.specifications && 
-           typeof product.description.specifications === 'object' && 
-           Object.keys(product.description.specifications).length > 0 && (
-            <div className="product-specifications">
-              <h4 className="specs-title">Specifications:</h4>
-              <div className="specs-grid">
-                {Object.entries(product.description.specifications).map(([key, value]) => (
-                  <div key={key} className="spec-item">
-                    <span className="spec-label">{key}:</span>
-                    <span className="spec-value">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Use Case */}
-          {product.description?.useCase && (
-            <div className="product-usecase">
-              <h4 className="usecase-title">Best For:</h4>
-              <p className="usecase-text">{product.description.useCase}</p>
-            </div>
-          )}
-        </div>
 
         {/* Variant Selection */}
         {hasMultipleVariants ? (
@@ -181,9 +125,6 @@ const ProductCard = ({ product, onAddToCart }) => {
                       <span className="variant-price">₹{variant.price}</span>
                     </div>
                     <div className="variant-details">
-                      <small className="variant-description">
-                        {variant.variantDetails?.description || getVariantDescription(variant.variant)}
-                      </small>
                       <small className={`variant-stock ${variant.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
                         {variant.stock > 0 ? `${variant.stock} left` : 'Out of stock'}
                       </small>
@@ -213,7 +154,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           </div>
         ) : null}
 
-        {/* Selected Variant Info */}
+            {/* Selected Variant Info */}
         {selectedVariant && (
           <div className="selected-variant-info">
             <div className="variant-header">
@@ -226,24 +167,7 @@ const ProductCard = ({ product, onAddToCart }) => {
                   {selectedVariant.stock > 0 ? `${selectedVariant.stock} in stock` : 'Out of stock'}
                 </span>
               </div>
-            </div>
-            
-            {/* Product Code */}
-            {selectedVariant.productCode && (
-              <div className="product-code">
-                <span className="code-label">Product Code:</span>
-                <span className="code-value">{selectedVariant.productCode}</span>
-              </div>
-            )}
-            
-            {/* Variant Description */}
-            <div className="variant-description-detail">
-              <p className="variant-desc">
-                {selectedVariant.variantDetails?.description || getVariantDescription(selectedVariant.variant)}
-              </p>
-            </div>
-            
-            {/* Variant Features for single variant or selected variant details */}
+            </div>            {/* Variant Features for single variant or selected variant details */}
             {selectedVariant.variantDetails?.features && Array.isArray(selectedVariant.variantDetails.features) && (
               <div className="selected-variant-features">
                 <h5 className="variant-features-title">Key Features:</h5>

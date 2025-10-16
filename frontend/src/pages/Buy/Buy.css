@@ -163,23 +163,42 @@
   transform: none;
 }
 
-/* Products Grid - Main container only */
+/* Products Grid - 3 cards per row with equal sizes */
 .products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
   margin: 2rem auto;
   max-width: 1200px;
+  padding: 0 1rem;
+}
+
+/* Responsive grid layout */
+@media (max-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 /* Loading state */
 .buy-page p {
-  color: #fff;
+  color: #000000;
   font-size: 1.2rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(147, 224, 235);
   /* padding: 2rem; */
   border-radius: 20px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   /* margin: 2rem auto; */
-  max-width: 400px;
+  max-width: 500px;
 }
 
 /* 🔹 Custom Scrollbar */

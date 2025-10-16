@@ -79,18 +79,14 @@ export const loginUser = async (email, password) => {
 };
 
 // Register API call
-export const registerUser = async (name, email, password) => {
+export const registerUser = async (userData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        user_name: name,
-        user_email: email, 
-        user_password: password 
-      }),
+      body: JSON.stringify(userData),
     });
 
     const data = await response.json();
