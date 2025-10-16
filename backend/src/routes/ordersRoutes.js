@@ -1,37 +1,34 @@
-const express = require('express');
+ const express = require('express');
 const router = express.Router();
 const { 
     createBuyOrder, 
     createSellOrder,
     getBuyOrders,
     getSellOrders,
-    getOrderById
+    getOrderById,
+    updateBuyOrder,
+    updateSellOrder
 } = require('../controllers/ordersController');
 const { authenticateToken } = require('../middleware/auth');
 
 /**
  * @route   POST /api/orders/buy
- * @desc    Create a new buy order (for buyers purchasing products)
+ * @desc    Create a new buy order (for buyers purchasing products from cart)
  * @access  Private (buyer role)
  * @body    { 
- *            product_id: number, 
- *            quantity: number (optional, default: 1), 
- *            payment_method: string ('cash' | 'upi'),
- *            total_amount: number
+ *            cart_id: number,
+ *            payment_method: string ('cash' | 'upi') (optional, default: 'cash')
  *          }
  */
 router.post('/buy', authenticateToken, createBuyOrder);
 
 /**
  * @route   POST /api/orders/sell
- * @desc    Create a new sell order (for sellers listing products for sale)
+ * @desc    Create sell orders from cart (for sellers listing products for sale)
  * @access  Private (seller role)
  * @body    { 
- *            product_name: string,
- *            product_variant: string,
- *            product_price: number,
- *            quantity: number,
- *            product_images: string (optional)
+ *            cart_id: number,
+ *            payment_method: string ('cash' | 'upi') (optional, default: 'cash')
  *          }
  */
 router.post('/sell', authenticateToken, createSellOrder);
@@ -41,20 +38,32 @@ router.post('/sell', authenticateToken, createSellOrder);
  * @desc    Get all buy orders for the authenticated user
  * @access  Private
  * @query   status: string (optional) - filter by order status
- *          page: number (optional, default: 1) - page number for pagination
- *          limit: number (optional, default: 10) - items per page
  */
 router.get('/buy', authenticateToken, getBuyOrders);
+
+/**
+ * @route   PUT /api/orders/buy/:orderId
+ * @desc    Update a buy order
+ * @access  Private (buyer or admin)
+ * @body    { status?, quantity?, payment_method? }
+ */
+router.put('/buy/:orderId', authenticateToken, updateBuyOrder);
 
 /**
  * @route   GET /api/orders/sell
  * @desc    Get all sell orders for the authenticated seller
  * @access  Private (seller role)
  * @query   status: string (optional) - filter by order status
- *          page: number (optional, default: 1) - page number for pagination
- *          limit: number (optional, default: 10) - items per page
  */
 router.get('/sell', authenticateToken, getSellOrders);
+
+/**
+ * @route   PUT /api/orders/sell/:orderId
+ * @desc    Update a sell order
+ * @access  Private (seller or admin)
+ * @body    { status?, quantity?, total_amount? }
+ */
+router.put('/sell/:orderId', authenticateToken, updateSellOrder);
 
 /**
  * @route   GET /api/orders/:orderId
