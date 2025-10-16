@@ -288,7 +288,7 @@ const Buy = () => {
 
   return (
     <div className="buy-page">
-      <h1 className="buy-title">Budget Buys</h1>
+      <h1 className="buy-title">Student Deals</h1>
 
       {/* 🔍 Search Bar */}
       <div className="search-bar">
