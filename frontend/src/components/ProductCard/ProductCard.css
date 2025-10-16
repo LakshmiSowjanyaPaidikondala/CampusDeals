@@ -389,7 +389,7 @@
 
 /* When dropdown is active, bring card to front */
 .product-card.dropdown-active {
-  z-index: 10000 !important;
+  z-index: 100 !important;
 }
 
 /* New Product Card Structure Styles */
