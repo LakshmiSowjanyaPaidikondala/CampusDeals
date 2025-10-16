@@ -24,8 +24,18 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is authenticated on app load
   useEffect(() => {
+    const storedUser = localStorage.getItem('userData');
     if (token) {
-      fetchUserProfile();
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+          setIsLoading(false);
+        } catch (error) {
+          fetchUserProfile();
+        }
+      } else {
+        fetchUserProfile();
+      }
     } else {
       setIsLoading(false);
     }
@@ -74,6 +84,7 @@ export const AuthProvider = ({ children }) => {
         setToken(data.token);
         setUser(data.user);
         localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
         return { success: true, user: data.user };
       } else {
         return { success: false, error: data.message };
@@ -99,6 +110,7 @@ export const AuthProvider = ({ children }) => {
         setToken(data.token);
         setUser(data.user);
         localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
         return { success: true, user: data.user };
       } else {
         return { success: false, error: data.message };
@@ -112,6 +124,8 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('cartItems');
   };
 
   // Function to make authenticated API calls
@@ -143,6 +157,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Function to update user data in context and localStorage
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
+    localStorage.setItem('userData', JSON.stringify(updatedUserData));
+  };
+
   const value = {
     user,
     token,
@@ -151,6 +171,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     apiCall,
+    updateUser,
     isAuthenticated: !!token && !!user
   };
 
