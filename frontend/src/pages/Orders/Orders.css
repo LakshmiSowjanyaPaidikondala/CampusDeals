@@ -1,0 +1,40 @@
+.orders-container {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.orders-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.orders-header h1 {
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.orders-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  color: #4a5568;
+  margin: 0 0 1rem 0;
+}
+
+.empty-state p {
+  color: #718096;
+  font-size: 1rem;
+}
