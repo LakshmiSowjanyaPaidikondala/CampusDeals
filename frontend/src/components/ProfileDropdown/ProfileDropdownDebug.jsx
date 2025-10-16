@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import './ProfileDropdownDebug.css';
 import { useAuth } from '../../hooks/useAuth.jsx';
@@ -118,138 +119,140 @@ const ProfileDropdownDebug = () => {
   });
 
   return (
-    <div className="profile-dropdown" ref={dropdownRef}>
-      {/* Debug info */}
-      <div style={{
-        position: 'absolute',
-        top: '-20px',
-        right: '0',
-        fontSize: '10px',
-        color: 'white',
-        background: 'rgba(0,0,0,0.7)',
-        padding: '2px 4px',
-        borderRadius: '3px',
-        whiteSpace: 'nowrap'
-      }}>
-        Auth: {showAsAuthenticated ? 'Yes' : 'No'} | User: {displayUser ? 'Yes' : 'No'}
-      </div>
-
-      {/* Profile Icon/Button */}
-      <button 
-        className="profile-button"
-        onClick={toggleDropdown}
-        aria-label="Profile menu"
-        style={{
-          border: isOpen ? '2px solid #ff6b6b' : '2px solid transparent',
-          position: 'relative'
-        }}
-      >
-        <div className="profile-avatar">
-          {displayUser?.avatar ? (
-            <img src={displayUser.avatar} alt={displayUser.user_name || displayUser.name} />
-          ) : (
-            <span className="avatar-initials">{getInitials(displayUser?.user_name || displayUser?.name)}</span>
-          )}
+    <>
+      <div className="profile-dropdown" ref={dropdownRef}>
+        {/* Debug info */}
+        <div style={{
+          position: 'absolute',
+          top: '-20px',
+          right: '0',
+          fontSize: '10px',
+          color: 'white',
+          background: 'rgba(0,0,0,0.7)',
+          padding: '2px 4px',
+          borderRadius: '3px',
+          whiteSpace: 'nowrap'
+        }}>
+          Auth: {showAsAuthenticated ? 'Yes' : 'No'} | User: {displayUser ? 'Yes' : 'No'}
         </div>
-        <FaChevronDown 
-          className={`dropdown-arrow ${isOpen ? 'open' : ''}`} 
-        />
-      </button>
 
-      {/* Dropdown Menu - Always render for debugging */}
-      <div className={`dropdown-menu ${isOpen ? 'visible' : 'hidden'}`} style={{
-        display: 'block',
-        visibility: isOpen ? 'visible' : 'hidden',
-        opacity: isOpen ? 1 : 0,
-        transform: isOpen ? 'translateY(0)' : 'translateY(-10px)',
-        transition: 'all 0.3s ease'
-      }}>
-        {/* User Info Section */}
-        <div className="user-info">
-          <div className="user-avatar-large">
+        {/* Profile Icon/Button */}
+        <button 
+          className="profile-button"
+          onClick={toggleDropdown}
+          aria-label="Profile menu"
+          style={{
+            border: isOpen ? '2px solid #ff6b6b' : '2px solid transparent',
+            position: 'relative'
+          }}
+        >
+          <div className="profile-avatar">
             {displayUser?.avatar ? (
               <img src={displayUser.avatar} alt={displayUser.user_name || displayUser.name} />
             ) : (
-              <span className="avatar-initials-large">{getInitials(displayUser?.user_name || displayUser?.name)}</span>
+              <span className="avatar-initials">{getInitials(displayUser?.user_name || displayUser?.name)}</span>
             )}
           </div>
-          <div className="user-details">
-            <h4>{displayUser?.user_name || displayUser?.name || 'Campus User'}</h4>
-            <p className="user-email">{displayUser?.user_email || displayUser?.email || 'user@campus.edu'}</p>
-            {displayUser?.user_college && (
-              <p className="user-college">{displayUser.user_college}</p>
-            )}
-            {displayUser?.user_branch && (
-              <p className="user-branch">{displayUser.user_branch} - Year {displayUser.user_year || 'N/A'}</p>
-            )}
-            <p className="user-status">
-              <span className="status-indicator"></span>
-              Online
-            </p>
-          </div>
-        </div>
-
-        <div className="dropdown-divider"></div>
-
-        {/* Menu Items */}
-        <div className="dropdown-items">
-          <Link 
-            to="/profile" 
-            className="dropdown-item"
-            onClick={closeDropdown}
-          >
-            <FaUser className="item-icon" />
-            <span>My Profile</span>
-          </Link>
-
-          <Link 
-            to="/cart" 
-            className="dropdown-item"
-            onClick={closeDropdown}
-          >
-            <FaShoppingCart className="item-icon" />
-            <span>Cart</span>
-            {displayUser?.cartItems && displayUser.cartItems > 0 && (
-              <span className="badge">{displayUser.cartItems}</span>
-            )}
-          </Link>
-
-          <Link 
-            to="/orders" 
-            className="dropdown-item"
-            onClick={closeDropdown}
-          >
-            <FaHistory className="item-icon" />
-            <span>Order History</span>
-            {displayUser?.orderCount && (
-              <span className="order-count">({displayUser.orderCount})</span>
-            )}
-          </Link>
-
-          <Link 
-            to="/settings" 
-            className="dropdown-item"
-            onClick={closeDropdown}
-          >
-            <FaCog className="item-icon" />
-            <span>Settings</span>
-          </Link>
-        </div>
-
-        <div className="dropdown-divider"></div>
-
-        {/* Logout */}
-        <button 
-          className="dropdown-item logout-item"
-          onClick={handleLogoutClick}
-        >
-          <FaSignOutAlt className="item-icon" />
-          <span>Logout</span>
+          <FaChevronDown 
+            className={`dropdown-arrow ${isOpen ? 'open' : ''}`} 
+          />
         </button>
+
+        {/* Dropdown Menu - Always render for debugging */}
+        <div className={`dropdown-menu ${isOpen ? 'visible' : 'hidden'}`} style={{
+          display: 'block',
+          visibility: isOpen ? 'visible' : 'hidden',
+          opacity: isOpen ? 1 : 0,
+          transform: isOpen ? 'translateY(0)' : 'translateY(-10px)',
+          transition: 'all 0.3s ease'
+        }}>
+          {/* User Info Section */}
+          <div className="user-info">
+            <div className="user-avatar-large">
+              {displayUser?.avatar ? (
+                <img src={displayUser.avatar} alt={displayUser.user_name || displayUser.name} />
+              ) : (
+                <span className="avatar-initials-large">{getInitials(displayUser?.user_name || displayUser?.name)}</span>
+              )}
+            </div>
+            <div className="user-details">
+              <h4>{displayUser?.user_name || displayUser?.name || 'Campus User'}</h4>
+              <p className="user-email">{displayUser?.user_email || displayUser?.email || 'user@campus.edu'}</p>
+              {displayUser?.user_college && (
+                <p className="user-college">{displayUser.user_college}</p>
+              )}
+              {displayUser?.user_branch && (
+                <p className="user-branch">{displayUser.user_branch} - Year {displayUser.user_year || 'N/A'}</p>
+              )}
+              <p className="user-status">
+                <span className="status-indicator"></span>
+                Online
+              </p>
+            </div>
+          </div>
+
+          <div className="dropdown-divider"></div>
+
+          {/* Menu Items */}
+          <div className="dropdown-items">
+            <Link 
+              to="/profile" 
+              className="dropdown-item"
+              onClick={closeDropdown}
+            >
+              <FaUser className="item-icon" />
+              <span>My Profile</span>
+            </Link>
+
+            <Link 
+              to="/cart" 
+              className="dropdown-item"
+              onClick={closeDropdown}
+            >
+              <FaShoppingCart className="item-icon" />
+              <span>Cart</span>
+              {displayUser?.cartItems && displayUser.cartItems > 0 && (
+                <span className="badge">{displayUser.cartItems}</span>
+              )}
+            </Link>
+
+            <Link 
+              to="/orders" 
+              className="dropdown-item"
+              onClick={closeDropdown}
+            >
+              <FaHistory className="item-icon" />
+              <span>Order History</span>
+              {displayUser?.orderCount && (
+                <span className="order-count">({displayUser.orderCount})</span>
+              )}
+            </Link>
+
+            <Link 
+              to="/settings" 
+              className="dropdown-item"
+              onClick={closeDropdown}
+            >
+              <FaCog className="item-icon" />
+              <span>Settings</span>
+            </Link>
+          </div>
+
+          <div className="dropdown-divider"></div>
+
+          {/* Logout */}
+          <button 
+            className="dropdown-item logout-item"
+            onClick={handleLogoutClick}
+          >
+            <FaSignOutAlt className="item-icon" />
+            <span>Logout</span>
+          </button>
+        </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
+      {/* Logout Confirmation Modal - Rendered via Portal */}
+      {showLogoutModal && createPortal(
         <div className="logout-modal-overlay" style={{zIndex: 99999}} onClick={cancelLogout}>
           <div className="logout-modal" style={{zIndex: 100000}} onClick={e => e.stopPropagation()}>
             <div className="logout-modal-header">
@@ -293,9 +296,10 @@ const ProfileDropdownDebug = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 };
 
