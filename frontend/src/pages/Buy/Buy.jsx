@@ -288,18 +288,24 @@ const Buy = () => {
 
   return (
     <div className="buy-page">
-      <h1 className="buy-title">Student Deals</h1>
-
-      {/* 🔍 Search Bar */}
-      <div className="search-bar">
-        <div className="search-input-container">
-          <FaSearch className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search for products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* 🎯 Header Section with Title and Search */}
+      <div className="buy-header">
+        <div className="buy-title-section">
+          <h1 className="buy-title">Student Deals</h1>
+          <p className="buy-subtitle">Discover amazing deals on essential student items</p>
+        </div>
+        
+        {/* 🔍 Search Bar */}
+        <div className="search-bar">
+          <div className="search-input-container">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search for products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
