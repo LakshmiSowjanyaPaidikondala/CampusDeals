@@ -250,11 +250,13 @@
   border-top: 1px solid #e5e7eb;
   margin-top: 0.5rem;
   padding-top: 1rem;
-  color: #dc2626 !important;
+  color:  #dc2626 !important;
+  background: white !important;
+
 }
 
 .logout-item:hover {
-  background: #fee2e2 !important;
+  background: #ffffff !important;
   color: #b91c1c !important;
 }
 

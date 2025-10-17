@@ -423,9 +423,7 @@ const ProfileDropdown = () => {
                 </div>
               </div>
               <p>You will be signed out of your account and redirected to the login page.</p>
-              <div className="logout-warning">
-                <strong>⚠️ Note:</strong> Any unsaved changes will be lost.
-              </div>
+              
             </div>
             <div className="logout-modal-actions" style={{ display: 'flex', gap: '1rem', padding: '2rem' }}>
               <button 
@@ -486,7 +484,7 @@ const ProfileDropdown = () => {
                     Logging out...
                   </>
                 ) : (
-                  'Yes, Logout'
+                  'Yes'
                 )}
               </button>
             </div>

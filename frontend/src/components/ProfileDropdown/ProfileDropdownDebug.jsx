@@ -248,37 +248,19 @@ const ProfileDropdownDebug = () => {
               <h3>Confirm Logout</h3>
               <p>Are you sure you want to logout?</p>
             </div>
-            <div className="logout-modal-body">
-              <div className="logout-user-info">
-                <div className="logout-user-avatar">
-                  {displayUser?.avatar ? (
-                    <img src={displayUser.avatar} alt={displayUser.user_name || displayUser.name} />
-                  ) : (
-                    <span className="logout-avatar-initials">{getInitials(displayUser?.user_name || displayUser?.name)}</span>
-                  )}
-                </div>
-                <div className="logout-user-details">
-                  <h4>{displayUser?.user_name || displayUser?.name}</h4>
-                  <p>{displayUser?.user_email || displayUser?.email}</p>
-                </div>
-              </div>
-              <p>You will be signed out of your account and redirected to the login page.</p>
-              <div className="logout-warning">
-                <strong>⚠️ Note:</strong> Any unsaved changes will be lost.
-              </div>
-            </div>
+            
             <div className="logout-modal-actions">
-              <button 
-                className="logout-cancel-btn"
-                onClick={cancelLogout}
-              >
-                Cancel
-              </button>
               <button 
                 className="logout-confirm-btn"
                 onClick={confirmLogout}
               >
-                Yes, Logout
+                Yes
+              </button>
+              <button 
+                className="logout-cancel-btn"
+                onClick={cancelLogout}
+              >
+                <span>No</span>
               </button>
             </div>
           </div>
