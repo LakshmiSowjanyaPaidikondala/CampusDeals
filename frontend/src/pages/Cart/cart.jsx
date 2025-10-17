@@ -3,11 +3,6 @@ import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check } from 'lucide-react
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import './cart.css';
-import Drafter from "../../assets/Drafter.jpeg";
-import Calculator from "../../assets/Calci.jpg";
-import MechanicalCoat from "../../assets/Mechanical.jpeg";
-import ChartHolder from "../../assets/chart holder.jpg";
-import Chemical from "../../assets/Chemical.jpeg";
 
 
 
@@ -15,7 +10,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const { cartItems: contextCartItems, updateQuantity: updateContextQuantity, removeFromCart: removeFromContext, clearCart } = useCart();
   
-  // Use cart items from context, or show sample data if cart is empty (for demo purposes)
+  // Local state for cart items (synced with context)
   const [cartItems, setCartItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,36 +22,9 @@ const Cart = () => {
       setCartItems(contextCartItems);
       setSelectedItems(contextCartItems.map(item => item.id));
     } else {
-      // Sample cart items for demo (remove this in production)
-      const sampleItems = [
-        {
-          id: 1,
-          name: 'Premium Drafter Set',
-          category: 'Drafters',
-          subcategory: 'Premium',
-          price: 2500,
-          originalPrice: 3200,
-          image: Drafter,
-          description: 'Professional grade drafter with precision tools and compass set',
-          seller: 'Final Year - Mechanical',
-          quantity: 1,
-          inStock: 3
-        },
-        {
-          id: 2,
-          name: 'Scientific Calculator',
-          category: 'Calculators',
-          price: 1200,
-          originalPrice: 1500,
-          image: Calculator,
-          description: 'Advanced scientific calculator with 240+ functions',
-          seller: 'Third Year - ECE',
-          quantity: 2,
-          inStock: 5
-        }
-      ];
-      setCartItems(sampleItems);
-      setSelectedItems(sampleItems.map(item => item.id));
+      // No sample data - cart is truly empty
+      setCartItems([]);
+      setSelectedItems([]);
     }
   }, [contextCartItems]);
 
@@ -65,11 +33,24 @@ const Cart = () => {
       removeFromCart(id);
       return;
     }
+    
+    // Update in context
     updateContextQuantity(id, newQuantity);
+    
+    // Update local state
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      )
+    );
   };
 
   const removeFromCart = (id) => {
+    // Remove from context
     removeFromContext(id);
+    
+    // Update local state
+    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
     setSelectedItems(prev => prev.filter(itemId => itemId !== id));
   };
 
@@ -113,7 +94,9 @@ const Cart = () => {
       // Reset after success animation
       setTimeout(() => {
         setShowSuccess(false);
+        // Clear cart from context
         clearCart();
+        // Clear local state
         setCartItems([]);
         setSelectedItems([]);
       }, 3000);
