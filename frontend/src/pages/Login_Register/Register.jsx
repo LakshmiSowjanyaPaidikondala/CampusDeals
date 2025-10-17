@@ -345,7 +345,20 @@ const Register = ({ onLoginClick }) => {
             >
               {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
+            {validationStates.confirmPassword === 'valid' && (
+              <CheckCircle className="validation-icon valid-icon" size={20} />
+            )}
           </div>
+          
+          {/* Confirm Password Error Message */}
+          {validationStates.confirmPassword === 'invalid' && 
+           registerData.confirmPassword && 
+           registerData.confirmPassword.length >= registerData.user_password.length && (
+            <div className="error-message">
+              <AlertCircle size={16} />
+              <span>Passwords do not match</span>
+            </div>
+          )}
 
           <button onClick={handleSubmit} className="submit-btn" disabled={loading}>
             {loading ? 'Creating Account...' : 'Create Account'}
