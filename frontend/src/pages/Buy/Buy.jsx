@@ -17,7 +17,7 @@ const Buy = () => {
   const [groupedProducts, setGroupedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { addToCart, cartItems } = useCart();
+  const { addToBuyCart, buyCartItems, getBuyCartCount } = useCart();
   const navigate = useNavigate();
 
   const API_BASE_URL = 'http://localhost:5000/api';
@@ -254,7 +254,7 @@ const Buy = () => {
   const [showForm, setShowForm] = useState(false);
 
   const handleAddToCart = (product) => {
-    // Add product with proper structure for cart
+    // Add product with proper structure for buy cart
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -267,18 +267,19 @@ const Buy = () => {
       image: product.image,
       description: `${product.name} - ${product.variant}`,
       seller: 'Campus Deals',
-      category: product.name
+      category: product.name,
+      type: 'buy'
     };
     
-    addToCart(cartItem);
+    addToBuyCart(cartItem);
     
     // Optional: Show a toast notification
-    alert(`${product.name} (${product.variant}) added to cart!`);
+    alert(`${product.name} (${product.variant}) added to buy cart!`);
   };
 
   const handleProceed = () => {
-    if (cartItems.length > 0) {
-      navigate('/cart');
+    if (buyCartItems.length > 0) {
+      navigate('/cart', { state: { activeTab: 'buy' } });
     }
   };
 
@@ -341,9 +342,9 @@ const Buy = () => {
         <button
           className="buy-button"
           onClick={handleProceed}
-          disabled={cartItems.length === 0}
+          disabled={buyCartItems.length === 0}
         >
-          Go to Cart ({cartItems.length} items)
+          Go to Buy Cart ({getBuyCartCount()} items)
         </button>
       </div>
 
