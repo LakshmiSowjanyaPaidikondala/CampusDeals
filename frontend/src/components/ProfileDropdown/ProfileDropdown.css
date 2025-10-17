@@ -341,9 +341,10 @@
 
 /* Logout Item */
 .logout-item {
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid rgba(243, 139, 139, 0.05);
   margin-top: 0.5rem;
   padding-top: 1rem;
+  background: rgba(255, 129, 129, 0.1);
 }
 
 .logout-item::before {
