@@ -316,7 +316,7 @@ const Cart = () => {
                       <p className="item-description">{item.description}</p>
                       
                       <div className="item-meta">
-                        <span className="seller">Sold by: <strong>{item.seller}</strong></span>
+                       
                         <span className="category-badge">{item.subcategory || item.category}</span>
                         <span className="stock-info">Only {item.inStock} left</span>
                       </div>

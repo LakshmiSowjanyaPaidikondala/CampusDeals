@@ -386,60 +386,6 @@ const Profile = () => {
                 <div className="field-value">{displayUser.user_phone || 'Not provided'}</div>
               )}
             </div>
-
-            <div className="profile-field">
-              <label className="field-label">
-                <Calendar size={16} />
-                Member Since
-              </label>
-              <div className="field-value">
-                {displayUser.created_at ? new Date(displayUser.created_at).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                }) : 'January 15, 2024'}
-              </div>
-            </div>
-
-            {displayUser.address && (
-              <div className="profile-field">
-                <label className="field-label">
-                  <MapPin size={16} />
-                  Address
-                </label>
-                {isEditing ? (
-                  <textarea
-                    value={editedUser.address || ''}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="edit-input"
-                    placeholder="Enter your address"
-                    rows="2"
-                  />
-                ) : (
-                  <div className="field-value">{displayUser.address || 'Not provided'}</div>
-                )}
-              </div>
-            )}
-
-            {displayUser.bio !== undefined && (
-              <div className="profile-field full-width">
-                <label className="field-label">
-                  <BookOpen size={16} />
-                  Bio
-                </label>
-                {isEditing ? (
-                  <textarea
-                    value={editedUser.bio || ''}
-                    onChange={(e) => handleInputChange('bio', e.target.value)}
-                    className="edit-input"
-                    placeholder="Tell us about yourself"
-                    rows="3"
-                  />
-                ) : (
-                  <div className="field-value">{displayUser.bio || 'Not provided'}</div>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
@@ -535,72 +481,8 @@ const Profile = () => {
                 <div className="field-value">{displayUser.user_residency || 'Not provided'}</div>
               )}
             </div>
-
-            {displayUser.semester && (
-              <div className="profile-field">
-                <label className="field-label">
-                  <Calendar size={16} />
-                  Semester
-                </label>
-                {isEditing ? (
-                  <select
-                    value={editedUser.semester || ''}
-                    onChange={(e) => handleInputChange('semester', e.target.value)}
-                    className="edit-input"
-                  >
-                    <option value="">Select Semester</option>
-                    <option value="1st Semester">1st Semester</option>
-                    <option value="2nd Semester">2nd Semester</option>
-                    <option value="3rd Semester">3rd Semester</option>
-                    <option value="4th Semester">4th Semester</option>
-                    <option value="5th Semester">5th Semester</option>
-                    <option value="6th Semester">6th Semester</option>
-                    <option value="7th Semester">7th Semester</option>
-                    <option value="8th Semester">8th Semester</option>
-                  </select>
-                ) : (
-                  <div className="field-value">{displayUser.semester || 'Not provided'}</div>
-                )}
-              </div>
-            )}
-
-            {displayUser.gpa && (
-              <div className="profile-field">
-                <label className="field-label">
-                  <GraduationCap size={16} />
-                  GPA
-                </label>
-                {isEditing ? (
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="10"
-                    value={editedUser.gpa || ''}
-                    onChange={(e) => handleInputChange('gpa', e.target.value)}
-                    className="edit-input"
-                    placeholder="Enter your GPA"
-                  />
-                ) : (
-                  <div className="field-value">{displayUser.gpa || 'Not provided'}</div>
-                )}
-              </div>
-            )}
           </div>
         </div>
-
-        {displayUser.interests && (
-          <div className="profile-section">
-            <h2 className="section-title">Interests & Hobbies</h2>
-            <div className="interests-container">
-              {displayUser.interests.map((interest, index) => (
-                <span key={index} className="interest-tag">
-                  {interest}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="profile-section">
           <h2 className="section-title">Account Statistics</h2>
@@ -623,16 +505,6 @@ const Profile = () => {
               <div className="stat-info">
                 <div className="stat-number">{displayUser.products_sold || 0}</div>
                 <div className="stat-label">Products Sold</div>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">
-                <MapPin size={24} />
-              </div>
-              <div className="stat-info">
-                <div className="stat-number">{displayUser.wishlist_count || 0}</div>
-                <div className="stat-label">Wishlist Items</div>
               </div>
             </div>
           </div>
