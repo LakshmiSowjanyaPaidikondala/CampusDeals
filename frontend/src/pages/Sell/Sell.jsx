@@ -17,7 +17,7 @@ const Sell = () => {
   const [groupedProducts, setGroupedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { addToCart, cartItems } = useCart();
+  const { addToSellCart, sellCartItems, getSellCartCount } = useCart();
   const navigate = useNavigate();
 
   const API_BASE_URL = 'http://localhost:5000/api';
@@ -254,7 +254,7 @@ const Sell = () => {
   const [showForm, setShowForm] = useState(false);
 
   const handleAddToCart = (product) => {
-    // Add product with proper structure for cart
+    // Add product with proper structure for sell cart
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -266,19 +266,20 @@ const Sell = () => {
       productCode: product.productCode,
       image: product.image,
       description: `${product.name} - ${product.variant}`,
-      seller: 'Campus Deals',
-      category: product.name
+      seller: 'Your Items',
+      category: product.name,
+      type: 'sell'
     };
     
-    addToCart(cartItem);
+    addToSellCart(cartItem);
     
     // Optional: Show a toast notification
-    alert(`${product.name} (${product.variant}) added to cart!`);
+    alert(`${product.name} (${product.variant}) added to sell cart!`);
   };
 
   const handleProceed = () => {
-    if (cartItems.length > 0) {
-      navigate('/cart');
+    if (sellCartItems.length > 0) {
+      navigate('/cart', { state: { activeTab: 'sell' } });
     }
   };
 
@@ -335,9 +336,9 @@ const Sell = () => {
         <button
           className="sell-button"
           onClick={handleProceed}
-          disabled={cartItems.length === 0}
+          disabled={sellCartItems.length === 0}
         >
-          Go to Cart ({cartItems.length} items)
+          Go to Sell Cart ({getSellCartCount()} items)
         </button>
       </div>
 

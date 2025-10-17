@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check, ShoppingCart, Tag } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import './cart.css';
 
@@ -8,7 +8,31 @@ import './cart.css';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { cartItems: contextCartItems, updateQuantity: updateContextQuantity, removeFromCart: removeFromContext, clearCart } = useCart();
+  const location = useLocation();
+  const { 
+    buyCartItems, 
+    sellCartItems, 
+    updateQuantity: updateContextQuantity, 
+    removeFromCart: removeFromContext, 
+    clearBuyCart,
+    clearSellCart 
+  } = useCart();
+  
+  // Determine initial tab based on navigation state or which cart has more items
+  const getInitialTab = () => {
+    // Check if navigation state specifies a tab
+    if (location.state?.activeTab) {
+      return location.state.activeTab;
+    }
+    // Check if sell cart has more items
+    if (sellCartItems.length > buyCartItems.length) {
+      return 'sell';
+    }
+    return 'buy';
+  };
+  
+  // Cart type state - 'buy' or 'sell'
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   
   // Local state for cart items (synced with context)
   const [cartItems, setCartItems] = useState([]);
@@ -16,17 +40,18 @@ const Cart = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Initialize cart items and selected items
+  // Initialize cart items and selected items based on active tab
   useEffect(() => {
-    if (contextCartItems.length > 0) {
-      setCartItems(contextCartItems);
-      setSelectedItems(contextCartItems.map(item => item.id));
+    const currentCartItems = activeTab === 'buy' ? buyCartItems : sellCartItems;
+    
+    if (currentCartItems.length > 0) {
+      setCartItems(currentCartItems);
+      setSelectedItems(currentCartItems.map(item => item.id));
     } else {
-      // No sample data - cart is truly empty
       setCartItems([]);
       setSelectedItems([]);
     }
-  }, [contextCartItems]);
+  }, [buyCartItems, sellCartItems, activeTab]);
 
   const updateQuantity = (id, newQuantity) => {
     if (newQuantity === 0) {
@@ -94,8 +119,12 @@ const Cart = () => {
       // Reset after success animation
       setTimeout(() => {
         setShowSuccess(false);
-        // Clear cart from context
-        clearCart();
+        // Clear appropriate cart from context
+        if (activeTab === 'buy') {
+          clearBuyCart();
+        } else {
+          clearSellCart();
+        }
         // Clear local state
         setCartItems([]);
         setSelectedItems([]);
@@ -142,7 +171,12 @@ const Cart = () => {
     );
   }
 
-  if (cartItems.length === 0) {
+  const getTotalCartItems = () => {
+    return buyCartItems.length + sellCartItems.length;
+  };
+
+  // If both carts are empty, show empty cart screen
+  if (getTotalCartItems() === 0) {
     return (
       <div className="cart-container">
         <div className="empty-cart">
@@ -150,15 +184,52 @@ const Cart = () => {
             <ShoppingBag size={80} className="empty-cart-icon" />
             <h2>Your cart is empty!</h2>
             <p>Add some items to get started</p>
-            <button className="continue-shopping-btn" onClick={() => navigate('/buy')}>
-              <ArrowLeft size={20} />
-              Continue Shopping
-            </button>
+            <div className="empty-cart-buttons">
+              <button className="continue-shopping-btn" onClick={() => navigate('/buy')}>
+                <ShoppingCart size={20} />
+                Shop Products
+              </button>
+              <button className="continue-shopping-btn" onClick={() => navigate('/sell')}>
+                <Tag size={20} />
+                Sell Products
+              </button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
+
+  // If current tab is empty but other tab has items, show tab-specific empty state
+  const renderTabEmptyState = () => {
+    if (cartItems.length === 0) {
+      const isEmptyBuyTab = activeTab === 'buy';
+      return (
+        <div className="cart-items-section">
+          <div className="empty-tab-content">
+            <div className="empty-tab-icon">
+              {isEmptyBuyTab ? <ShoppingCart size={60} /> : <Tag size={60} />}
+            </div>
+            <h3>Your {activeTab} cart is empty!</h3>
+            <p>
+              {isEmptyBuyTab 
+                ? "Browse products to add items to your buy cart" 
+                : "Add items you want to sell to your sell cart"
+              }
+            </p>
+            <button 
+              className="continue-shopping-btn" 
+              onClick={() => navigate(isEmptyBuyTab ? '/buy' : '/sell')}
+            >
+              {isEmptyBuyTab ? <ShoppingCart size={18} /> : <Tag size={18} />}
+              {isEmptyBuyTab ? 'Shop Products' : 'Sell Products'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="cart-container">
@@ -170,106 +241,126 @@ const Cart = () => {
           </button>
           <div className="header-info">
             <h1>My Cart</h1>
-            <span className="item-count">{cartItems.length} items</span>
+            <span className="item-count">{getTotalCartItems()} total items</span>
           </div>
           <div className="campus-badge">Campus Deals</div>
         </div>
       </div>
 
+      {/* Cart Type Tabs */}
+      <div className="cart-tabs">
+        <button 
+          className={`cart-tab ${activeTab === 'buy' ? 'active' : ''}`}
+          onClick={() => setActiveTab('buy')}
+        >
+          <ShoppingCart size={18} />
+          <span>Buy Cart ({buyCartItems.length})</span>
+        </button>
+        <button 
+          className={`cart-tab ${activeTab === 'sell' ? 'active' : ''}`}
+          onClick={() => setActiveTab('sell')}
+        >
+          <Tag size={18} />
+          <span>Sell Cart ({sellCartItems.length})</span>
+        </button>
+      </div>
+
       <div className="cart-content">
         {/* Left Section - Cart Items */}
-        <div className="cart-items-section">
-          {/* Select All */}
-          <div className="select-all-section">
-            <label className="checkbox-container">
-              <input
-                type="checkbox"
-                checked={selectedItems.length === cartItems.length}
-                onChange={(e) =>
-                  setSelectedItems(e.target.checked ? cartItems.map(item => item.id) : [])
-                }
-              />
-              <span className="checkmark"></span>
-              <span className="checkbox-label">
-                Select All ({cartItems.length} items)
-              </span>
-            </label>
-          </div>
+        {renderTabEmptyState() || (
+          <div className="cart-items-section">
+            {/* Select All */}
+            <div className="select-all-section">
+              <label className="checkbox-container">
+                <input
+                  type="checkbox"
+                  checked={selectedItems.length === cartItems.length}
+                  onChange={(e) =>
+                    setSelectedItems(e.target.checked ? cartItems.map(item => item.id) : [])
+                  }
+                />
+                <span className="checkmark"></span>
+                <span className="checkbox-label">
+                  Select All ({cartItems.length} items)
+                </span>
+              </label>
+            </div>
 
-          {/* Cart Items */}
-          <div className="cart-items-list">
-            {cartItems.map(item => (
-              <div key={item.id} className="cart-item">
-                <div className="item-selection">
-                  <label className="checkbox-container">
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.includes(item.id)}
-                      onChange={() => toggleItemSelection(item.id)}
-                    />
-                    <span className="checkmark"></span>
-                  </label>
-                </div>
-
-                <div className="item-image">
-                  <img src={item.image} alt={item.name} />
-                  {item.originalPrice > item.price && (
-                    <div className="discount-badge">
-                      {getDiscountPercentage(item.originalPrice, item.price)}% OFF
-                    </div>
-                  )}
-                </div>
-
-                <div className="item-details">
-                  <div className="item-info">
-                    <h3 className="item-name">{item.name}</h3>
-                    <p className="item-description">{item.description}</p>
-                    
-                    <div className="item-meta">
-                      <span className="seller">Sold by: <strong>{item.seller}</strong></span>
-                      <span className="category-badge">{item.subcategory || item.category}</span>
-                      <span className="stock-info">Only {item.inStock} left</span>
-                    </div>
+            {/* Cart Items */}
+            <div className="cart-items-list">
+              {cartItems.map(item => (
+                <div key={item.id} className="cart-item">
+                  <div className="item-selection">
+                    <label className="checkbox-container">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.includes(item.id)}
+                        onChange={() => toggleItemSelection(item.id)}
+                      />
+                      <span className="checkmark"></span>
+                    </label>
                   </div>
 
-                  <div className="item-actions">
-                    <div className="price-section">
-                      <div className="current-price">₹{item.price.toLocaleString()}</div>
-                      {item.originalPrice > item.price && (
-                        <div className="original-price">₹{item.originalPrice.toLocaleString()}</div>
-                      )}
+                  <div className="item-image">
+                    <img src={item.image} alt={item.name} />
+                    {item.originalPrice > item.price && (
+                      <div className="discount-badge">
+                        {getDiscountPercentage(item.originalPrice, item.price)}% OFF
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="item-details">
+                    <div className="item-info">
+                      <h3 className="item-name">{item.name}</h3>
+                      <p className="item-description">{item.description}</p>
+                      
+                      <div className="item-meta">
+                        <span className="seller">Sold by: <strong>{item.seller}</strong></span>
+                        <span className="category-badge">{item.subcategory || item.category}</span>
+                        <span className="stock-info">Only {item.inStock} left</span>
+                      </div>
                     </div>
 
-                    <div className="quantity-controls">
-                      <button
-                        className="qty-btn"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    <div className="item-actions">
+                      <div className="price-section">
+                        <div className="current-price">₹{item.price.toLocaleString()}</div>
+                        {item.originalPrice > item.price && (
+                          <div className="original-price">₹{item.originalPrice.toLocaleString()}</div>
+                        )}
+                      </div>
+
+                      <div className="quantity-controls">
+                        <button
+                          className="qty-btn"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          <Minus size={16} />
+                        </button>
+                        <span className="quantity">{item.quantity}</span>
+                        <button
+                          className="qty-btn"
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          disabled={item.quantity >= item.inStock}
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+
+                      <button 
+                        className="remove-btn"
+                        onClick={() => removeFromCart(item.id)}
                       >
-                        <Minus size={16} />
-                      </button>
-                      <span className="quantity">{item.quantity}</span>
-                      <button
-                        className="qty-btn"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        disabled={item.quantity >= item.inStock}
-                      >
-                        <Plus size={16} />
+                        <Trash2 size={16} />
+                        Remove
                       </button>
                     </div>
-
-                    <button 
-                      className="remove-btn"
-                      onClick={() => removeFromCart(item.id)}
-                    >
-                      <Trash2 size={16} />
-                      Remove
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Right Section - Order Summary */}
         <div className="order-summary-section">
@@ -309,7 +400,7 @@ const Cart = () => {
               disabled={selectedItems.length === 0}
               onClick={handleBuyNow}
             >
-              BUY NOW
+              {activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'}
             </button>
 
             <div className="campus-info">
@@ -334,7 +425,7 @@ const Cart = () => {
           disabled={selectedItems.length === 0}
           onClick={handleBuyNow}
         >
-          BUY NOW
+          {activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'}
         </button>
       </div>
     </div>
