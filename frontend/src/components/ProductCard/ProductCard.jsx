@@ -82,7 +82,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           src={product.image} 
           alt={product.name} 
           className="product-image"
-          loading="lazy"
+          
         />
       </div>
       
