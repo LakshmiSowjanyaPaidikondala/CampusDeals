@@ -14,7 +14,10 @@ import {
   CheckCircle,
   Camera,
   Calendar,
-  MapPin
+  MapPin,
+  Settings,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import './Profile.css';
 
@@ -25,8 +28,10 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
+  const [showSimpleView, setShowSimpleView] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
-  // For testing purposes, if no user is available, show mock user data
+  // Enhanced mock user data with additional fields
   const mockUser = {
     user_name: 'John Doe',
     user_email: 'john.doe@campus.edu',
@@ -38,7 +43,13 @@ const Profile = () => {
     created_at: '2024-01-15T10:30:00Z',
     total_orders: 15,
     products_sold: 8,
-    wishlist_count: 23
+    wishlist_count: 23,
+    avatar: null,
+    bio: 'Computer Science student passionate about technology and innovation.',
+    address: 'Campus Hostel Block A, Room 201',
+    semester: '6th Semester',
+    gpa: '8.5',
+    interests: ['Programming', 'Reading', 'Gaming', 'Music']
   };
 
   const displayUser = user || mockUser;
@@ -60,6 +71,18 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Error handling input change:', error);
+    }
+  };
+
+  const handleAvatarChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarPreview(e.target.result);
+        handleInputChange('avatar', e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -106,11 +129,13 @@ const Profile = () => {
         updateUser(editedUser);
         setSuccessMessage('Profile updated successfully!');
         setIsEditing(false);
+        setAvatarPreview(null);
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
         // Fallback: just show success message
         setSuccessMessage('Profile updated successfully!');
         setIsEditing(false);
+        setAvatarPreview(null);
         setTimeout(() => setSuccessMessage(''), 3000);
       }
     } catch (error) {
@@ -126,6 +151,7 @@ const Profile = () => {
       setEditedUser({ ...displayUser });
       setIsEditing(false);
       setErrors({});
+      setAvatarPreview(null);
     } catch (error) {
       console.error('Error canceling edit:', error);
     }
@@ -145,6 +171,10 @@ const Profile = () => {
     }
   };
 
+  const toggleView = () => {
+    setShowSimpleView(!showSimpleView);
+  };
+
   if (isLoading) {
     return (
       <div className="profile-loading">
@@ -154,6 +184,38 @@ const Profile = () => {
     );
   }
 
+  // Simple view for testing purposes (inspired by SimpleProfile.jsx)
+  if (showSimpleView) {
+    return (
+      <div className="simple-profile-container">
+        <div className="simple-profile-header">
+          <button 
+            className="view-toggle-btn"
+            onClick={toggleView}
+          >
+            <Eye size={16} />
+            Switch to Full View
+          </button>
+        </div>
+        <div className="simple-profile-content">
+          <h1>Profile Page</h1>
+          <p>This is a simplified profile page to test routing.</p>
+          <div className="simple-profile-card">
+            <h2>User Information</h2>
+            <p><strong>Name:</strong> {displayUser.user_name}</p>
+            <p><strong>Email:</strong> {displayUser.user_email}</p>
+            <p><strong>Branch:</strong> {displayUser.user_branch}</p>
+            <p><strong>Year:</strong> {displayUser.user_studyyear}</p>
+            <p><strong>Phone:</strong> {displayUser.user_phone}</p>
+            <p><strong>Section:</strong> {displayUser.user_section}</p>
+            <p><strong>Residency:</strong> {displayUser.user_residency}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full featured profile view
   return (
     <div className="profile-container">
       <div className="profile-header">
@@ -163,14 +225,30 @@ const Profile = () => {
         
         <div className="profile-avatar-section">
           <div className="profile-avatar-large">
-            {displayUser.avatar ? (
-              <img src={displayUser.avatar} alt={displayUser.user_name} />
+            {avatarPreview || displayUser.avatar ? (
+              <img src={avatarPreview || displayUser.avatar} alt={displayUser.user_name} />
             ) : (
               <span className="avatar-initials">{getInitials(displayUser.user_name)}</span>
             )}
-            <button className="avatar-edit-btn">
-              <Camera size={16} />
-            </button>
+            {isEditing && (
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="avatar-file-input"
+                  id="avatar-upload"
+                />
+                <label htmlFor="avatar-upload" className="avatar-edit-btn">
+                  <Camera size={16} />
+                </label>
+              </>
+            )}
+            {!isEditing && (
+              <button className="avatar-edit-btn" disabled>
+                <Camera size={16} />
+              </button>
+            )}
           </div>
           
           <div className="profile-basic-info">
@@ -180,9 +258,21 @@ const Profile = () => {
               <span className="status-indicator online"></span>
               <span>Online</span>
             </div>
+            {displayUser.bio && (
+              <p className="profile-bio">{displayUser.bio}</p>
+            )}
           </div>
 
           <div className="profile-actions">
+            <button 
+              className="view-toggle-btn"
+              onClick={toggleView}
+              title="Switch to simple view"
+            >
+              <EyeOff size={16} />
+              Simple View
+            </button>
+            
             {!isEditing ? (
               <button 
                 className="edit-profile-btn"
@@ -310,6 +400,46 @@ const Profile = () => {
                 }) : 'January 15, 2024'}
               </div>
             </div>
+
+            {displayUser.address && (
+              <div className="profile-field">
+                <label className="field-label">
+                  <MapPin size={16} />
+                  Address
+                </label>
+                {isEditing ? (
+                  <textarea
+                    value={editedUser.address || ''}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    className="edit-input"
+                    placeholder="Enter your address"
+                    rows="2"
+                  />
+                ) : (
+                  <div className="field-value">{displayUser.address || 'Not provided'}</div>
+                )}
+              </div>
+            )}
+
+            {displayUser.bio !== undefined && (
+              <div className="profile-field full-width">
+                <label className="field-label">
+                  <BookOpen size={16} />
+                  Bio
+                </label>
+                {isEditing ? (
+                  <textarea
+                    value={editedUser.bio || ''}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                    className="edit-input"
+                    placeholder="Tell us about yourself"
+                    rows="3"
+                  />
+                ) : (
+                  <div className="field-value">{displayUser.bio || 'Not provided'}</div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -405,8 +535,72 @@ const Profile = () => {
                 <div className="field-value">{displayUser.user_residency || 'Not provided'}</div>
               )}
             </div>
+
+            {displayUser.semester && (
+              <div className="profile-field">
+                <label className="field-label">
+                  <Calendar size={16} />
+                  Semester
+                </label>
+                {isEditing ? (
+                  <select
+                    value={editedUser.semester || ''}
+                    onChange={(e) => handleInputChange('semester', e.target.value)}
+                    className="edit-input"
+                  >
+                    <option value="">Select Semester</option>
+                    <option value="1st Semester">1st Semester</option>
+                    <option value="2nd Semester">2nd Semester</option>
+                    <option value="3rd Semester">3rd Semester</option>
+                    <option value="4th Semester">4th Semester</option>
+                    <option value="5th Semester">5th Semester</option>
+                    <option value="6th Semester">6th Semester</option>
+                    <option value="7th Semester">7th Semester</option>
+                    <option value="8th Semester">8th Semester</option>
+                  </select>
+                ) : (
+                  <div className="field-value">{displayUser.semester || 'Not provided'}</div>
+                )}
+              </div>
+            )}
+
+            {displayUser.gpa && (
+              <div className="profile-field">
+                <label className="field-label">
+                  <GraduationCap size={16} />
+                  GPA
+                </label>
+                {isEditing ? (
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="10"
+                    value={editedUser.gpa || ''}
+                    onChange={(e) => handleInputChange('gpa', e.target.value)}
+                    className="edit-input"
+                    placeholder="Enter your GPA"
+                  />
+                ) : (
+                  <div className="field-value">{displayUser.gpa || 'Not provided'}</div>
+                )}
+              </div>
+            )}
           </div>
         </div>
+
+        {displayUser.interests && (
+          <div className="profile-section">
+            <h2 className="section-title">Interests & Hobbies</h2>
+            <div className="interests-container">
+              {displayUser.interests.map((interest, index) => (
+                <span key={index} className="interest-tag">
+                  {interest}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="profile-section">
           <h2 className="section-title">Account Statistics</h2>
