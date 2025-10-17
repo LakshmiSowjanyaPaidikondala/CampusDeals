@@ -172,10 +172,7 @@ const TipsX = () => {
 
       {/* Tips Section */}
       <div className="tips-section">
-        <div className="tips-header">
-          <h2 className="section-title">Essential Student Tips</h2>
-          <div className="section-divider"></div>
-        </div>
+    
 
         <div className="tips-grid">
           {tips.map((tip, index) => (
