@@ -56,7 +56,7 @@
   font-size: 2rem;
   font-weight: 500;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(96, 165, 250, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.885);
 }
 
 .header-title {
