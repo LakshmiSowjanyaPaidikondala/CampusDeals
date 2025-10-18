@@ -11,16 +11,19 @@ export const setToken = (token) => {
   localStorage.setItem('authToken', token);
 };
 
+export const removeToken = () => {
+  localStorage.removeItem('authToken');
+};
+
 export const getRefreshToken = () => {
   return localStorage.getItem('refreshToken');
 };
 
-export const setRefreshToken = (refreshToken) => {
-  localStorage.setItem('refreshToken', refreshToken);
+export const setRefreshToken = (token) => {
+  localStorage.setItem('refreshToken', token);
 };
 
-export const removeToken = () => {
-  localStorage.removeItem('authToken');
+export const removeRefreshToken = () => {
   localStorage.removeItem('refreshToken');
 };
 
@@ -76,20 +79,15 @@ export const loginUser = async (email, password) => {
     const data = await response.json();
     
     if (data.success) {
-      // Handle new token structure from backend
-      if (data.accessToken) {
-        setToken(data.accessToken);
-        setRefreshToken(data.refreshToken);
-      } else if (data.token) {
-        setToken(data.token); // Backward compatibility
-      }
+      // Store access token and refresh token
+      setToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
       setUser(data.user);
       return { success: true, data };
     } else {
       return { success: false, message: data.message };
     }
   } catch (error) {
-    console.error('Login error:', error);
     return { success: false, message: 'Network error. Please try again.' };
   }
 };
@@ -97,8 +95,6 @@ export const loginUser = async (email, password) => {
 // Register API call
 export const registerUser = async (userData) => {
   try {
-    console.log('Registering user with data:', userData);
-    
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: 'POST',
       headers: {
@@ -108,62 +104,29 @@ export const registerUser = async (userData) => {
     });
 
     const data = await response.json();
-    console.log('Registration response:', data);
     
     if (data.success) {
-      // Handle new token structure from backend
-      if (data.accessToken) {
-        setToken(data.accessToken);
-        setRefreshToken(data.refreshToken);
-      } else if (data.token) {
-        setToken(data.token); // Backward compatibility
-      }
+      // Store access token and refresh token for automatic login after registration
+      setToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
       setUser(data.user);
       return { success: true, data };
     } else {
-      return { success: false, message: data.message || 'Registration failed' };
+      return { success: false, message: data.message };
     }
   } catch (error) {
-    console.error('Registration error:', error);
     return { success: false, message: 'Network error. Please try again.' };
   }
 };
 
-// Logout API call
-export const logout = async () => {
-  try {
-    const token = getToken();
-    const refreshToken = getRefreshToken();
-    
-    if (token) {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-    }
-  } catch (error) {
-    console.error('Logout error:', error);
-  } finally {
-    // Always clear local storage regardless of API call success
-    removeToken();
-    removeUser();
-    clearCart();
-  }
-};
-
 // Refresh token API call
-export const refreshTokens = async () => {
+export const refreshAccessToken = async () => {
   try {
     const refreshToken = getRefreshToken();
-    
     if (!refreshToken) {
-      throw new Error('No refresh token available');
+      return { success: false, message: 'No refresh token available' };
     }
-    
+
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: {
@@ -175,59 +138,92 @@ export const refreshTokens = async () => {
     const data = await response.json();
     
     if (data.success) {
+      // Update tokens
       setToken(data.accessToken);
       setRefreshToken(data.refreshToken);
+      setUser(data.user);
       return { success: true, data };
     } else {
-      // Refresh token is invalid, force logout
-      await logout();
+      // Refresh token is invalid, logout user
+      logout();
       return { success: false, message: data.message };
     }
   } catch (error) {
-    console.error('Token refresh error:', error);
-    await logout();
-    return { success: false, message: 'Session expired. Please login again.' };
+    logout();
+    return { success: false, message: 'Token refresh failed' };
   }
 };
 
-// API call with automatic token refresh
-export const authenticatedFetch = async (url, options = {}) => {
-  const token = getToken();
-  
-  if (!token) {
-    throw new Error('No authentication token available');
-  }
-  
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-  
-  // If token is expired, try to refresh
-  if (response.status === 401) {
-    const refreshResult = await refreshTokens();
-    
-    if (refreshResult.success) {
-      const newToken = getToken();
-      // Retry the original request with new token
-      return fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          'Authorization': `Bearer ${newToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-    } else {
-      throw new Error('Session expired. Please login again.');
+// Logout
+export const logout = () => {
+  removeToken();
+  removeUser();
+  clearCart();
+  removeRefreshToken();
+};
+
+// Fetch user profile from backend
+export const fetchUserProfile = async () => {
+  try {
+    const token = getToken();
+    if (!token) {
+      return { success: false, message: 'No authentication token' };
     }
+
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    
+    if (data.success) {
+      // Update stored user data with fresh data from backend
+      setUser(data.user);
+      return { success: true, user: data.user };
+    } else {
+      return { success: false, message: data.message };
+    }
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch user profile' };
   }
-  
-  return response;
+};
+
+// Update user profile
+export const updateUserProfile = async (userId, updatedData) => {
+  try {
+    const token = getToken();
+    if (!token) {
+      return { success: false, message: 'No authentication token' };
+    }
+
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    const data = await response.json();
+    
+    if (response.ok) {
+      // Fetch updated user profile after successful update
+      const profileResult = await fetchUserProfile();
+      if (profileResult.success) {
+        return { success: true, message: data.message, user: profileResult.user };
+      }
+      return { success: true, message: data.message };
+    } else {
+      return { success: false, message: data.message || 'Failed to update profile' };
+    }
+  } catch (error) {
+    return { success: false, message: 'Network error. Please try again.' };
+  }
 };
 
 // Legacy function for backward compatibility

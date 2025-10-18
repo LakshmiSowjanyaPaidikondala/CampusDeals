@@ -21,20 +21,8 @@ const ProfileDropdownDebug = () => {
   // Get user data and logout function from auth context
   const { user, logout: authLogout, isAuthenticated, isLoading } = useAuth();
 
-  // Mock user data for testing
-  const mockUser = {
-    user_name: 'John Doe',
-    user_email: 'john.doe@campus.edu',
-    user_college: 'Campus University',
-    user_branch: 'Computer Science',
-    user_year: '3',
-    cartItems: 5,
-    orderCount: 12
-  };
-
-  // Use mock user if no real user is available
-  const displayUser = user || mockUser;
-  const showAsAuthenticated = isAuthenticated || true; // Force show as authenticated for testing
+  // Use real user data only
+  const displayUser = user;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -110,10 +98,14 @@ const ProfileDropdownDebug = () => {
     );
   }
 
-  // Always show the dropdown for debugging
+  // Don't render anything if user is not authenticated
+  if (!isAuthenticated || !user) {
+    return null;
+  }
+
   console.log('Rendering ProfileDropdown', {
     user: displayUser,
-    isAuthenticated: showAsAuthenticated,
+    isAuthenticated,
     isOpen,
     isLoading
   });
@@ -139,12 +131,9 @@ const ProfileDropdownDebug = () => {
               <span className="avatar-initials">{getInitials(displayUser?.user_name || displayUser?.name)}</span>
             )}
           </div>
-          <FaChevronDown 
-            className={`dropdown-arrow ${isOpen ? 'open' : ''}`} 
-          />
         </button>
 
-        {/* Dropdown Menu - Always render for debugging */}
+        {/* Dropdown Menu */}
         <div className={`dropdown-menu ${isOpen ? 'visible' : 'hidden'}`} style={{
           display: 'block',
           visibility: isOpen ? 'visible' : 'hidden',
@@ -163,7 +152,7 @@ const ProfileDropdownDebug = () => {
             </div>
             <div className="user-details">
               <h4>{displayUser?.user_name || displayUser?.name || 'Campus User'}</h4>
-              <p className="user-email">{displayUser?.user_email || displayUser?.email || 'user@campus.edu'}</p>
+              <p className="user-email">{displayUser?.user_email || displayUser?.email}</p>
               {displayUser?.user_college && (
                 <p className="user-college">{displayUser.user_college}</p>
               )}

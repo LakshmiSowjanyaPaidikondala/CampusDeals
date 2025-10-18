@@ -1,12 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Mail, Lock, AlertCircle, CheckCircle, Phone, GraduationCap, BookOpen, Users, Home, ChevronDown, ChevronUp } from 'lucide-react';
-import { registerUser, getCart } from '../../utils/auth';
+import { useAuth } from '../../hooks/useAuth';
 import './Register.css';
 import logo from "../../assets/logo.png";
 
 const Register = ({ onLoginClick }) => {
   const navigate = useNavigate();
+  const { register, login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -177,28 +178,38 @@ const Register = ({ onLoginClick }) => {
         // Remove confirmPassword before sending to API
         const { confirmPassword, ...dataToSend } = registerData;
         
-        const result = await registerUser(dataToSend);
+        // Step 1: Register the user
+        const registerResult = await register(dataToSend);
         
-        if (result.success) {
-          // Restore cart from localStorage (if any)
-          const savedCart = getCart();
+        if (registerResult.success) {
+          // Step 2: Automatically log in the user with the same credentials
+          const loginResult = await login(registerData.user_email, registerData.user_password);
           
-          // Show success message
-          console.log('Registration successful:', result.data);
-          
-          // Redirect back to Buy page
-          navigate('/buy');
+          if (loginResult.success) {
+            // Step 3: Registration and auto-login successful
+            console.log('Registration and auto-login successful:', loginResult.user);
+            
+            // Redirect to profile page to show the user's real data
+            navigate('/');
+          } else {
+            // Registration succeeded but auto-login failed
+            console.error('Registration succeeded but auto-login failed:', loginResult.error);
+            setErrors({ general: 'Registration successful! Please log in to continue.' });
+            
+            // Redirect to login page
+            if (onLoginClick) {
+              onLoginClick();
+            } else {
+              navigate('/login');
+            }
+          }
         } else {
-          // Handle specific error cases
-          const errorMessage = result.message || 'Registration failed. Please try again.';
-          console.error('Registration failed:', errorMessage);
-          setErrors({ general: errorMessage });
+          // Registration failed
+          setErrors({ general: registerResult.error || 'Registration failed. Please try again.' });
         }
       } catch (error) {
         console.error('Registration error:', error);
-        setErrors({ 
-          general: 'Network error. Please check your connection and try again.' 
-        });
+        setErrors({ general: 'Network error. Please try again.' });
       } finally {
         setLoading(false);
       }

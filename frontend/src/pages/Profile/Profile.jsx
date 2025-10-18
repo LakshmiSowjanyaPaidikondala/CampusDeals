@@ -22,7 +22,7 @@ import {
 import './Profile.css';
 
 const Profile = () => {
-  const { user, apiCall, isLoading, updateUser } = useAuth();
+  const { user, apiCall, isLoading, updateUser, fetchUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({});
   const [saving, setSaving] = useState(false);
@@ -30,6 +30,7 @@ const Profile = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showSimpleView, setShowSimpleView] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   // Enhanced mock user data with additional fields
   const mockUser = {
@@ -53,6 +54,31 @@ const Profile = () => {
   };
 
   const displayUser = user || mockUser;
+
+  // Debug: Log user data
+  useEffect(() => {
+    console.log('Profile - Current user data:', user);
+    console.log('Profile - Display user data:', displayUser);
+  }, [user, displayUser]);
+
+  // Automatically fetch user profile on component mount
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      // Only fetch if we have a token but no user data, or if user data seems incomplete
+      if (fetchUserProfile && (!user || !user.user_id)) {
+        setProfileLoading(true);
+        try {
+          await fetchUserProfile();
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        } finally {
+          setProfileLoading(false);
+        }
+      }
+    };
+
+    loadUserProfile();
+  }, [fetchUserProfile, user]); // Run when fetchUserProfile or user changes
 
   useEffect(() => {
     try {
@@ -95,14 +121,7 @@ const Profile = () => {
       newErrors.user_name = 'Name must be at least 2 characters';
     }
 
-    if (!editedUser.user_email?.trim()) {
-      newErrors.user_email = 'Email is required';
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(editedUser.user_email)) {
-        newErrors.user_email = 'Please enter a valid email address';
-      }
-    }
+    // Email validation removed - email is read-only for security
 
     if (!editedUser.user_phone?.trim()) {
       newErrors.user_phone = 'Phone number is required';
@@ -124,19 +143,30 @@ const Profile = () => {
 
     setSaving(true);
     try {
-      if (updateUser && typeof updateUser === 'function') {
-        // For now, just update locally since we have mock data
-        updateUser(editedUser);
-        setSuccessMessage('Profile updated successfully!');
-        setIsEditing(false);
-        setAvatarPreview(null);
-        setTimeout(() => setSuccessMessage(''), 3000);
+      if (updateUser && typeof updateUser === 'function' && user?.user_id) {
+        // Prepare update data (only the fields that can be updated)
+        const updateData = {
+          user_name: editedUser.user_name,
+          user_phone: editedUser.user_phone,
+          user_studyyear: editedUser.user_studyyear,
+          user_branch: editedUser.user_branch,
+          user_section: editedUser.user_section,
+          user_residency: editedUser.user_residency
+        };
+
+        const result = await updateUser(user.user_id, updateData);
+        
+        if (result.success) {
+          setSuccessMessage('Profile updated successfully!');
+          setIsEditing(false);
+          setAvatarPreview(null);
+          setTimeout(() => setSuccessMessage(''), 3000);
+        } else {
+          setErrors({ general: result.error || 'Failed to update profile. Please try again.' });
+        }
       } else {
-        // Fallback: just show success message
-        setSuccessMessage('Profile updated successfully!');
-        setIsEditing(false);
-        setAvatarPreview(null);
-        setTimeout(() => setSuccessMessage(''), 3000);
+        // Fallback: show error message
+        setErrors({ general: 'Unable to update profile. Please try logging in again.' });
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -175,7 +205,7 @@ const Profile = () => {
     setShowSimpleView(!showSimpleView);
   };
 
-  if (isLoading) {
+  if (isLoading || profileLoading) {
     return (
       <div className="profile-loading">
         <div className="loading-spinner"></div>
@@ -353,12 +383,13 @@ const Profile = () => {
                 <div className="field-edit">
                   <input
                     type="email"
-                    value={editedUser.user_email || ''}
-                    onChange={(e) => handleInputChange('user_email', e.target.value)}
-                    className={`edit-input ${errors.user_email ? 'error' : ''}`}
-                    placeholder="Enter your email"
+                    value={displayUser.user_email || ''}
+                    disabled
+                    className="edit-input disabled"
+                    placeholder="Email cannot be changed"
+                    title="Email address cannot be modified for security reasons"
                   />
-                  {errors.user_email && <span className="field-error">{errors.user_email}</span>}
+                  <small className="field-note">Email cannot be changed for security reasons</small>
                 </div>
               ) : (
                 <div className="field-value">{displayUser.user_email || 'Not provided'}</div>

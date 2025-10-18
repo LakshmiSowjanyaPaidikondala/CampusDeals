@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async () => {
     try {
+      console.log('Fetching user profile with token:', token);
       const response = await fetch(`${API_BASE}/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -50,10 +51,18 @@ export const AuthProvider = ({ children }) => {
         }
       });
 
+      console.log('Profile response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        setUser(data.user);
+        console.log('Profile data received:', data);
+        if (data.success && data.user) {
+          setUser(data.user);
+          localStorage.setItem('userData', JSON.stringify(data.user));
+          console.log('User data updated in state and localStorage');
+        }
       } else {
+        console.error('Failed to fetch profile, status:', response.status);
         // Token might be invalid
         logout();
       }
@@ -80,10 +89,11 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
 
-      if (response.ok) {
-        setToken(data.token);
+      if (data.success) {
+        setToken(data.accessToken);
         setUser(data.user);
-        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
         localStorage.setItem('userData', JSON.stringify(data.user));
         return { success: true, user: data.user };
       } else {
@@ -106,10 +116,11 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
 
-      if (response.ok) {
-        setToken(data.token);
+      if (data.success) {
+        setToken(data.accessToken);
         setUser(data.user);
-        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
         localStorage.setItem('userData', JSON.stringify(data.user));
         return { success: true, user: data.user };
       } else {
@@ -120,10 +131,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+
+
   const logout = () => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('userData');
     localStorage.removeItem('cartItems');
   };
@@ -157,8 +171,40 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Function to update user profile via API
+  const updateUser = async (userId, updatedData) => {
+    try {
+      console.log('Updating user profile:', { userId, updatedData });
+      
+      const response = await fetch(`${API_BASE}/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updatedData)
+      });
+
+      console.log('Update response status:', response.status);
+      const responseData = await response.json();
+      console.log('Update response data:', responseData);
+
+      if (response.ok && responseData.success) {
+        // Fetch updated user profile to get fresh data
+        console.log('Update successful, fetching fresh profile data...');
+        await fetchUserProfile();
+        return { success: true, message: responseData.message || 'Profile updated successfully' };
+      } else {
+        return { success: false, error: responseData.message || 'Failed to update profile' };
+      }
+    } catch (error) {
+      console.error('Update user error:', error);
+      return { success: false, error: 'Network error occurred' };
+    }
+  };
+
   // Function to update user data in context and localStorage
-  const updateUser = (updatedUserData) => {
+  const updateUserLocal = (updatedUserData) => {
     setUser(updatedUserData);
     localStorage.setItem('userData', JSON.stringify(updatedUserData));
   };
@@ -172,6 +218,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     apiCall,
     updateUser,
+    updateUserLocal,
+    fetchUserProfile,
     isAuthenticated: !!token && !!user
   };
 

@@ -70,7 +70,7 @@ const Login = ({ onRegisterClick }) => {
           const savedCart = getCart();
           
           // Redirect back to Buy page
-          navigate('/buy');
+          navigate('/');
         } else {
           setErrors({ general: result.error || 'Login failed. Please try again.' });
         }
