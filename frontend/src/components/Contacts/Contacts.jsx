@@ -11,8 +11,6 @@ const Contacts = () => {
     { id: 6, name: 'Krishna Satya', phone: '+91 939456' },
     { id: 7, name: 'Aliya', phone: '+91 838729' },
     { id: 8, name: 'Prakash', phone: '+91 90165' },
-    { id: 9, name: 'Jessica Taylor', phone: '+1 (555) 901-2345' },
-    { id: 10, name: 'Thomas Brown', phone: '+1 (555) 012-3456' }
   ];
 
   return (
