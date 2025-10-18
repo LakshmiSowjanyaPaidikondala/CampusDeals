@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Mail, Lock, AlertCircle, CheckCircle, Phone, GraduationCap, BookOpen, Users, Home } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, AlertCircle, CheckCircle, Phone, GraduationCap, BookOpen, Users, Home, ChevronDown, ChevronUp } from 'lucide-react';
 import { registerUser, getCart } from '../../utils/auth';
 import './Register.css';
 import logo from "../../assets/logo.png";
@@ -24,6 +24,8 @@ const Register = ({ onLoginClick }) => {
   });
   const [errors, setErrors] = useState({});
   const [validationStates, setValidationStates] = useState({});
+  const [dropdownStates, setDropdownStates] = useState({});
+  const studyYearRef = useRef(null);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -75,6 +77,46 @@ const Register = ({ onLoginClick }) => {
       ...prev,
       [field]: value ? (isValid ? 'valid' : 'invalid') : 'default'
     }));
+  };
+
+  const handleDropdownInteraction = (field, action, value = null, event = null) => {
+    switch (action) {
+      case 'change':
+        // When an option is selected, handle the change
+        handleChange(field, value);
+        // Close dropdown immediately after selection
+        setDropdownStates(prev => ({
+          ...prev,
+          [field]: false
+        }));
+        break;
+      case 'click':
+        // When clicking on select, toggle the dropdown state
+        setDropdownStates(prev => ({
+          ...prev,
+          [field]: !prev[field]
+        }));
+        break;
+      case 'keydown':
+        // Handle keyboard interactions
+        if (event) {
+          if (event.key === 'Escape') {
+            setDropdownStates(prev => ({
+              ...prev,
+              [field]: false
+            }));
+          } else if (event.key === 'Enter' || event.key === ' ') {
+            // Toggle dropdown on Enter/Space
+            setDropdownStates(prev => ({
+              ...prev,
+              [field]: !prev[field]
+            }));
+          }
+        }
+        break;
+      default:
+        break;
+    }
   };
 
   const handleSubmit = async () => {
@@ -141,13 +183,22 @@ const Register = ({ onLoginClick }) => {
           // Restore cart from localStorage (if any)
           const savedCart = getCart();
           
+          // Show success message
+          console.log('Registration successful:', result.data);
+          
           // Redirect back to Buy page
           navigate('/buy');
         } else {
-          setErrors({ general: result.message || 'Registration failed. Please try again.' });
+          // Handle specific error cases
+          const errorMessage = result.message || 'Registration failed. Please try again.';
+          console.error('Registration failed:', errorMessage);
+          setErrors({ general: errorMessage });
         }
       } catch (error) {
-        setErrors({ general: 'Network error. Please try again.' });
+        console.error('Registration error:', error);
+        setErrors({ 
+          general: 'Network error. Please check your connection and try again.' 
+        });
       } finally {
         setLoading(false);
       }
@@ -236,8 +287,12 @@ const Register = ({ onLoginClick }) => {
           <div className="input-container">
             <GraduationCap className="input-icon" size={20} />
             <select
+              ref={studyYearRef}
               value={registerData.user_studyyear}
-              onChange={(e) => handleChange('user_studyyear', e.target.value)}
+              onChange={(e) => handleDropdownInteraction('user_studyyear', 'change', e.target.value)}
+              onClick={() => handleDropdownInteraction('user_studyyear', 'click')}
+              onBlur={() => setDropdownStates(prev => ({ ...prev, user_studyyear: false }))}
+              onKeyDown={(e) => handleDropdownInteraction('user_studyyear', 'keydown', null, e)}
               className={getInputClass('user_studyyear')}
             >
               <option value="">Select Study Year</option>
@@ -246,6 +301,13 @@ const Register = ({ onLoginClick }) => {
               <option value="3rd Year">3rd Year</option>
               <option value="4th Year">4th Year</option>
             </select>
+            <div className="dropdown-arrow-icon">
+              {dropdownStates.user_studyyear ? (
+                <ChevronUp size={18} />
+              ) : (
+                <ChevronDown size={18} />
+              )}
+            </div>
             {validationStates.user_studyyear === 'valid' && (
               <CheckCircle className="validation-icon valid-icon" size={20} />
             )}
@@ -256,7 +318,10 @@ const Register = ({ onLoginClick }) => {
             <BookOpen className="input-icon" size={20} />
             <select
               value={registerData.user_branch}
-              onChange={(e) => handleChange('user_branch', e.target.value)}
+              onChange={(e) => handleDropdownInteraction('user_branch', 'change', e.target.value)}
+              onClick={() => handleDropdownInteraction('user_branch', 'click')}
+              onBlur={() => setDropdownStates(prev => ({ ...prev, user_branch: false }))}
+              onKeyDown={(e) => handleDropdownInteraction('user_branch', 'keydown', null, e)}
               className={getInputClass('user_branch')}
             >
               <option value="">Select Branch</option>
@@ -268,6 +333,13 @@ const Register = ({ onLoginClick }) => {
               <option value="Chemical">Chemical</option>
               <option value="Information Technology">Information Technology</option>
             </select>
+            <div className="dropdown-arrow-icon">
+              {dropdownStates.user_branch ? (
+                <ChevronUp size={18} />
+              ) : (
+                <ChevronDown size={18} />
+              )}
+            </div>
             {validationStates.user_branch === 'valid' && (
               <CheckCircle className="validation-icon valid-icon" size={20} />
             )}
@@ -278,7 +350,10 @@ const Register = ({ onLoginClick }) => {
             <Users className="input-icon" size={20} />
             <select
               value={registerData.user_section}
-              onChange={(e) => handleChange('user_section', e.target.value)}
+              onChange={(e) => handleDropdownInteraction('user_section', 'change', e.target.value)}
+              onClick={() => handleDropdownInteraction('user_section', 'click')}
+              onBlur={() => setDropdownStates(prev => ({ ...prev, user_section: false }))}
+              onKeyDown={(e) => handleDropdownInteraction('user_section', 'keydown', null, e)}
               className={getInputClass('user_section')}
             >
               <option value="">Select Section</option>
@@ -287,6 +362,13 @@ const Register = ({ onLoginClick }) => {
               <option value="C">Section 3</option>
               <option value="D">Section 4</option>
             </select>
+            <div className="dropdown-arrow-icon">
+              {dropdownStates.user_section ? (
+                <ChevronUp size={18} />
+              ) : (
+                <ChevronDown size={18} />
+              )}
+            </div>
             {validationStates.user_section === 'valid' && (
               <CheckCircle className="validation-icon valid-icon" size={20} />
             )}
@@ -297,13 +379,23 @@ const Register = ({ onLoginClick }) => {
             <Home className="input-icon" size={20} />
             <select
               value={registerData.user_residency}
-              onChange={(e) => handleChange('user_residency', e.target.value)}
+              onChange={(e) => handleDropdownInteraction('user_residency', 'change', e.target.value)}
+              onClick={() => handleDropdownInteraction('user_residency', 'click')}
+              onBlur={() => setDropdownStates(prev => ({ ...prev, user_residency: false }))}
+              onKeyDown={(e) => handleDropdownInteraction('user_residency', 'keydown', null, e)}
               className={getInputClass('user_residency')}
             >
               <option value="">Select Residency</option>
               <option value="Day Scholar">Day Scholar</option>
               <option value="Hosteller">Hosteller</option>
             </select>
+            <div className="dropdown-arrow-icon">
+              {dropdownStates.user_residency ? (
+                <ChevronUp size={18} />
+              ) : (
+                <ChevronDown size={18} />
+              )}
+            </div>
             {validationStates.user_residency === 'valid' && (
               <CheckCircle className="validation-icon valid-icon" size={20} />
             )}

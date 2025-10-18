@@ -172,6 +172,44 @@ select.input-field option {
   padding: 8px;
 }
 
+/* Enhanced Dropdown Arrow Icon */
+.dropdown-arrow-icon {
+  position: absolute;
+  right: 14px;
+  z-index: 3;
+  color: #6b7280;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-arrow-icon svg {
+  transition: transform 0.3s ease;
+}
+
+/* Hide the default background arrow when using custom icon */
+.input-container:has(.dropdown-arrow-icon) select.input-field {
+  background-image: none;
+  padding-right: 50px;
+}
+
+/* Change arrow color on focus */
+.input-container:has(select.input-field:focus) .dropdown-arrow-icon {
+  color: #3b82f6;
+}
+
+/* Arrow color for valid state */
+.input-container:has(select.input-field.valid) .dropdown-arrow-icon {
+  color: #10b981;
+}
+
+/* Arrow color for invalid state */
+.input-container:has(select.input-field.invalid) .dropdown-arrow-icon {
+  color: #ef4444;
+}
+
 .input-field::placeholder {
   color: #6b7280;
   opacity: 1;
@@ -238,6 +276,12 @@ select.input-field.invalid {
 /* Adjust validation icon position for select elements */
 select.input-field + .validation-icon {
   right: 32px;
+}
+
+/* Adjust validation icon for select with custom dropdown arrow */
+.input-container:has(.dropdown-arrow-icon) .validation-icon {
+  right: 45px;
+  z-index: 4;
 }
 
 @keyframes popIn {
@@ -464,6 +508,19 @@ select.input-field + .validation-icon {
   select.input-field + .validation-icon {
     right: 30px;
   }
+
+  /* Mobile dropdown arrow icon styles */
+  .dropdown-arrow-icon {
+    right: 12px;
+  }
+
+  .input-container:has(.dropdown-arrow-icon) select.input-field {
+    padding-right: 42px;
+  }
+
+  .input-container:has(.dropdown-arrow-icon) .validation-icon {
+    right: 38px;
+  }
   
   .submit-btn {
     padding: 12px;
@@ -564,6 +621,19 @@ select.input-field + .validation-icon {
   select.input-field + .validation-icon {
     right: 26px;
   }
+
+  /* Small mobile dropdown arrow icon styles */
+  .dropdown-arrow-icon {
+    right: 10px;
+  }
+
+  .input-container:has(.dropdown-arrow-icon) select.input-field {
+    padding-right: 38px;
+  }
+
+  .input-container:has(.dropdown-arrow-icon) .validation-icon {
+    right: 32px;
+  }
   
   .submit-btn {
     padding: 11px;
@@ -651,6 +721,19 @@ select.input-field + .validation-icon {
   select.input-field + .validation-icon {
     right: 24px;
   }
+
+  /* Extra small mobile dropdown arrow icon styles */
+  .dropdown-arrow-icon {
+    right: 9px;
+  }
+
+  .input-container:has(.dropdown-arrow-icon) select.input-field {
+    padding-right: 35px;
+  }
+
+  .input-container:has(.dropdown-arrow-icon) .validation-icon {
+    right: 30px;
+  }
 }
 
 /* Landscape orientation - Fullscreen Mobile Design */
@@ -734,6 +817,20 @@ select.input-field + .validation-icon {
 
   select.input-field + .validation-icon {
     right: 22px;
+  }
+
+  /* Landscape dropdown arrow icon styles */
+  .dropdown-arrow-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .input-container:has(.dropdown-arrow-icon) select.input-field {
+    padding-right: 32px;
+  }
+
+  .input-container:has(.dropdown-arrow-icon) .validation-icon {
+    right: 28px;
   }
 }
 
