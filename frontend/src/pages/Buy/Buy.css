@@ -46,10 +46,10 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.1),
+    rgba(131, 247, 241, 0.651),
     transparent
   );
-  animation: headerShimmer 4s infinite;
+  /* animation: headerShimmer 4s infinite; */
 }
 
 @keyframes headerShimmer {
