@@ -4,6 +4,7 @@ import { FaSearch } from "react-icons/fa";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import SellForm from "../UserForm/UserForm";
 import { useCart } from "../../contexts/CartContext";
+import { useAuth } from "../../hooks/useAuth.jsx";
 import "./Sell.css";
 
 import calciImg from "../../assets/Calci.jpg";
@@ -18,6 +19,7 @@ const Sell = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { addToSellCart, sellCartItems, getSellCartCount } = useCart();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const API_BASE_URL = 'http://localhost:5000/api';
@@ -254,6 +256,13 @@ const Sell = () => {
   const [showForm, setShowForm] = useState(false);
 
   const handleAddToCart = (product) => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Redirect to login page if not authenticated
+      navigate('/login');
+      return;
+    }
+
     // Add product with proper structure for sell cart
     const cartItem = {
       id: product.id,
