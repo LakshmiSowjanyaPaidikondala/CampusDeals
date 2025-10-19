@@ -22,7 +22,7 @@ const addToCart = async (req, res) => {
         
         // Check if product exists and get product details
         const product = db.prepare(`
-            SELECT product_id, product_name, product_variant, product_price, quantity as stock_quantity
+            SELECT product_id, product_name, product_variant, product_price
             FROM products 
             WHERE product_id = ?
         `).get(product_id);
@@ -31,14 +31,6 @@ const addToCart = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'Product not found'
-            });
-        }
-        
-        // Check if enough stock is available
-        if (product.stock_quantity < quantity) {
-            return res.status(400).json({
-                success: false,
-                message: `Insufficient stock. Only ${product.stock_quantity} items available`
             });
         }
         
@@ -54,14 +46,6 @@ const addToCart = async (req, res) => {
         if (existingCartItem) {
             // Update quantity if item already exists
             const newQuantity = existingCartItem.quantity + quantity;
-            
-            // Check if total quantity exceeds stock
-            if (newQuantity > product.stock_quantity) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Cannot add ${quantity} items. Total would be ${newQuantity}, but only ${product.stock_quantity} items available`
-                });
-            }
             
             result = db.prepare(`
                 UPDATE cart 
@@ -254,7 +238,7 @@ const updateCartItem = (req, res) => {
         
         // Check if cart item exists (cart_id = user_id)
         const cartItem = db.prepare(`
-            SELECT c.cart_id, c.product_id, p.product_name, p.product_variant, p.product_price, p.quantity as stock_quantity
+            SELECT c.cart_id, c.product_id, p.product_name, p.product_variant, p.product_price
             FROM cart c
             INNER JOIN products p ON c.product_id = p.product_id
             WHERE c.cart_id = ? AND c.product_id = ?
@@ -264,14 +248,6 @@ const updateCartItem = (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'Cart item not found'
-            });
-        }
-        
-        // Check stock availability
-        if (quantity > cartItem.stock_quantity) {
-            return res.status(400).json({
-                success: false,
-                message: `Insufficient stock. Only ${cartItem.stock_quantity} items available`
             });
         }
         
@@ -449,7 +425,7 @@ const batchUpdateCartItems = (req, res) => {
             try {
                 // Check if cart item exists
                 const cartItem = db.prepare(`
-                    SELECT c.cart_id, c.product_id, p.product_name, p.product_variant, p.product_price, p.quantity as stock_quantity
+                    SELECT c.cart_id, c.product_id, p.product_name, p.product_variant, p.product_price
                     FROM cart c
                     INNER JOIN products p ON c.product_id = p.product_id
                     WHERE c.cart_id = ? AND c.product_id = ?
@@ -459,15 +435,6 @@ const batchUpdateCartItems = (req, res) => {
                     errors.push({
                         product_id: item.product_id,
                         error: 'Cart item not found'
-                    });
-                    continue;
-                }
-                
-                // Check stock availability
-                if (item.quantity > cartItem.stock_quantity) {
-                    errors.push({
-                        product_id: item.product_id,
-                        error: `Insufficient stock. Only ${cartItem.stock_quantity} items available`
                     });
                     continue;
                 }
