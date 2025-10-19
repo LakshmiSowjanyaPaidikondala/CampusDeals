@@ -1,63 +1,91 @@
-# CampusDeals API Documentation
+# 📋 CampusDeals API Endpoints Documentation
 
-## Authentication Endpoints
-
-### 1. Register User
-**POST** `/api/auth/register`
-
-**Request Body:**
-```json
-{
-  "user_name": "John Doe",
-  "user_email": "john@example.com",
-  "user_password": "password123",
-  "role": "buyer", // Optional: "buyer", "seller", "admin"
-  "user_phone": "1234567890",
-  "user_studyyear": "3rd Year",
-  "user_branch": "Computer Science",
-  "user_section": "A",
-  "user_residency": "Hostel"
-}
+## Base URL
+```
+http://localhost:3000/api
 ```
 
+## Authentication
+- **Bearer Token Authentication:** Include `Authorization: Bearer <access_token>` header for protected endpoints
+- **JWT Refresh:** Use refresh token to get new access tokens when they expire
+- **Dynamic Role Assignment:** User roles are assigned automatically based on first action (buy/sell)
+
+---
+
+## 🔐 Authentication Endpoints (`/api/auth`)
+
+### **User Registration**
+```http
+POST /api/auth/register
+POST /api/auth/signup (alias)
+```
+**Access:** Public  
+**Description:** Register a new user without predefined role  
+**Body:**
+```json
+{
+  "user_name": "string (required)",
+  "user_email": "string (required, valid email)",
+  "user_password": "string (required, min 8 chars)",
+  "user_phone": "string (optional)",
+  "user_studyyear": "string (optional)",
+  "user_branch": "string (optional)", 
+  "user_section": "string (optional)",
+  "user_residency": "string (optional)",
+  "payment_received": "number (optional, default: 0)",
+  "amount_given": "number (optional, default: 0)"
+}
+```
 **Response:**
 ```json
 {
+  "success": true,
   "message": "✅ User registered successfully",
-  "token": "jwt_token_here",
+  "accessToken": "jwt_access_token",
+  "refreshToken": "jwt_refresh_token",
+  "tokenExpiry": {
+    "accessToken": "15m",
+    "refreshToken": "15m"
+  },
   "user": {
-    "userId": 1,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "buyer"
+    "userId": 123,
+    "name": "User Name",
+    "email": "user@example.com",
+    "role": null
+  },
+  "instructions": {
+    "message": "Your role will be assigned automatically based on your first action (buy or sell)"
   }
 }
 ```
 
-### 2. Login User
-**POST** `/api/auth/login`
-
-**Request Body:**
+### **User Login**
+```http
+POST /api/auth/login
+```
+**Access:** Public  
+**Description:** Authenticate user and get tokens  
+**Body:**
 ```json
 {
-  "user_email": "john@example.com",
-  "user_password": "password123"
+  "user_email": "string (required)",
+  "user_password": "string (required)"
 }
 ```
-
 **Response:**
 ```json
 {
+  "success": true,
   "message": "✅ Login successful",
-  "token": "jwt_token_here",
+  "accessToken": "jwt_access_token",
+  "refreshToken": "jwt_refresh_token",
   "user": {
-    "userId": 1,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "buyer"
+    "userId": 123,
+    "name": "User Name", 
+    "email": "user@example.com",
+    "role": "buyer|seller|admin|null"
   }
 }
-```
 
 ### 3. Get User Profile (Protected)
 **GET** `/api/auth/profile`
