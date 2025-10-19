@@ -127,11 +127,12 @@
 
 .social-icon {
   font-size: 2rem;
-  width: 50px;
-  height: 50px;
+  width: 35px;
+  height: 35px;
   display: flex;
   align-items: center;
   justify-content: center;
+  object-fit: contain;
 }
 
 .social-info {
@@ -376,8 +377,8 @@
   
   .social-icon {
     font-size: 1.5rem;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
   }
   
   .founders-grid {
