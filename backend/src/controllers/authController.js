@@ -21,7 +21,6 @@ const signup = async (req, res) => {
       user_name,
       user_email,
       user_password,
-      role = 'buyer',
       user_phone,
       user_studyyear,
       user_branch,
@@ -75,30 +74,18 @@ const signup = async (req, res) => {
       });
     }
 
-    // Validate role
-    const validRoles = ['buyer', 'seller', 'admin'];
-    if (!validRoles.includes(role)) {
-      return res.status(400).json({ 
-        success: false,
-        message: '❌ Invalid role specified',
-        validRoles: validRoles,
-        field: 'role'
-      });
-    }
-
     // Hash password
     const hashedPassword = await hashPassword(user_password);
 
-    // Insert new user
+    // Insert new user without role (will be assigned dynamically based on first action)
     const [result] = run(
       `INSERT INTO users 
-       (user_name, user_email, user_password, role, user_phone, user_studyyear, user_branch, user_section, user_residency, payment_received, amount_given) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (user_name, user_email, user_password, user_phone, user_studyyear, user_branch, user_section, user_residency, payment_received, amount_given) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         user_name,
         user_email,
         hashedPassword,
-        role,
         user_phone,
         user_studyyear,
         user_branch,
@@ -109,8 +96,8 @@ const signup = async (req, res) => {
       ]
     );
 
-    // Generate token pair (access + refresh)
-    const tokenPair = await generateTokenPair(result.insertId, user_email, role);
+    // Generate token pair (access + refresh) - role will be NULL initially
+    const tokenPair = await generateTokenPair(result.insertId, user_email, null);
     
     if (!tokenPair.success) {
       return res.status(500).json({
@@ -133,10 +120,10 @@ const signup = async (req, res) => {
         userId: result.insertId,
         name: user_name,
         email: user_email,
-        role: role
+        role: null
       },
       instructions: {
-        message: 'Save both tokens for authentication',
+        message: 'Save both tokens for authentication. Your role will be assigned automatically based on your first action (buy or sell).',
         accessToken: 'Short-lived token for API requests',
         refreshToken: 'Short-lived token for getting new access tokens (15 minutes)',
         usage: 'Include access token in Authorization header as: Bearer YOUR_ACCESS_TOKEN'

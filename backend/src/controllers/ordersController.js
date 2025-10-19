@@ -28,6 +28,77 @@ const generateSerialNo = () => {
 };
 
 /**
+ * Generate serial numbers for items based on product code and quantity
+ * Format: <product_code><3-digit-sequence>
+ * Example: DFT-P001, DFT-P002, etc.
+ */
+const generateItemSerialNumbers = (productCode, quantity) => {
+    const serialNumbers = [];
+    
+    // Get the highest existing serial number for this product code
+    const maxSerial = db.prepare(`
+        SELECT serial_number 
+        FROM serial_allocations 
+        WHERE product_code = ?
+        ORDER BY serial_number DESC
+        LIMIT 1
+    `).get(productCode);
+    
+    // Extract the numeric part and start from the next number
+    let startNumber = 1;
+    if (maxSerial) {
+        const numericPart = maxSerial.serial_number.replace(productCode, '');
+        startNumber = parseInt(numericPart) + 1;
+    }
+    
+    // Generate the required quantity of serial numbers
+    for (let i = 0; i < quantity; i++) {
+        const serialNumber = `${productCode}${(startNumber + i).toString().padStart(3, '0')}`;
+        serialNumbers.push(serialNumber);
+    }
+    
+    return serialNumbers;
+};
+
+/**
+ * Allocate available serial numbers for buy orders
+ * Finds the lowest available serial numbers for each product in ascending order
+ * @param {string} productCode - The product code (e.g., 'DFT-P')
+ * @param {number} quantity - Number of serials needed
+ * @param {number} buyOrderId - The buy order ID for allocation tracking
+ * @returns {array} Array of allocated serial numbers
+ */
+const allocateSerialNumbers = (productCode, quantity, buyOrderId) => {
+    // Find available serial numbers in ascending order
+    const availableSerials = db.prepare(`
+        SELECT serial_number 
+        FROM serial_allocations 
+        WHERE product_code = ? AND buy_order_id IS NULL
+        ORDER BY serial_number ASC
+        LIMIT ?
+    `).all(productCode, quantity);
+
+    if (availableSerials.length < quantity) {
+        throw new Error(`Insufficient stock: Only ${availableSerials.length} units available for product code ${productCode}, but ${quantity} requested`);
+    }
+
+    // Update allocations to mark these serials as allocated
+    const updateAllocation = db.prepare(`
+        UPDATE serial_allocations 
+        SET buy_order_id = ?, allocated_at = CURRENT_TIMESTAMP
+        WHERE serial_number = ?
+    `);
+
+    const allocatedSerials = [];
+    for (const serial of availableSerials) {
+        updateAllocation.run(buyOrderId, serial.serial_number);
+        allocatedSerials.push(serial.serial_number);
+    }
+
+    return allocatedSerials;
+};
+
+/**
  * Create buy order directly from cart using cart_id foreign key
  * @route POST /api/orders/buy
  * @access Private (buyer role)
@@ -37,14 +108,6 @@ const createBuyOrder = async (req, res) => {
         const { cart_id, payment_method } = req.body;
         const user_id = req.user.userId;
         const user_role = req.user.role;
-
-        // Validate buyer role
-        if (user_role !== 'buyer') {
-            return res.status(403).json({
-                success: false,
-                message: 'Only buyers can create buy orders'
-            });
-        }
 
         // Validate required fields
         if (!cart_id) {
@@ -82,10 +145,22 @@ const createBuyOrder = async (req, res) => {
         }
 
         const transaction = db.transaction(() => {
+            // Dynamic role assignment - auto-assign "buyer" role if user has no role or different role
+            if (user_role !== 'buyer') {
+                const updateUserRole = db.prepare(`
+                    UPDATE users 
+                    SET role = 'buyer', updated_at = CURRENT_TIMESTAMP 
+                    WHERE user_id = ?
+                `);
+                updateUserRole.run(user_id);
+                
+                console.log(`🏷️  Auto-assigned 'buyer' role to user ${user_id} (previous role: ${user_role || 'NULL'})`);
+            }
+
             // Get all items from the cart
             const cartItems = db.prepare(`
                 SELECT c.cart_id, c.product_id, c.quantity, 
-                       p.product_name, p.product_variant, p.product_price
+                       p.product_name, p.product_variant, p.product_price, p.product_code
                 FROM cart c
                 JOIN products p ON c.product_id = p.product_id
                 WHERE c.cart_id = ?
@@ -100,9 +175,27 @@ const createBuyOrder = async (req, res) => {
             let totalQuantity = 0;
             const orderItems = [];
 
-            // Process each cart item and calculate totals
+            // FIRST: Validate stock availability BEFORE processing the order
+            const checkStock = db.prepare(`
+                SELECT quantity, product_code FROM products WHERE product_id = ?
+            `);
+
             for (const cartItem of cartItems) {
-                const { product_id, quantity, product_name, product_variant, product_price } = cartItem;
+                const { product_id, quantity, product_code } = cartItem;
+                const currentStock = checkStock.get(product_id);
+                
+                if (!currentStock) {
+                    throw new Error(`Product not found: ${product_code || product_id}`);
+                }
+                
+                if (currentStock.quantity < quantity) {
+                    throw new Error(`Insufficient stock available for product ${currentStock.product_code} (requested: ${quantity}, available: ${currentStock.quantity})`);
+                }
+            }
+
+            // Process each cart item and calculate totals after validation passes
+            for (const cartItem of cartItems) {
+                const { product_id, quantity, product_name, product_variant, product_price, product_code } = cartItem;
                 const itemTotal = quantity * product_price;
                 orderTotalAmount += itemTotal;
                 totalQuantity += quantity; // Sum of all quantities
@@ -111,10 +204,16 @@ const createBuyOrder = async (req, res) => {
                     product_id,
                     product_name,
                     product_variant,
+                    product_code,
                     quantity,
                     price_per_item: product_price,
                     item_total: itemTotal
                 });
+            }
+
+            // Process FIFO allocation for sellers (existing logic)
+            for (const cartItem of cartItems) {
+                const { product_id, quantity } = cartItem;
 
                 // Handle FIFO allocation for sellers (existing logic)
                 const availableSellOrders = db.prepare(`
@@ -162,14 +261,37 @@ const createBuyOrder = async (req, res) => {
 
             const orderId = insertResult.lastInsertRowid;
 
-            // Insert all items into order_items table
+            // Update product quantities - DECREASE for buy orders (buyer consumes inventory)
+            const updateProductQuantity = db.prepare(`
+                UPDATE products 
+                SET quantity = quantity - ?, updated_at = CURRENT_TIMESTAMP
+                WHERE product_id = ?
+            `);
+
+            // Insert all items into order_items table with allocated serial numbers
             const insertOrderItem = db.prepare(`
-                INSERT INTO order_items (order_id, product_id, quantity, price_per_item, item_total)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO order_items (order_id, product_id, quantity, price_per_item, item_total, serial_numbers)
+                VALUES (?, ?, ?, ?, ?, ?)
             `);
 
             for (const item of orderItems) {
-                insertOrderItem.run(orderId, item.product_id, item.quantity, item.price_per_item, item.item_total);
+                // Decrease product quantity in inventory
+                updateProductQuantity.run(item.quantity, item.product_id);
+
+                // Allocate serial numbers for this item
+                const allocatedSerials = allocateSerialNumbers(item.product_code, item.quantity, orderId);
+                
+                // Add allocated serials to the item for response
+                item.serial_numbers = allocatedSerials;
+
+                insertOrderItem.run(
+                    orderId, 
+                    item.product_id, 
+                    item.quantity, 
+                    item.price_per_item, 
+                    item.item_total,
+                    JSON.stringify(allocatedSerials) // Store as JSON string
+                );
             }
 
             // Clear the cart after creating order
@@ -217,14 +339,6 @@ const createSellOrder = async (req, res) => {
         const user_id = req.user.userId;
         const user_role = req.user.role;
 
-        // Validate seller role
-        if (user_role !== 'seller') {
-            return res.status(403).json({
-                success: false,
-                message: 'Only sellers can create sell orders'
-            });
-        }
-
         // Validate required fields
         if (!cart_id) {
             return res.status(400).json({
@@ -261,10 +375,21 @@ const createSellOrder = async (req, res) => {
         }
 
         const transaction = db.transaction(() => {
-            // Get all items from the seller's cart
+            // Dynamic role assignment - auto-assign "seller" role if user has no role or different role
+            if (user_role !== 'seller') {
+                const updateUserRole = db.prepare(`
+                    UPDATE users 
+                    SET role = 'seller', updated_at = CURRENT_TIMESTAMP 
+                    WHERE user_id = ?
+                `);
+                updateUserRole.run(user_id);
+                
+                console.log(`🏷️  Auto-assigned 'seller' role to user ${user_id} (previous role: ${user_role || 'NULL'})`);
+            }
+            // Get all items from the seller's cart with product codes
             const cartItems = db.prepare(`
                 SELECT c.cart_id, c.product_id, c.quantity, 
-                       p.product_name, p.product_variant, p.product_price
+                       p.product_name, p.product_variant, p.product_price, p.product_code
                 FROM cart c
                 JOIN products p ON c.product_id = p.product_id
                 WHERE c.cart_id = ?
@@ -281,10 +406,13 @@ const createSellOrder = async (req, res) => {
 
             // Process each cart item and calculate totals
             for (const cartItem of cartItems) {
-                const { product_id, quantity, product_name, product_variant, product_price } = cartItem;
+                const { product_id, quantity, product_name, product_variant, product_price, product_code } = cartItem;
                 const itemTotal = quantity * product_price;
                 orderTotalAmount += itemTotal;
                 totalQuantity += quantity; // Sum of all quantities
+
+                // Generate serial numbers for this item based on quantity
+                const serialNumbers = generateItemSerialNumbers(product_code, quantity);
 
                 orderItems.push({
                     product_id,
@@ -292,7 +420,8 @@ const createSellOrder = async (req, res) => {
                     product_variant,
                     quantity,
                     price_per_item: product_price,
-                    item_total: itemTotal
+                    item_total: itemTotal,
+                    serial_numbers: serialNumbers
                 });
             }
 
@@ -309,14 +438,43 @@ const createSellOrder = async (req, res) => {
 
             const orderId = insertResult.lastInsertRowid;
 
-            // Insert all items into order_items table
+            // Update product quantities - INCREASE for sell orders (seller adds inventory)
+            const updateProductQuantity = db.prepare(`
+                UPDATE products 
+                SET quantity = quantity + ?, updated_at = CURRENT_TIMESTAMP
+                WHERE product_id = ?
+            `);
+
+            // Insert all items into order_items table with serial numbers
             const insertOrderItem = db.prepare(`
-                INSERT INTO order_items (order_id, product_id, quantity, price_per_item, item_total)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO order_items (order_id, product_id, quantity, price_per_item, item_total, serial_numbers)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `);
+
+            // Insert serial number allocations for tracking
+            const insertSerialAllocation = db.prepare(`
+                INSERT INTO serial_allocations (product_code, serial_number, sell_order_id)
+                VALUES (?, ?, ?)
             `);
 
             for (const item of orderItems) {
-                insertOrderItem.run(orderId, item.product_id, item.quantity, item.price_per_item, item.item_total);
+                // Increase product quantity in inventory
+                updateProductQuantity.run(item.quantity, item.product_id);
+
+                insertOrderItem.run(
+                    orderId, 
+                    item.product_id, 
+                    item.quantity, 
+                    item.price_per_item, 
+                    item.item_total,
+                    JSON.stringify(item.serial_numbers) // Store as JSON string
+                );
+
+                // Insert each serial number into allocation table as available
+                for (const serialNumber of item.serial_numbers) {
+                    const productCode = serialNumber.replace(/\d{3}$/, ''); // Extract product code
+                    insertSerialAllocation.run(productCode, serialNumber, orderId);
+                }
             }
 
             // Clear the cart after creating order
@@ -384,7 +542,7 @@ const getBuyOrders = async (req, res) => {
         // For each order, get its items from order_items table
         const ordersWithItems = orders.map(order => {
             const orderItems = db.prepare(`
-                SELECT oi.product_id, oi.quantity, oi.price_per_item, oi.item_total,
+                SELECT oi.product_id, oi.quantity, oi.price_per_item, oi.item_total, oi.serial_numbers,
                        p.product_name, p.product_variant
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.product_id
@@ -392,9 +550,15 @@ const getBuyOrders = async (req, res) => {
                 ORDER BY oi.created_at
             `).all(order.order_id);
 
+            // Parse serial_numbers from JSON string (allocated serials for buy orders)
+            const itemsWithSerialNumbers = orderItems.map(item => ({
+                ...item,
+                serial_numbers: item.serial_numbers ? JSON.parse(item.serial_numbers) : []
+            }));
+
             return {
                 ...order,
-                items: orderItems
+                items: itemsWithSerialNumbers
             };
         });
 
@@ -445,7 +609,7 @@ const getSellOrders = async (req, res) => {
         // For each order, get its items from order_items table
         const ordersWithItems = orders.map(order => {
             const orderItems = db.prepare(`
-                SELECT oi.product_id, oi.quantity, oi.price_per_item, oi.item_total,
+                SELECT oi.product_id, oi.quantity, oi.price_per_item, oi.item_total, oi.serial_numbers,
                        p.product_name, p.product_variant
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.product_id
@@ -453,9 +617,15 @@ const getSellOrders = async (req, res) => {
                 ORDER BY oi.created_at
             `).all(order.order_id);
 
+            // Parse serial_numbers from JSON string and add to each item
+            const itemsWithSerialNumbers = orderItems.map(item => ({
+                ...item,
+                serial_numbers: item.serial_numbers ? JSON.parse(item.serial_numbers) : []
+            }));
+
             return {
                 ...order,
-                items: orderItems
+                items: itemsWithSerialNumbers
             };
         });
 
