@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import './Contacts.css';
 
+// Import logo images
+import instagramLogo from '../../assets/logos/Instagram.png';
+import linkedinLogo from '../../assets/logos/linkedin.png';
+import gmailLogo from '../../assets/logos/Gmail.png';
+
 const Contacts = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -27,21 +32,21 @@ const Contacts = () => {
     {
       id: 1,
       platform: 'Instagram',
-      icon: '📷',
+      logo: instagramLogo,
       url: 'https://www.instagram.com/campus_deals_?igsh=aDUyeXU2bGt6cXJ2',
       handle: '@campusdeals'
     },
     {
       id: 2,
       platform: 'LinkedIn',
-      icon: '💼',
+      logo: linkedinLogo,
       url: 'https://www.linkedin.com/company/campus-deals/',
       handle: 'Campus Deals'
     },
     {
       id: 3,
       platform: 'Gmail',
-      icon: '📧',
+      logo: gmailLogo,
       url: 'campusdeals.online@gmail.com',
       handle: 'campusdealsonline@gmail.com'
     }
@@ -84,7 +89,7 @@ const Contacts = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <span className="social-icon">{social.icon}</span>
+                  <img src={social.logo} alt={social.platform} className="social-icon" />
                   <div className="social-info">
                     <div className="social-platform">{social.platform}</div>
                     <div className="social-handle">{social.handle}</div>
