@@ -1,3 +1,4 @@
+// Updated ProductCard.jsx
 import React, { useState, useRef, useEffect } from "react";
 import "./ProductCard.css";
 
@@ -35,7 +36,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   const handleAddToCart = () => {
     if (!selectedVariant) {
-      alert('Please select a variant first');
+      // Removed alert - you can add a toast here too if needed
       return;
     }
 
@@ -82,7 +83,6 @@ const ProductCard = ({ product, onAddToCart }) => {
           src={product.image} 
           alt={product.name} 
           className="product-image"
-          
         />
       </div>
       
@@ -94,8 +94,6 @@ const ProductCard = ({ product, onAddToCart }) => {
             ).join(' ')}
           </h3>
         </div>
-
-
 
         {/* Variant Selection */}
         {hasMultipleVariants ? (
@@ -154,7 +152,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           </div>
         ) : null}
 
-            {/* Selected Variant Info */}
+        {/* Selected Variant Info */}
         {selectedVariant && (
           <div className="selected-variant-info">
             <div className="variant-header">
@@ -167,7 +165,9 @@ const ProductCard = ({ product, onAddToCart }) => {
                   {selectedVariant.stock > 0 ? `${selectedVariant.stock} in stock` : 'Out of stock'}
                 </span>
               </div>
-            </div>            {/* Variant Features for single variant or selected variant details */}
+            </div>
+            
+            {/* Variant Features for single variant or selected variant details */}
             {selectedVariant.variantDetails?.features && Array.isArray(selectedVariant.variantDetails.features) && (
               <div className="selected-variant-features">
                 <h5 className="variant-features-title">Key Features:</h5>

@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth.jsx";
 import { CartProvider } from "./contexts/CartContext.jsx";
+
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home/Home";
 import Buy from "./pages/Buy/Buy";
@@ -16,7 +17,7 @@ import Settings from "./pages/Settings/Settings";
 import Footer from "./components/Footer/Footer";
 import HeroBanner from "./components/HeroBanner/HeroBanner";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
-// import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
+import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import logo from "./assets/logo.png";
 
 
@@ -28,7 +29,7 @@ const App = () => {
           <div className="App">
             {/* Logo at top */}
             
-
+            <ScrollToTop /> 
             {/* Navbar */}
             <Navbar />
 

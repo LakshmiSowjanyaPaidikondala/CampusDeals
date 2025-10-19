@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import logo from "../../assets/logo.png";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdownDebug";
@@ -11,6 +11,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { getCartCount } = useCart();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Get cart count from context
   const cartCount = getCartCount();
@@ -49,6 +50,21 @@ const Navbar = () => {
     };
   }, [menuOpen]);
 
+  // Function to handle navigation with scroll to top
+  const handleNavigation = (path, event) => {
+    // Close mobile menu if open
+    setMenuOpen(false);
+    
+    // If we're already on the same page, scroll to top
+    if (location.pathname === path) {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // For navigation to different pages, scroll will be handled by the useEffect below
+      // The navigation will happen normally via the Link component
+    }
+  };
+
   const navItems = [
     { path: '/', label: 'Home' },
     { path: '/buy', label: 'Buy' },
@@ -67,7 +83,7 @@ const Navbar = () => {
         >
           ☰
         </button>
-        <Link to="/" className="logo-container">
+        <Link to="/" className="logo-container" onClick={(e) => handleNavigation('/', e)}>
           <div className="logo-wrapper">
             <img src={logo} alt="Campus Deals Logo" className="logo" />
           </div>
@@ -86,6 +102,7 @@ const Navbar = () => {
               className={`nav-link ${
                 location.pathname === item.path ? "nav-link-active" : ""
               }`}
+              onClick={(e) => handleNavigation(item.path, e)}
             >
               <span>{item.label}</span>
             </Link>
@@ -93,7 +110,7 @@ const Navbar = () => {
         </div>
 
         {/* Premium Cart Icon */}
-        <Link to="/cart" className="cart-link">
+        <Link to="/cart" className="cart-link" onClick={(e) => handleNavigation('/cart', e)}>
           <ShoppingCart className="cart-icon" size={24} />
           {cartCount > 0 && (
             <span className="cart-count">{cartCount}</span>
@@ -129,7 +146,11 @@ const Navbar = () => {
 
         {/* Cart in mobile sidebar */}
         <div className="sidebar-cart">
-          <Link to="/cart" className="sidebar-cart-link" onClick={() => setMenuOpen(false)}>
+          <Link 
+            to="/cart" 
+            className="sidebar-cart-link" 
+            onClick={(e) => handleNavigation('/cart', e)}
+          >
             <ShoppingCart size={18} />
             <span>Cart ({cartCount})</span>
           </Link>
@@ -140,7 +161,7 @@ const Navbar = () => {
             <li key={item.path}>
               <Link
                 to={item.path}
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => handleNavigation(item.path, e)}
                 className={location.pathname === item.path ? "active" : ""}
               >
                 {item.label}
