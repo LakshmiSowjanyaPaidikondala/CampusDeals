@@ -7,7 +7,14 @@ body:has(.home) {
 /* Dark theme with vibrant blue background */
 .home {
   min-height: 100vh;
-  background: linear-gradient(145deg, #82bfdd 0%, #91b5c2 100%);
+  /* background: linear-gradient(145deg, #82bfdd 0%, #91b5c2 100%); */
+  /* background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%); */
+  /* background: linear-gradient(145deg, #d4f1f4 0%, #b8e6e8 100%); */
+  /* background: linear-gradient(145deg, #e0eafc 0%, #cfdef3 100%); */
+  /* background: linear-gradient(145deg, #b4c6e9 0%, #cfdef3 100%); */
+  /* background: linear-gradient(145deg, #e0f7fa 0%, #b2ebf2 100%); */
+  /* background: linear-gradient(145deg, #d1c4e9 0%, #b39ddb 100%); */
+
   color: #ffffff;
   padding: 0;
   margin: 0;
@@ -116,9 +123,17 @@ erlay {
 
 /* Individual card styling with distinct colors */
 .card-1 {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    /* background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); */
+    /* background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%); */
+    /* background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); */
+    /* background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); */
+    /* background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); */
+background: linear-gradient(135deg,#16e0ff  0%, #3fbac7 100%);
+ /* background: linear-gradient(135deg, #60bbfe 0%, #1ff5fe 100%); */
+    color: #ffffff;
 }
+
 
 .card-1 .card-icon {
   background: rgba(255, 255, 255, 0.2);
@@ -134,15 +149,18 @@ erlay {
 }
 
 .card-1:hover {
-  background: linear-gradient(135deg, #7b8ff0 0%, #8a5cb8 100%);
+  background: linear-gradient(135deg, #3df0ff 0%, #5cc7d4 100%);
   transform: translateY(-15px) scale(1.02);
 }
 
 .card-2 {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  /* background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); */
+  /* background: linear-gradient(135deg, #3fc8ea 0%, #7bb1f4 100%); */
+  /* background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); */
+  background: linear-gradient(135deg,#2979ff 0%, hwb(204 45% 0%) 100%);
   color: #ffffff;
 }
-
+  
 .card-2 .card-icon {
   background: rgba(255, 255, 255, 0.2);
 }
@@ -157,12 +175,16 @@ erlay {
 }
 
 .card-2:hover {
-  background: linear-gradient(135deg, #f2a4fc 0%, #f66d82 100%);
+  /* background: linear-gradient(135deg, #f2a4fc 0%, #f66d82 100%); */
+  background: linear-gradient(135deg, #4a91ff 0%, #8db5ff 100%);
   transform: translateY(-15px) scale(1.02);
 }
 
 .card-3 {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  /* background: linear-gradient(135deg, #9071ee 0%, #5e35b1 100%); */
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  background: linear-gradient(135deg, #651fff 0%, #9670ff 100%);
+
   color: #ffffff;
 }
 
@@ -180,35 +202,37 @@ erlay {
 }
 
 .card-3:hover {
-  background: linear-gradient(135deg, #60bbfe 0%, #1ff5fe 100%);
+  background: linear-gradient(135deg, #7c3aff 0%, #b899ff 100%);
   transform: translateY(-15px) scale(1.02);
 }
 
 .card-4 {
-  background: linear-gradient(135deg, #66d348 0%, #20afbc 100%);
-  color: #2c3e50;
+  /* background: linear-gradient(135deg, #66d348 0%, #20afbc 100%); */
+  background: linear-gradient(135deg, #74ae64 0%, #7ae3ed 100%);
+  /* background: linear-gradient(135deg, #00bfa5 0%, #1de9b6 100%); */
+  color: #ffffff;
 }
 
 .card-4 .card-icon {
-  background: rgba(44, 62, 80, 0.15);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .card-4 .card-icon svg {
-  color: #2c3e50;
+  color: #ffffff;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .card-4 h3 {
-  color: #2c3e50;
+  color: #ffffff;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
 .card-4 .card-description {
-  color: #34495e;
+  color: #ffffff;
 }
 
 .card-4:hover {
-  background: linear-gradient(135deg, #74ae64 0%, #7ae3ed 100%);
+  background: linear-gradient(135deg, #8bc577 0%, #9df0f7 100%);
   transform: translateY(-15px) scale(1.02);
 }
 
