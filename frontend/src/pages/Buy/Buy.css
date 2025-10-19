@@ -1,6 +1,7 @@
 .buy-page {
   padding: 2rem;
-  background: linear-gradient(135deg, #c4f2fc 0%, #7bc9ed 100%);
+  /* background: linear-gradient(135deg, #c4f2fc 0%, #7bc9ed 100%); */
+  background: linear-gradient(135deg, #3df0ff 0%, #5cc7d4 100%);
   min-height: 100vh;
   position: relative;
 }
@@ -46,7 +47,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(131, 247, 241, 0.651),
+    rgba(255, 255, 255, 0.651),
     transparent
   );
   /* animation: headerShimmer 4s infinite; */
@@ -66,18 +67,18 @@
 }
 
 .buy-title {
-  font-size: 3.5rem;
+  font-size: 2.7rem;
   margin: 0 0 0.5rem 0;
   font-weight: 800;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgb(16, 25, 63);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  /* text-shadow: 0 4px 8px rgba(37, 74, 241, 0.3); */
   letter-spacing: -1px;
   line-height: 1.1;
   position: relative;
-  animation: titleGlow 3s ease-in-out infinite;
+  /* animation: titleGlow 3s ease-in-out infinite; */
 }
 
 @keyframes titleGlow {
@@ -89,7 +90,7 @@
   }
 }
 
-.buy-title::after {
+/* .buy-title::after {
   content: '';
   position: absolute;
   bottom: -8px;
@@ -99,7 +100,7 @@
   background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   border-radius: 2px;
   animation: underlineExpand 2s ease-out;
-}
+} */
 
 @keyframes underlineExpand {
   0% { width: 0%; }
@@ -352,15 +353,15 @@
 
 /* Loading state */
 .buy-page p {
-  color: #000000;
+  color: rgb(16, 25, 63);
   font-size: 1.2rem;
-  background: rgb(147, 224, 235);
+  /* background: rgb(147, 224, 235);
   /* padding: 2rem; */
-  border-radius: 20px;
+  /* border-radius: 20px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2); */ 
   /* margin: 2rem auto; */
-  max-width: 500px;
+   max-width: 500px;
 }
 
 /* 🔹 Custom Scrollbar */

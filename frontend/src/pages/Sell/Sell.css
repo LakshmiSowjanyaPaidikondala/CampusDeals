@@ -1,7 +1,8 @@
 .sell-page {
   padding: 2rem;
   text-align: center;
-  background: linear-gradient(135deg, #87fbbf 0%, #31dda7 50%, #3cffc8 100%);
+  /* background: linear-gradient(145deg, #9eedf6 0%, #b8e6e8 100%); */
+  background: linear-gradient(135deg, #4a91ff 0%, #8db5ff 100%);
   min-height: 100vh;
   position: relative;
 }
@@ -18,7 +19,7 @@
   z-index: -1;
 }
 
-.sell-title {
+/* .sell-title {
   font-size: 2.5rem;
   margin-bottom: 2rem;
   font-weight: 700;
@@ -28,6 +29,70 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+} */
+.sell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  gap: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  padding: 2rem 2.5rem;
+  border-radius: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.sell-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 300%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.651),
+    transparent
+  );
+  /* animation: headerShimmer 4s infinite; */
+}
+
+/* 🏷️ Title Section */
+.sell-title-section {
+  text-align: left;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.sell-title {
+  font-size: 2.6rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 800;
+  background: rgb(16, 25, 63);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* text-shadow: 0 4px 8px rgba(37, 74, 241, 0.3); */
+  letter-spacing: -1px;
+  line-height: 1.1;
+  position: relative;
+  /* animation: titleGlow 3s ease-in-out infinite; */
+}
+.sell-subtitle {
+  font-size: 1.2rem;
+  margin: 0;
+  color: rgb(16, 25, 63);
+  font-weight: 500;
+  opacity: 0.8;
+  font-style: italic;
 }
 
 /* Remove conflicting add-to-cart styles - handled in ProductCard.css */
@@ -75,7 +140,7 @@
 
 .search-icon {
   position: absolute;
-  left: 345px;
+  /* left: 345px; */
   top: 50%;
   transform: translateY(-50%);
   color: #666;
@@ -272,10 +337,10 @@
 .sell-page p {
   color: #000000;
   font-size: 1.2rem;
-  background: rgb(147, 224, 235);
-  border-radius: 20px;
+  /* background: rgb(147, 224, 235); */
+  /* border-radius: 20px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2); */
   max-width: 500px;
 }
 

@@ -1,3 +1,4 @@
+// Updated Sell.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
@@ -5,6 +6,7 @@ import ProductCard from "../../components/ProductCard/ProductCard";
 import SellForm from "../UserForm/UserForm";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../hooks/useAuth.jsx";
+import Toast from "../../components/Toast/Toast"; // Add this import
 import "./Sell.css";
 
 import calciImg from "../../assets/Calci.jpg";
@@ -22,6 +24,13 @@ const Sell = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  // Toast state
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "success"
+  });
+
   const API_BASE_URL = 'http://localhost:5000/api';
 
   // Image mapping for products
@@ -37,23 +46,18 @@ const Sell = () => {
   const productDescriptions = {
     calculator: {
       main: "High-quality scientific calculators designed specifically for engineering, mathematics, and scientific computations.",
-      
     },
     drafter: {
       main: "Professional-grade drafting instruments essential for precise engineering drawings, architectural designs, and technical illustrations.",
-      
     },
     chartbox: {
       main: "Sturdy, portable chart holders designed for organizing and displaying technical drawings, blueprints, and presentation materials.",
-      
     },
     white_lab_coat: {
       main: "Professional white lab coats meeting safety standards for chemistry, medical, and research laboratory environments.",
-    
     },
     brown_lab_coat: {
       main: "Heavy-duty brown lab coats specifically designed for mechanical workshops, industrial labs, and engineering practicals.",
-     
     }
   };
 
@@ -62,11 +66,9 @@ const Sell = () => {
     // Calculator variants
     'MS': {
       name: 'MS (Multi-function Scientific)'
-      
     },
     'ES': {
       name: 'ES (Engineering Scientific)'
-      
     },
     'ES-Plus': {
       name: 'ES-Plus (Engineering Scientific Plus)'
@@ -86,7 +88,6 @@ const Sell = () => {
     // Lab coat size details
     'S': {
       name: 'Small Size'
-     
     },
     'M': {
       name: 'Medium Size'
@@ -147,6 +148,25 @@ const Sell = () => {
     });
     
     return Object.values(grouped);
+  };
+
+  // Show toast notification
+  const showToast = (message, type = "success") => {
+    setToast({
+      visible: true,
+      message,
+      type
+    });
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
+  // Close toast manually
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
   };
 
   // Fetch products from API
@@ -282,8 +302,8 @@ const Sell = () => {
     
     addToSellCart(cartItem);
     
-    // Optional: Show a toast notification
-    alert(`${product.name} (${product.variant}) added to sell cart!`);
+    // Show toast notification instead of alert
+    showToast(`${product.name} (${product.variant}) added to sell cart!`);
   };
 
   const handleProceed = () => {
@@ -298,18 +318,31 @@ const Sell = () => {
 
   return (
     <div className="sell-page">
-      <h1 className="sell-title">The Student Seller Hub</h1>
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onClose={closeToast}
+      />
 
-      {/* 🔍 Search Bar */}
-      <div className="search-bar">
-        <div className="search-input-container">
-          <FaSearch className="search-icon" />
+      <div className="sell-header">
+        <div className="sell-title-section">
+          <h1 className="sell-title">Student Seller Hub</h1>
+          <p className="sell-subtitle">Discover amazing deals on essential student items</p>
+        </div>
+        
+        {/* 🔍 Search Bar */}
+        <div className="search-bar">
+          <div className="search-input-container">
+            <FaSearch className="search-icon" />
             <input
-            type="text"
-            placeholder="Search for products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+              type="text"
+              placeholder="Search for products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 

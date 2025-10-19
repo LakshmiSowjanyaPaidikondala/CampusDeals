@@ -5,6 +5,7 @@ import ProductCard from "../../components/ProductCard/ProductCard";
 import BuyForm from "../UserForm/UserForm";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../hooks/useAuth.jsx";
+import Toast from "../../components/Toast/Toast"; // Add this import
 import "./Buy.css";
 
 import calciImg from "../../assets/Calci.jpg";
@@ -21,6 +22,13 @@ const Buy = () => {
   const { addToBuyCart, buyCartItems, getBuyCartCount } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Toast state
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "success"
+  });
 
   const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -147,6 +155,25 @@ const Buy = () => {
     });
     
     return Object.values(grouped);
+  };
+
+  // Show toast notification
+  const showToast = (message, type = "success") => {
+    setToast({
+      visible: true,
+      message,
+      type
+    });
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
+  // Close toast manually
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
   };
 
   // Fetch products from API
@@ -282,8 +309,8 @@ const Buy = () => {
     
     addToBuyCart(cartItem);
     
-    // Optional: Show a toast notification
-    alert(`${product.name} (${product.variant}) added to buy cart!`);
+    // Show toast notification instead of alert
+    showToast(`${product.name} (${product.variant}) added to buy cart!`);
   };
 
   const handleProceed = () => {
@@ -298,6 +325,14 @@ const Buy = () => {
 
   return (
     <div className="buy-page">
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onClose={closeToast}
+      />
+
       {/* 🎯 Header Section with Title and Search */}
       <div className="buy-header">
         <div className="buy-title-section">
