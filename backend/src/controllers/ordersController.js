@@ -119,13 +119,13 @@ const createBuyOrder = async (req, res) => {
 
         // Verify cart belongs to the user by checking if cart has items for this user
         const cartCheck = db.prepare(`
-            SELECT COUNT(*) as count FROM cart WHERE cart_id = ?
+            SELECT COUNT(*) as count FROM buy_cart WHERE cart_id = ?
         `).get(parseInt(cart_id));
 
         if (!cartCheck || cartCheck.count === 0) {
             return res.status(404).json({
                 success: false,
-                message: 'Cart is empty or does not exist'
+                message: 'Buy cart is empty or does not exist'
             });
         }
 
@@ -157,17 +157,17 @@ const createBuyOrder = async (req, res) => {
                 console.log(`🏷️  Auto-assigned 'buyer' role to user ${user_id} (previous role: ${user_role || 'NULL'})`);
             }
 
-            // Get all items from the cart
+            // Get all items from the buy cart
             const cartItems = db.prepare(`
                 SELECT c.cart_id, c.product_id, c.quantity, 
                        p.product_name, p.product_variant, p.product_price, p.product_code
-                FROM cart c
+                FROM buy_cart c
                 JOIN products p ON c.product_id = p.product_id
                 WHERE c.cart_id = ?
             `).all(cart_id);
 
             if (cartItems.length === 0) {
-                throw new Error('Cart is empty');
+                throw new Error('Buy cart is empty');
             }
 
             // Calculate total amount and total quantity for the entire order
@@ -294,8 +294,8 @@ const createBuyOrder = async (req, res) => {
                 );
             }
 
-            // Clear the cart after creating order
-            db.prepare(`DELETE FROM cart WHERE cart_id = ?`).run(cart_id);
+            // Clear the buy cart after creating order
+            db.prepare(`DELETE FROM buy_cart WHERE cart_id = ?`).run(cart_id);
 
             return {
                 order_id: orderId,
@@ -349,13 +349,13 @@ const createSellOrder = async (req, res) => {
 
         // Verify cart belongs to the seller by checking if cart has items for this user
         const cartCheck = db.prepare(`
-            SELECT COUNT(*) as count FROM cart WHERE cart_id = ?
+            SELECT COUNT(*) as count FROM sell_cart WHERE cart_id = ?
         `).get(parseInt(cart_id));
 
         if (!cartCheck || cartCheck.count === 0) {
             return res.status(404).json({
                 success: false,
-                message: 'Cart is empty or does not exist'
+                message: 'Sell cart is empty or does not exist'
             });
         }
 
@@ -390,13 +390,13 @@ const createSellOrder = async (req, res) => {
             const cartItems = db.prepare(`
                 SELECT c.cart_id, c.product_id, c.quantity, 
                        p.product_name, p.product_variant, p.product_price, p.product_code
-                FROM cart c
+                FROM sell_cart c
                 JOIN products p ON c.product_id = p.product_id
                 WHERE c.cart_id = ?
             `).all(cart_id);
 
             if (cartItems.length === 0) {
-                throw new Error('Cart is empty');
+                throw new Error('Sell cart is empty');
             }
 
             // Calculate total amount and total quantity for the entire order
@@ -477,8 +477,8 @@ const createSellOrder = async (req, res) => {
                 }
             }
 
-            // Clear the cart after creating order
-            db.prepare(`DELETE FROM cart WHERE cart_id = ?`).run(cart_id);
+            // Clear the sell cart after creating order
+            db.prepare(`DELETE FROM sell_cart WHERE cart_id = ?`).run(cart_id);
 
             return {
                 order_id: orderId,

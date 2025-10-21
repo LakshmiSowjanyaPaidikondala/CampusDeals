@@ -40,8 +40,30 @@ CREATE TABLE IF NOT EXISTS products (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Cart table
+-- Cart table (legacy - keep for compatibility)
 CREATE TABLE IF NOT EXISTS cart (
+    cart_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (cart_id, product_id),
+    FOREIGN KEY (cart_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
+-- Buy Cart table (for buyers)
+CREATE TABLE IF NOT EXISTS buy_cart (
+    cart_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (cart_id, product_id),
+    FOREIGN KEY (cart_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
+-- Sell Cart table (for sellers)
+CREATE TABLE IF NOT EXISTS sell_cart (
     cart_id INTEGER NOT NULL,
     product_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
@@ -117,6 +139,10 @@ CREATE INDEX IF NOT EXISTS idx_products_code ON products(product_code);
 CREATE INDEX IF NOT EXISTS idx_products_variant ON products(product_variant);
 CREATE INDEX IF NOT EXISTS idx_cart_cart ON cart(cart_id);
 CREATE INDEX IF NOT EXISTS idx_cart_product ON cart(product_id);
+CREATE INDEX IF NOT EXISTS idx_buy_cart_cart ON buy_cart(cart_id);
+CREATE INDEX IF NOT EXISTS idx_buy_cart_product ON buy_cart(product_id);
+CREATE INDEX IF NOT EXISTS idx_sell_cart_cart ON sell_cart(cart_id);
+CREATE INDEX IF NOT EXISTS idx_sell_cart_product ON sell_cart(product_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_serial ON orders(serial_no);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
