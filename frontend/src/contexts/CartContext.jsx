@@ -60,7 +60,7 @@ export const CartProvider = ({ children }) => {
   const addToSellCart = (product) => {
     setSellCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
-
+      
       if (existingItem) {
         // Update quantity if item already exists
         return prevItems.map(item =>
@@ -106,7 +106,7 @@ export const CartProvider = ({ children }) => {
       removeFromBuyCart(productId);
       return;
     }
-
+    
     setBuyCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
