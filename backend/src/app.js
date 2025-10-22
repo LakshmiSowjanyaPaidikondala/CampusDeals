@@ -11,6 +11,8 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const buyCartRoutes = require('./routes/buyCartRoutes');
+const sellCartRoutes = require('./routes/sellCartRoutes');
 const ordersRoutes = require('./routes/ordersRoutes');
 
 // Import middleware
@@ -87,6 +89,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/cart/buy', buyCartRoutes);
+app.use('/api/cart/sell', sellCartRoutes);
 app.use('/api/orders', ordersRoutes);
 
 // Legacy cart routes (for backward compatibility)
