@@ -20,7 +20,7 @@ const Sell = () => {
   const [groupedProducts, setGroupedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { addToSellCart, sellCartItems, getSellCartCount } = useCart();
+  const { addToSellCart, sellCartItems, getSellCartCount, sellCartError, isLoadingSellCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -275,7 +275,7 @@ const Sell = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
     // Check if user is authenticated
     if (!isAuthenticated) {
       // Redirect to login page if not authenticated
@@ -283,27 +283,32 @@ const Sell = () => {
       return;
     }
 
-    // Add product with proper structure for sell cart
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      variant: product.variant,
-      price: product.price,
-      originalPrice: product.price * 1.2, // Add some savings
-      stock: product.stock,
-      inStock: product.stock,
-      productCode: product.productCode,
-      image: product.image,
-      description: `${product.name} - ${product.variant}`,
-      seller: 'Your Items',
-      category: product.name,
-      type: 'sell'
-    };
-    
-    addToSellCart(cartItem);
-    
-    // Show toast notification instead of alert
-    showToast(`${product.name} (${product.variant}) added to sell cart!`);
+    try {
+      // Add product with proper structure for sell cart
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        variant: product.variant,
+        price: product.price,
+        originalPrice: product.price * 1.2, // Add some savings
+        stock: product.stock,
+        inStock: product.stock,
+        productCode: product.productCode,
+        image: product.image,
+        description: `${product.name} - ${product.variant}`,
+        seller: 'Your Items',
+        category: product.name,
+        type: 'sell'
+      };
+      
+      await addToSellCart(cartItem);
+      
+      // Show success toast notification
+      showToast(`${product.name} (${product.variant}) added to sell cart!`, 'success');
+    } catch (error) {
+      console.error('Error adding to sell cart:', error);
+      showToast(`Failed to add ${product.name} to sell cart. Please try again.`, 'error');
+    }
   };
 
   const handleProceed = () => {

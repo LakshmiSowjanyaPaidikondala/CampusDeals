@@ -15,7 +15,13 @@ const Cart = () => {
     updateQuantity: updateContextQuantity, 
     removeFromCart: removeFromContext, 
     clearBuyCart,
-    clearSellCart 
+    clearSellCart,
+    isLoadingBuyCart,
+    isLoadingSellCart,
+    buyCartError,
+    sellCartError,
+    loadBuyCartFromBackend,
+    loadSellCartFromBackend
   } = useCart();
   
   // Determine initial tab based on navigation state or which cart has more items

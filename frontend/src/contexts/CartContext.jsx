@@ -1,4 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { 
+  // Buy cart APIs
+  addToBuyCartAPI,
+  getBuyCartItemsAPI,
+  updateBuyCartItemAPI,
+  removeFromBuyCartAPI,
+  clearBuyCartAPI,
+  // Sell cart APIs
+  addToSellCartAPI,
+  getSellCartItemsAPI,
+  updateSellCartItemAPI,
+  removeFromSellCartAPI,
+  clearSellCartAPI,
+  // Utilities
+  transformCartItem
+} from '../services/cartService';
 
 const CartContext = createContext();
 
@@ -11,17 +28,18 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  // Initialize separate carts from localStorage or with empty arrays
-  const [buyCartItems, setBuyCartItems] = useState(() => {
-    const savedBuyCart = localStorage.getItem('campusDealsBuyCart');
-    return savedBuyCart ? JSON.parse(savedBuyCart) : [];
-  });
-
-  const [sellCartItems, setSellCartItems] = useState(() => {
-    const savedSellCart = localStorage.getItem('campusDealsSellCart');
-    return savedSellCart ? JSON.parse(savedSellCart) : [];
-  });
-
+  const { isAuthenticated } = useAuth();
+  
+  // Cart state
+  const [buyCartItems, setBuyCartItems] = useState([]);
+  const [sellCartItems, setSellCartItems] = useState([]);
+  
+  // Loading and error states
+  const [isLoadingBuyCart, setIsLoadingBuyCart] = useState(false);
+  const [isLoadingSellCart, setIsLoadingSellCart] = useState(false);
+  const [buyCartError, setBuyCartError] = useState(null);
+  const [sellCartError, setSellCartError] = useState(null);
+  
   // For backward compatibility - combine both carts for components that still use cartItems
   const [cartItems, setCartItems] = useState([]);
 
@@ -30,21 +48,107 @@ export const CartProvider = ({ children }) => {
     setCartItems([...buyCartItems, ...sellCartItems]);
   }, [buyCartItems, sellCartItems]);
 
-  // Save carts to localStorage whenever they change
+  // Load carts from backend on authentication
   useEffect(() => {
-    localStorage.setItem('campusDealsBuyCart', JSON.stringify(buyCartItems));
-  }, [buyCartItems]);
+    if (isAuthenticated) {
+      loadBuyCartFromBackend();
+      loadSellCartFromBackend();
+    } else {
+      // Load from localStorage for unauthenticated users
+      loadCartsFromLocalStorage();
+    }
+  }, [isAuthenticated]);
+
+  // Save to localStorage for unauthenticated users
+  useEffect(() => {
+    if (!isAuthenticated) {
+      localStorage.setItem('campusDealsBuyCart', JSON.stringify(buyCartItems));
+    }
+  }, [buyCartItems, isAuthenticated]);
 
   useEffect(() => {
-    localStorage.setItem('campusDealsSellCart', JSON.stringify(sellCartItems));
-  }, [sellCartItems]);
+    if (!isAuthenticated) {
+      localStorage.setItem('campusDealsSellCart', JSON.stringify(sellCartItems));
+    }
+  }, [sellCartItems, isAuthenticated]);
 
-  const addToBuyCart = (product) => {
+  // Load carts from localStorage (for unauthenticated users)
+  const loadCartsFromLocalStorage = () => {
+    const savedBuyCart = localStorage.getItem('campusDealsBuyCart');
+    const savedSellCart = localStorage.getItem('campusDealsSellCart');
+    
+    if (savedBuyCart) {
+      setBuyCartItems(JSON.parse(savedBuyCart));
+    }
+    if (savedSellCart) {
+      setSellCartItems(JSON.parse(savedSellCart));
+    }
+  };
+
+  // ===================
+  // BUY CART FUNCTIONS
+  // ===================
+
+  // Load buy cart from backend
+  const loadBuyCartFromBackend = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      setIsLoadingBuyCart(true);
+      setBuyCartError(null);
+      
+      const response = await getBuyCartItemsAPI();
+      
+      if (response.success && response.data && response.data.items) {
+        const transformedItems = response.data.items.map(item => 
+          transformCartItem(item, 'buy')
+        ).filter(item => item !== null);
+        
+        setBuyCartItems(transformedItems);
+      }
+    } catch (error) {
+      console.error('Error loading buy cart from backend:', error);
+      setBuyCartError(error.message);
+      
+      // Fallback to localStorage if backend fails
+      const savedBuyCart = localStorage.getItem('campusDealsBuyCart');
+      if (savedBuyCart) {
+        setBuyCartItems(JSON.parse(savedBuyCart));
+      }
+    } finally {
+      setIsLoadingBuyCart(false);
+    }
+  };
+
+  // Add item to buy cart
+  const addToBuyCart = async (product) => {
+    if (isAuthenticated) {
+      try {
+        const response = await addToBuyCartAPI(product.id, 1);
+        
+        if (response.success) {
+          // Reload buy cart to get updated state
+          await loadBuyCartFromBackend();
+        }
+      } catch (error) {
+        console.error('Error adding to buy cart:', error);
+        setBuyCartError(error.message);
+        
+        // Fallback to localStorage
+        addToBuyCartLocal(product);
+        throw error;
+      }
+    } else {
+      addToBuyCartLocal(product);
+    }
+  };
+
+  // Local add to buy cart (for unauthenticated users)
+  const addToBuyCartLocal = (product) => {
     setBuyCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
       
       if (existingItem) {
-        // Update quantity if item already exists
         return prevItems.map(item =>
           item.id === product.id
             ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || 99) }
@@ -52,17 +156,74 @@ export const CartProvider = ({ children }) => {
         );
       }
       
-      // Add new item with quantity 1
       return [...prevItems, { ...product, quantity: 1, type: 'buy' }];
     });
   };
 
-  const addToSellCart = (product) => {
+  // ====================
+  // SELL CART FUNCTIONS
+  // ====================
+
+  // Load sell cart from backend
+  const loadSellCartFromBackend = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      setIsLoadingSellCart(true);
+      setSellCartError(null);
+      
+      const response = await getSellCartItemsAPI();
+      
+      if (response.success && response.data && response.data.items) {
+        const transformedItems = response.data.items.map(item => 
+          transformCartItem(item, 'sell')
+        ).filter(item => item !== null);
+        
+        setSellCartItems(transformedItems);
+      }
+    } catch (error) {
+      console.error('Error loading sell cart from backend:', error);
+      setSellCartError(error.message);
+      
+      // Fallback to localStorage if backend fails
+      const savedSellCart = localStorage.getItem('campusDealsSellCart');
+      if (savedSellCart) {
+        setSellCartItems(JSON.parse(savedSellCart));
+      }
+    } finally {
+      setIsLoadingSellCart(false);
+    }
+  };
+
+  // Add item to sell cart
+  const addToSellCart = async (product) => {
+    if (isAuthenticated) {
+      try {
+        const response = await addToSellCartAPI(product.id, 1);
+        
+        if (response.success) {
+          // Reload sell cart to get updated state
+          await loadSellCartFromBackend();
+        }
+      } catch (error) {
+        console.error('Error adding to sell cart:', error);
+        setSellCartError(error.message);
+        
+        // Fallback to localStorage
+        addToSellCartLocal(product);
+        throw error;
+      }
+    } else {
+      addToSellCartLocal(product);
+    }
+  };
+
+  // Local add to sell cart (for unauthenticated users)
+  const addToSellCartLocal = (product) => {
     setSellCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
       
       if (existingItem) {
-        // Update quantity if item already exists
         return prevItems.map(item =>
           item.id === product.id
             ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || 99) }
@@ -70,7 +231,6 @@ export const CartProvider = ({ children }) => {
         );
       }
       
-      // Add new item with quantity 1
       return [...prevItems, { ...product, quantity: 1, type: 'sell' }];
     });
   };
@@ -80,11 +240,59 @@ export const CartProvider = ({ children }) => {
     addToBuyCart(product);
   };
 
-  const removeFromBuyCart = (productId) => {
+  // Remove from buy cart
+  const removeFromBuyCart = async (productId) => {
+    if (isAuthenticated) {
+      try {
+        const response = await removeFromBuyCartAPI(productId);
+        
+        if (response.success) {
+          // Reload buy cart to get updated state
+          await loadBuyCartFromBackend();
+        }
+      } catch (error) {
+        console.error('Error removing from buy cart:', error);
+        setBuyCartError(error.message);
+        
+        // Fallback to local removal
+        removeFromBuyCartLocal(productId);
+        throw error;
+      }
+    } else {
+      removeFromBuyCartLocal(productId);
+    }
+  };
+
+  // Local remove from buy cart
+  const removeFromBuyCartLocal = (productId) => {
     setBuyCartItems(prevItems => prevItems.filter(item => item.id !== productId));
   };
 
-  const removeFromSellCart = (productId) => {
+  // Remove from sell cart
+  const removeFromSellCart = async (productId) => {
+    if (isAuthenticated) {
+      try {
+        const response = await removeFromSellCartAPI(productId);
+        
+        if (response.success) {
+          // Reload sell cart to get updated state
+          await loadSellCartFromBackend();
+        }
+      } catch (error) {
+        console.error('Error removing from sell cart:', error);
+        setSellCartError(error.message);
+        
+        // Fallback to local removal
+        removeFromSellCartLocal(productId);
+        throw error;
+      }
+    } else {
+      removeFromSellCartLocal(productId);
+    }
+  };
+
+  // Local remove from sell cart
+  const removeFromSellCartLocal = (productId) => {
     setSellCartItems(prevItems => prevItems.filter(item => item.id !== productId));
   };
 
@@ -101,12 +309,36 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const updateBuyQuantity = (productId, newQuantity) => {
+  // Update buy cart quantity
+  const updateBuyQuantity = async (productId, newQuantity) => {
     if (newQuantity === 0) {
-      removeFromBuyCart(productId);
+      await removeFromBuyCart(productId);
       return;
     }
     
+    if (isAuthenticated) {
+      try {
+        const response = await updateBuyCartItemAPI(productId, newQuantity);
+        
+        if (response.success) {
+          // Reload buy cart to get updated state
+          await loadBuyCartFromBackend();
+        }
+      } catch (error) {
+        console.error('Error updating buy cart quantity:', error);
+        setBuyCartError(error.message);
+        
+        // Fallback to local update
+        updateBuyQuantityLocal(productId, newQuantity);
+        throw error;
+      }
+    } else {
+      updateBuyQuantityLocal(productId, newQuantity);
+    }
+  };
+
+  // Local update buy cart quantity
+  const updateBuyQuantityLocal = (productId, newQuantity) => {
     setBuyCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
@@ -116,12 +348,36 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  const updateSellQuantity = (productId, newQuantity) => {
+  // Update sell cart quantity
+  const updateSellQuantity = async (productId, newQuantity) => {
     if (newQuantity === 0) {
-      removeFromSellCart(productId);
+      await removeFromSellCart(productId);
       return;
     }
     
+    if (isAuthenticated) {
+      try {
+        const response = await updateSellCartItemAPI(productId, newQuantity);
+        
+        if (response.success) {
+          // Reload sell cart to get updated state
+          await loadSellCartFromBackend();
+        }
+      } catch (error) {
+        console.error('Error updating sell cart quantity:', error);
+        setSellCartError(error.message);
+        
+        // Fallback to local update
+        updateSellQuantityLocal(productId, newQuantity);
+        throw error;
+      }
+    } else {
+      updateSellQuantityLocal(productId, newQuantity);
+    }
+  };
+
+  // Local update sell cart quantity
+  const updateSellQuantityLocal = (productId, newQuantity) => {
     setSellCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
@@ -144,12 +400,48 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const clearBuyCart = () => {
-    setBuyCartItems([]);
+  // Clear buy cart
+  const clearBuyCart = async () => {
+    if (isAuthenticated) {
+      try {
+        const response = await clearBuyCartAPI();
+        
+        if (response.success) {
+          setBuyCartItems([]);
+        }
+      } catch (error) {
+        console.error('Error clearing buy cart:', error);
+        setBuyCartError(error.message);
+        
+        // Fallback to local clear
+        setBuyCartItems([]);
+        throw error;
+      }
+    } else {
+      setBuyCartItems([]);
+    }
   };
 
-  const clearSellCart = () => {
-    setSellCartItems([]);
+  // Clear sell cart
+  const clearSellCart = async () => {
+    if (isAuthenticated) {
+      try {
+        const response = await clearSellCartAPI();
+        
+        if (response.success) {
+          setSellCartItems([]);
+        }
+      } catch (error) {
+        console.error('Error clearing sell cart:', error);
+        setSellCartError(error.message);
+        
+        // Fallback to local clear
+        setSellCartItems([]);
+        throw error;
+      }
+    } else {
+      setSellCartItems([]);
+    }
   };
 
   const clearCart = () => {
@@ -187,26 +479,44 @@ export const CartProvider = ({ children }) => {
     sellCartItems,
     // Combined cart for backward compatibility
     cartItems,
+    
+    // Loading states
+    isLoadingBuyCart,
+    isLoadingSellCart,
+    
+    // Error states
+    buyCartError,
+    sellCartError,
+    
+    // Load functions
+    loadBuyCartFromBackend,
+    loadSellCartFromBackend,
+    
     // Add functions
     addToBuyCart,
     addToSellCart,
     addToCart, // defaults to buy cart
+    
     // Remove functions
     removeFromBuyCart,
     removeFromSellCart,
     removeFromCart,
+    
     // Update functions
     updateBuyQuantity,
     updateSellQuantity,
     updateQuantity,
+    
     // Clear functions
     clearBuyCart,
     clearSellCart,
     clearCart,
+    
     // Count functions
     getBuyCartCount,
     getSellCartCount,
     getCartCount,
+    
     // Total functions
     getBuyCartTotal,
     getSellCartTotal,
