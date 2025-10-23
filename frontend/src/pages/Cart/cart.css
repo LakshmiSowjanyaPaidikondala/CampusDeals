@@ -304,8 +304,8 @@
 .item-image {
   flex-shrink: 0;
   position: relative;
-  width: 220px;
-  height: 220px;
+  width: 222px;
+  height: 222px;
   border-radius: 0.75rem;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
