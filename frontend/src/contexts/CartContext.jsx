@@ -147,15 +147,16 @@ export const CartProvider = ({ children }) => {
   const addToBuyCartLocal = (product) => {
     setBuyCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
-      
+
       if (existingItem) {
         return prevItems.map(item =>
           item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || 99) }
+            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || item.stock || 99) }
             : item
         );
       }
-      
+
+      // Add new item with quantity 1
       return [...prevItems, { ...product, quantity: 1, type: 'buy' }];
     });
   };
@@ -222,15 +223,16 @@ export const CartProvider = ({ children }) => {
   const addToSellCartLocal = (product) => {
     setSellCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
-      
+
       if (existingItem) {
         return prevItems.map(item =>
           item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || 99) }
+            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || item.stock || 99) }
             : item
         );
       }
-      
+
+      // Add new item with quantity 1
       return [...prevItems, { ...product, quantity: 1, type: 'sell' }];
     });
   };
@@ -300,7 +302,7 @@ export const CartProvider = ({ children }) => {
     // Check which cart contains the item and remove from appropriate cart
     const inBuyCart = buyCartItems.find(item => item.id === productId);
     const inSellCart = sellCartItems.find(item => item.id === productId);
-    
+
     if (inBuyCart) {
       removeFromBuyCart(productId);
     }
@@ -342,7 +344,7 @@ export const CartProvider = ({ children }) => {
     setBuyCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.inStock || 99) }
+          ? { ...item, quantity: Math.min(newQuantity, item.inStock || item.stock || 99) }
           : item
       )
     );
@@ -381,7 +383,7 @@ export const CartProvider = ({ children }) => {
     setSellCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.inStock || 99) }
+          ? { ...item, quantity: Math.min(newQuantity, item.inStock || item.stock || 99) }
           : item
       )
     );
@@ -391,7 +393,7 @@ export const CartProvider = ({ children }) => {
     // Check which cart contains the item and update appropriate cart
     const inBuyCart = buyCartItems.find(item => item.id === productId);
     const inSellCart = sellCartItems.find(item => item.id === productId);
-    
+
     if (inBuyCart) {
       updateBuyQuantity(productId, newQuantity);
     }

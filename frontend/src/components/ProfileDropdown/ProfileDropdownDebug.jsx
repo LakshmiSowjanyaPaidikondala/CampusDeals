@@ -211,18 +211,25 @@ const ProfileDropdownDebug = () => {
               <FaCog className="item-icon" />
               <span>Settings</span>
             </Link>
-          </div>
-
-          <div className="dropdown-divider"></div>
-
-          {/* Logout */}
-          <button 
+            <button 
             className="dropdown-item logout-item"
             onClick={handleLogoutClick}
           >
             <FaSignOutAlt className="item-icon" />
             <span>Logout</span>
           </button>
+          </div>
+
+          {/* <div className="dropdown-divider"></div> */}
+
+          {/* Logout */}
+          {/* <button 
+            className="dropdown-item logout-item"
+            onClick={handleLogoutClick}
+          >
+            <FaSignOutAlt className="item-icon" />
+            <span>Logout</span>
+          </button> */}
         </div>
       </div>
 

@@ -374,7 +374,12 @@ const Buy = () => {
           </div>
         ) : filteredProducts.length > 0 ? (
           filteredProducts.map((item, index) => (
-            <ProductCard key={`${item.name}-${index}`} product={item} onAddToCart={handleAddToCart} />
+            <ProductCard 
+              key={`${item.name}-${index}`} 
+              product={item} 
+              onAddToCart={handleAddToCart}
+              cartType="buy"
+            />
           ))
         ) : (
           <div className="no-results">
