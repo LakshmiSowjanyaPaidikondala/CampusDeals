@@ -1,58 +1,72 @@
 // src/utils/auth.js
 
+import {
+  getAuthTokenCookie,
+  setAuthTokenCookie,
+  removeAuthTokenCookie,
+  getRefreshTokenCookie,
+  setRefreshTokenCookie,
+  removeRefreshTokenCookie,
+  getUserDataCookie,
+  setUserDataCookie,
+  removeUserDataCookie,
+  getCartCookie,
+  setCartCookie,
+  removeCartCookie,
+  clearAuthCookies
+} from './cookies.js';
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// Token management
+// Token management - using cookies instead of localStorage
 export const getToken = () => {
-  return localStorage.getItem('authToken');
+  return getAuthTokenCookie();
 };
 
 export const setToken = (token) => {
-  localStorage.setItem('authToken', token);
+  setAuthTokenCookie(token);
 };
 
 export const removeToken = () => {
-  localStorage.removeItem('authToken');
+  removeAuthTokenCookie();
 };
 
 export const getRefreshToken = () => {
-  return localStorage.getItem('refreshToken');
+  return getRefreshTokenCookie();
 };
 
 export const setRefreshToken = (token) => {
-  localStorage.setItem('refreshToken', token);
+  setRefreshTokenCookie(token);
 };
 
 export const removeRefreshToken = () => {
-  localStorage.removeItem('refreshToken');
+  removeRefreshTokenCookie();
 };
 
-// User data management
+// User data management - using cookies instead of localStorage
 export const getUser = () => {
-  const userData = localStorage.getItem('userData');
-  return userData ? JSON.parse(userData) : null;
+  return getUserDataCookie();
 };
 
 export const setUser = (userData) => {
-  localStorage.setItem('userData', JSON.stringify(userData));
+  setUserDataCookie(userData);
 };
 
 export const removeUser = () => {
-  localStorage.removeItem('userData');
+  removeUserDataCookie();
 };
 
-// Cart management
+// Cart management - using cookies instead of localStorage
 export const saveCart = (cart) => {
-  localStorage.setItem('cart', JSON.stringify(cart));
+  setCartCookie('cart', cart);
 };
 
 export const getCart = () => {
-  const cartData = localStorage.getItem('cart');
-  return cartData ? JSON.parse(cartData) : [];
+  return getCartCookie('cart');
 };
 
 export const clearCart = () => {
-  localStorage.removeItem('cart');
+  removeCartCookie('cart');
 };
 
 // Authentication check
@@ -154,12 +168,9 @@ export const refreshAccessToken = async () => {
   }
 };
 
-// Logout
+// Logout - clear all authentication cookies
 export const logout = () => {
-  removeToken();
-  removeUser();
-  clearCart();
-  removeRefreshToken();
+  clearAuthCookies();
 };
 
 // Fetch user profile from backend

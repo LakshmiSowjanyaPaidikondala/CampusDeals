@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth.jsx";
 import { CartProvider } from "./contexts/CartContext.jsx";
+import { initializeMigration } from "./utils/migration.js";
 
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home/Home";
@@ -22,6 +23,11 @@ import logo from "./assets/logo.png";
 
 
 const App = () => {
+  // Run migration on app startup
+  useEffect(() => {
+    initializeMigration();
+  }, []);
+
   return (
     <AuthProvider>
       <CartProvider>

@@ -2,6 +2,18 @@
 // Save this as: frontend/src/hooks/useAuth.jsx
 
 import { useState, useEffect, createContext, useContext } from 'react';
+import {
+  getAuthTokenCookie,
+  setAuthTokenCookie,
+  removeAuthTokenCookie,
+  getRefreshTokenCookie,
+  setRefreshTokenCookie,
+  removeRefreshTokenCookie,
+  getUserDataCookie,
+  setUserDataCookie,
+  removeUserDataCookie,
+  clearAuthCookies
+} from '../utils/cookies.js';
 
 const AuthContext = createContext();
 
@@ -17,18 +29,18 @@ export const useAuth = () => {
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('authToken'));
+  const [token, setToken] = useState(getAuthTokenCookie());
   const [isLoading, setIsLoading] = useState(true);
 
   const API_BASE = 'http://localhost:5000/api';
 
   // Check if user is authenticated on app load
   useEffect(() => {
-    const storedUser = localStorage.getItem('userData');
+    const storedUser = getUserDataCookie();
     if (token) {
       if (storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
+          setUser(storedUser);
           setIsLoading(false);
         } catch (error) {
           fetchUserProfile();
@@ -58,8 +70,8 @@ export const AuthProvider = ({ children }) => {
         console.log('Profile data received:', data);
         if (data.success && data.user) {
           setUser(data.user);
-          localStorage.setItem('userData', JSON.stringify(data.user));
-          console.log('User data updated in state and localStorage');
+          setUserDataCookie(data.user);
+          console.log('User data updated in state and cookies');
         }
       } else {
         console.error('Failed to fetch profile, status:', response.status);
@@ -92,9 +104,9 @@ export const AuthProvider = ({ children }) => {
       if (data.success) {
         setToken(data.accessToken);
         setUser(data.user);
-        localStorage.setItem('authToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        setAuthTokenCookie(data.accessToken);
+        setRefreshTokenCookie(data.refreshToken);
+        setUserDataCookie(data.user);
         return { success: true, user: data.user };
       } else {
         return { success: false, error: data.message };
@@ -119,9 +131,9 @@ export const AuthProvider = ({ children }) => {
       if (data.success) {
         setToken(data.accessToken);
         setUser(data.user);
-        localStorage.setItem('authToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        setAuthTokenCookie(data.accessToken);
+        setRefreshTokenCookie(data.refreshToken);
+        setUserDataCookie(data.user);
         return { success: true, user: data.user };
       } else {
         return { success: false, error: data.message };
@@ -136,10 +148,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('cartItems');
+    clearAuthCookies();
   };
 
   // Function to make authenticated API calls
@@ -203,10 +212,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Function to update user data in context and localStorage
+  // Function to update user data in context and cookies
   const updateUserLocal = (updatedUserData) => {
     setUser(updatedUserData);
-    localStorage.setItem('userData', JSON.stringify(updatedUserData));
+    setUserDataCookie(updatedUserData);
   };
 
   const value = {

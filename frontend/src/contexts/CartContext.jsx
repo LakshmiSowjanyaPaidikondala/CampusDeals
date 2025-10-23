@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getCartCookie, setCartCookie } from '../utils/cookies.js';
 
 const CartContext = createContext();
 
@@ -11,15 +12,13 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  // Initialize separate carts from localStorage or with empty arrays
+  // Initialize separate carts from cookies or with empty arrays
   const [buyCartItems, setBuyCartItems] = useState(() => {
-    const savedBuyCart = localStorage.getItem('campusDealsBuyCart');
-    return savedBuyCart ? JSON.parse(savedBuyCart) : [];
+    return getCartCookie('buyCart');
   });
 
   const [sellCartItems, setSellCartItems] = useState(() => {
-    const savedSellCart = localStorage.getItem('campusDealsSellCart');
-    return savedSellCart ? JSON.parse(savedSellCart) : [];
+    return getCartCookie('sellCart');
   });
 
   // For backward compatibility - combine both carts for components that still use cartItems
@@ -30,13 +29,13 @@ export const CartProvider = ({ children }) => {
     setCartItems([...buyCartItems, ...sellCartItems]);
   }, [buyCartItems, sellCartItems]);
 
-  // Save carts to localStorage whenever they change
+  // Save carts to cookies whenever they change
   useEffect(() => {
-    localStorage.setItem('campusDealsBuyCart', JSON.stringify(buyCartItems));
+    setCartCookie('buyCart', buyCartItems);
   }, [buyCartItems]);
 
   useEffect(() => {
-    localStorage.setItem('campusDealsSellCart', JSON.stringify(sellCartItems));
+    setCartCookie('sellCart', sellCartItems);
   }, [sellCartItems]);
 
   const addToBuyCart = (product) => {
