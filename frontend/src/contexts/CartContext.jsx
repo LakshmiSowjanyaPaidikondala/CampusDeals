@@ -47,7 +47,7 @@ export const CartProvider = ({ children }) => {
         // Update quantity if item already exists
         return prevItems.map(item =>
           item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || 99) }
+            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || item.stock || 99) }
             : item
         );
       }
@@ -60,12 +60,12 @@ export const CartProvider = ({ children }) => {
   const addToSellCart = (product) => {
     setSellCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
-      
+
       if (existingItem) {
         // Update quantity if item already exists
         return prevItems.map(item =>
           item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || 99) }
+            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || item.stock || 99) }
             : item
         );
       }
@@ -106,11 +106,11 @@ export const CartProvider = ({ children }) => {
       removeFromBuyCart(productId);
       return;
     }
-    
+
     setBuyCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.inStock || 99) }
+          ? { ...item, quantity: Math.min(newQuantity, item.inStock || item.stock || 99) }
           : item
       )
     );
@@ -125,7 +125,7 @@ export const CartProvider = ({ children }) => {
     setSellCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.inStock || 99) }
+          ? { ...item, quantity: Math.min(newQuantity, item.inStock || item.stock || 99) }
           : item
       )
     );

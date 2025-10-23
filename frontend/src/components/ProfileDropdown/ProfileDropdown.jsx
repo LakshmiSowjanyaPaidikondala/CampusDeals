@@ -242,8 +242,8 @@ const ProfileDropdown = () => {
               </p>
             </div>
           </div>
-
-          <div className="dropdown-divider"></div>
+{/* 
+          <div className="dropdown-divider"></div> */}
 
           {/* Menu Items */}
           <div className="dropdown-items">
