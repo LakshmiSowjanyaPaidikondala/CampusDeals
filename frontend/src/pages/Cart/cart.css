@@ -414,8 +414,8 @@
 .quantity-controls {
   display: flex;
   align-items: center;
-  background: #fafbfc;
-  border-radius: 0.5rem;
+  background: white;
+  border-radius: 50px;
   overflow: hidden;
   border: 1px solid #0c448e;
 }

@@ -4,7 +4,7 @@ import { Plus, Minus } from "lucide-react";
 import { useCart } from "../../contexts/CartContext";
 import "./ProductCard.css";
 
-const ProductCard = ({ product, onAddToCart, cartType = "buy" }) => {
+const ProductCard = ({ product, onAddToCart, onQuantityIncrease, onQuantityDecrease, cartType = "buy" }) => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -86,6 +86,10 @@ const ProductCard = ({ product, onAddToCart, cartType = "buy" }) => {
       } else {
         // Update quantity if already in cart
         updateQuantity(selectedVariant.id, newQuantity);
+        // Call the callback for toast notification
+        if (onQuantityIncrease) {
+          onQuantityIncrease({ ...selectedVariant, name: product.name }, newQuantity);
+        }
       }
     }
   };
@@ -98,8 +102,16 @@ const ProductCard = ({ product, onAddToCart, cartType = "buy" }) => {
     
     if (newQuantity === 0) {
       removeFromCart(selectedVariant.id);
+      // Call the callback for toast notification
+      if (onQuantityDecrease) {
+        onQuantityDecrease({ ...selectedVariant, name: product.name }, 0);
+      }
     } else if (newQuantity > 0) {
       updateQuantity(selectedVariant.id, newQuantity);
+      // Call the callback for toast notification
+      if (onQuantityDecrease) {
+        onQuantityDecrease({ ...selectedVariant, name: product.name }, newQuantity);
+      }
     }
   };
 
@@ -242,7 +254,7 @@ const ProductCard = ({ product, onAddToCart, cartType = "buy" }) => {
         {/* Add to Cart Button or Quantity Controls */}
         {getCartQuantity() > 0 ? (
           <div className="quantity-controls-container">
-            <div className="quantity-controls">
+            <div className="quantity-controls-bs">
               <button 
                 className="quantity-btn decrease"
                 onClick={handleDecreaseQuantity}
@@ -259,9 +271,7 @@ const ProductCard = ({ product, onAddToCart, cartType = "buy" }) => {
                 <Plus size={16} />
               </button>
             </div>
-            <div className="in-cart-label">
-              <span>To {cartType} cart</span>
-            </div>
+            
           </div>
         ) : (
           <button 

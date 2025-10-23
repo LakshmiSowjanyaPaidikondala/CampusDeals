@@ -313,6 +313,26 @@ const Buy = () => {
     showToast(`${product.name} (${product.variant}) added to buy cart!`);
   };
 
+  // Handle quantity increase with toast
+  const handleQuantityIncrease = (variant, newQuantity) => {
+    const productName = variant.name.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+    showToast(`${productName} (${variant.variant}) quantity increased to ${newQuantity}!`);
+  };
+
+  // Handle quantity decrease with toast
+  const handleQuantityDecrease = (variant, newQuantity) => {
+    const productName = variant.name.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+    if (newQuantity === 0) {
+      showToast(`${productName} (${variant.variant}) removed from cart!`, "info");
+    } else {
+      showToast(`${productName} (${variant.variant}) quantity decreased to ${newQuantity}!`);
+    }
+  };
+
   const handleProceed = () => {
     if (buyCartItems.length > 0) {
       navigate('/cart', { state: { activeTab: 'buy' } });
@@ -354,6 +374,13 @@ const Buy = () => {
         </div>
       </div>
 
+      {/* 📢 Scrolling Message Banner */}
+      <div className="scrolling-message-container">
+        <div className="scrolling-message">
+          <span className="message-item-buy">🎉 Welcome to Campus Deals! Get the best student essentials at unbeatable prices!</span>
+        </div>
+      </div>
+
       {/* 🛒 Product Grid */}
       <div className="products-grid">
         {loading ? (
@@ -373,6 +400,8 @@ const Buy = () => {
               key={`${item.name}-${index}`} 
               product={item} 
               onAddToCart={handleAddToCart}
+              onQuantityIncrease={handleQuantityIncrease}
+              onQuantityDecrease={handleQuantityDecrease}
               cartType="buy"
             />
           ))
