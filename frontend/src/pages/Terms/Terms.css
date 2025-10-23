@@ -59,12 +59,23 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
   margin-bottom: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.terms-header-content {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .terms-icon-wrapper {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 1.5rem;
+  width: 60px;
+  height: 60px;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   display: flex;
@@ -76,6 +87,7 @@
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
 }
 
 @keyframes iconPulse {
@@ -90,7 +102,7 @@
 }
 
 .terms-icon {
-  font-size: 3rem;
+  font-size: 1.8rem;
   color: white;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
 }
@@ -224,15 +236,17 @@
 
   .terms-header {
     padding: 1.75rem 1.5rem;
+    flex-direction: row;
+    gap: 1.5rem;
   }
 
   .terms-icon-wrapper {
-    width: 80px;
-    height: 80px;
+    width: 48px;
+    height: 48px;
   }
 
   .terms-icon {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
   }
 
   .terms-header h1 {
@@ -274,16 +288,19 @@
   .terms-header {
     padding: 1.5rem 1.25rem;
     border-radius: 16px;
+    flex-direction: row;
+    gap: 1rem;
   }
 
   .terms-icon-wrapper {
-    width: 70px;
-    height: 70px;
-    margin-bottom: 1rem;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
   }
 
   .terms-icon {
-    font-size: 2rem;
+    font-size: 1.3rem;
   }
 
   .terms-header h1 {
