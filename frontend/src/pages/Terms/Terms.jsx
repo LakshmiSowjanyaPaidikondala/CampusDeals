@@ -9,9 +9,7 @@ const Terms = () => {
   return (
     <div className="terms-page">
       <div className="terms-container">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          <FaArrowLeft /> Back
-        </button>
+        
 
         <div className="terms-header">
           <div className="terms-header-content">
@@ -44,6 +42,7 @@ const Terms = () => {
           <div className="terms-section">
             <h2 className="terms-subtitle">🛒 For Buyers</h2>
             <div className="terms-content">
+              <p className="terms-intro">There is a return policy for 3 days for all items. Please check items carefully before purchase.</p>
               <ul className="terms-list">
                 <li>There is a <strong>return policy for 3 days</strong> for all items.</li>
                 <li>Items need to be <strong>thoroughly checked</strong> by the customer before buying.</li>
