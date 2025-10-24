@@ -409,15 +409,7 @@ const Sell = () => {
       </div>
 
       {/* ✅ Sell Button */}
-      <div className="sell-button-container">
-        <button
-          className="sell-button"
-          onClick={handleProceed}
-          disabled={sellCartItems.length === 0}
-        >
-          Go to Sell Cart ({getSellCartCount()} items)
-        </button>
-      </div>
+     
 
       {/* 📝 Seller Form as Modal */}
       {/*{showForm && <SellForm cart={cartItems} onClose={handleCloseForm} />}*/}
