@@ -375,9 +375,10 @@ const Sell = () => {
       </div>
 
       {/* 🛒 Product Grid */}
-      <div className="products-grid">
+      <div className="products-grid-sell">
         {loading ? (
           <div className="loading-state">
+    
             <p>Loading products...</p>
           </div>
         ) : error ? (

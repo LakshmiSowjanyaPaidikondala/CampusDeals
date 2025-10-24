@@ -324,7 +324,7 @@
 }
 
 /* Products Grid - 3 cards per row with equal sizes */
-.products-grid {
+.products-grid-sell {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
@@ -335,14 +335,14 @@
 
 /* Responsive grid layout */
 @media (max-width: 1024px) {
-  .products-grid {
+  .products-grid-sell {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
 }
 
 @media (max-width: 640px) {
-  .products-grid {
+  .products-grid-sell {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
@@ -461,7 +461,7 @@
     font-size: 1rem;
   }
   
-  .products-grid {
+  .products-grid-sell {
     margin: 1.5rem auto;
   }
   
