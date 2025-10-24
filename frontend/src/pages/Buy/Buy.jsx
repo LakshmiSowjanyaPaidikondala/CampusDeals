@@ -415,7 +415,7 @@ const Buy = () => {
         )}
       </div>
 
-      {/* ✅ Buy Button */}
+      
 
       {/* 📝 Buyer Form as Modal */}
       {/*{showForm && <BuyForm cart={cartItems} onClose={handleCloseForm} />}*/}
