@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check, ShoppingCart, Tag } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { placeBuyOrder, placeSellOrder } from '../../services/orderService';
+import { useAuth } from '../../hooks/useAuth';
 import './cart.css';
 
 
@@ -12,8 +14,10 @@ const Cart = () => {
   const { 
     buyCartItems, 
     sellCartItems, 
-    updateQuantity: updateContextQuantity, 
-    removeFromCart: removeFromContext, 
+    updateBuyQuantity,
+    updateSellQuantity,
+    removeFromBuyCart,
+    removeFromSellCart,
     clearBuyCart,
     clearSellCart,
     isLoadingBuyCart,
@@ -65,8 +69,12 @@ const Cart = () => {
       return;
     }
     
-    // Update in context
-    updateContextQuantity(id, newQuantity);
+    // Update in context based on active tab
+    if (activeTab === 'buy') {
+      updateBuyQuantity(id, newQuantity);
+    } else {
+      updateSellQuantity(id, newQuantity);
+    }
     
     // Update local state
     setCartItems(prevItems =>
@@ -77,8 +85,12 @@ const Cart = () => {
   };
 
   const removeFromCart = (id) => {
-    // Remove from context
-    removeFromContext(id);
+    // Remove from context based on active tab
+    if (activeTab === 'buy') {
+      removeFromBuyCart(id);
+    } else {
+      removeFromSellCart(id);
+    }
     
     // Update local state
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
@@ -295,7 +307,7 @@ const Cart = () => {
             {/* Cart Items */}
             <div className="cart-items-list">
               {cartItems.map(item => (
-                <div key={item.id} className="cart-item">
+                <div key={`${activeTab}-${item.id}`} className="cart-item">
                   <div className="item-selection">
                     <label className="checkbox-container">
                       <input

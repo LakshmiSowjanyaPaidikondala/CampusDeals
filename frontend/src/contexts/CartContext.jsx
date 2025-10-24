@@ -297,16 +297,9 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = (productId) => {
-    // Check which cart contains the item and remove from appropriate cart
-    const inBuyCart = buyCartItems.find(item => item.id === productId);
-    const inSellCart = sellCartItems.find(item => item.id === productId);
-    
-    if (inBuyCart) {
-      removeFromBuyCart(productId);
-    }
-    if (inSellCart) {
-      removeFromSellCart(productId);
-    }
+    // This function is deprecated to avoid cross-cart interference
+    // Use removeFromBuyCart or removeFromSellCart instead
+    console.warn('removeFromCart is deprecated. Use removeFromBuyCart or removeFromSellCart instead.');
   };
 
   // Update buy cart quantity
@@ -388,16 +381,9 @@ export const CartProvider = ({ children }) => {
   };
 
   const updateQuantity = (productId, newQuantity) => {
-    // Check which cart contains the item and update appropriate cart
-    const inBuyCart = buyCartItems.find(item => item.id === productId);
-    const inSellCart = sellCartItems.find(item => item.id === productId);
-    
-    if (inBuyCart) {
-      updateBuyQuantity(productId, newQuantity);
-    }
-    if (inSellCart) {
-      updateSellQuantity(productId, newQuantity);
-    }
+    // This function is deprecated to avoid cross-cart interference
+    // Use updateBuyQuantity or updateSellQuantity instead
+    console.warn('updateQuantity is deprecated. Use updateBuyQuantity or updateSellQuantity instead.');
   };
 
   // Clear buy cart
