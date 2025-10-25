@@ -415,16 +415,7 @@ const Buy = () => {
         )}
       </div>
 
-      {/* ✅ Buy Button */}
-      <div className="buy-button-container">
-        <button
-          className="buy-button"
-          onClick={handleProceed}
-          disabled={buyCartItems.length === 0}
-        >
-          Go to Buy Cart ({getBuyCartCount()} items)
-        </button>
-      </div>
+      
 
       {/* 📝 Buyer Form as Modal */}
       {/*{showForm && <BuyForm cart={cartItems} onClose={handleCloseForm} />}*/}

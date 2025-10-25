@@ -63,6 +63,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
+  /* make header full-bleed across the viewport */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  /* make header half the viewport height */
+  height: 15vh;
+  box-sizing: border-box;
 }
 
 .terms-header-content {
@@ -71,6 +77,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /* fill the header's height */
+  height: 100%;
+  padding: 0 1rem 0 0;
 }
 
 .terms-icon-wrapper {
@@ -122,6 +131,14 @@
 }
 
 .terms-content-wrapper {
+  /* Remove wrapper background to show page gradient between sections */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.terms-section {
+  /* Add background to each individual section */
   background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
   border-radius: 20px;
   padding: 2.5rem;
@@ -129,14 +146,16 @@
     0 20px 40px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.terms-section {
-  margin-bottom: 2.5rem;
+  margin-bottom: 0;
 }
 
 .terms-section:last-child {
   margin-bottom: 0;
+}
+
+.terms-divider {
+  /* Hide divider since sections are now separated by gap */
+  display: none;
 }
 
 .terms-subtitle {
@@ -257,7 +276,18 @@
     font-size: 1rem;
   }
 
-  .terms-content-wrapper {
+  /* reduce header height on medium screens and keep it full-bleed */
+  .terms-header {
+    height: 30vh;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+  }
+
+  .terms-header-content {
+    height: 100%;
+  }
+
+  .terms-section {
     padding: 2rem 1.75rem;
   }
 
@@ -311,13 +341,8 @@
     font-size: 0.95rem;
   }
 
-  .terms-content-wrapper {
-    padding: 1.75rem 1.25rem;
-    border-radius: 16px;
-  }
-
   .terms-section {
-    margin-bottom: 2rem;
+    padding: 1.75rem 1.25rem;
   }
 
   .terms-subtitle {
