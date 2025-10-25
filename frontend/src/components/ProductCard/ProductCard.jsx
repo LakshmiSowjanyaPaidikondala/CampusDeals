@@ -1,11 +1,24 @@
 // Updated ProductCard.jsx
 import React, { useState, useRef, useEffect } from "react";
+import { Plus, Minus } from "lucide-react";
+import { useCart } from "../../contexts/CartContext";
 import "./ProductCard.css";
 
-const ProductCard = ({ product, onAddToCart }) => {
+const ProductCard = ({ product, onAddToCart, onQuantityIncrease, onQuantityDecrease, cartType = "buy" }) => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  
+  // Get cart context for quantity controls
+  const { 
+    buyCartItems, 
+    sellCartItems, 
+    updateQuantity, 
+    removeFromCart 
+  } = useCart();
+  
+  // Get current cart items based on cart type
+  const currentCartItems = cartType === "buy" ? buyCartItems : sellCartItems;
 
   // Set the first available variant as default
   useEffect(() => {
@@ -51,6 +64,55 @@ const ProductCard = ({ product, onAddToCart }) => {
     };
     
     onAddToCart(cartItem);
+  };
+
+  // Check if current selected variant is in cart
+  const getCartQuantity = () => {
+    if (!selectedVariant) return 0;
+    const cartItem = currentCartItems.find(item => item.id === selectedVariant.id);
+    return cartItem ? cartItem.quantity : 0;
+  };
+
+  // Handle quantity increase
+  const handleIncreaseQuantity = () => {
+    if (!selectedVariant) return;
+    const currentQuantity = getCartQuantity();
+    const newQuantity = currentQuantity + 1;
+    
+    if (newQuantity <= selectedVariant.stock) {
+      if (currentQuantity === 0) {
+        // Add to cart if not already in cart
+        handleAddToCart();
+      } else {
+        // Update quantity if already in cart
+        updateQuantity(selectedVariant.id, newQuantity);
+        // Call the callback for toast notification
+        if (onQuantityIncrease) {
+          onQuantityIncrease({ ...selectedVariant, name: product.name }, newQuantity);
+        }
+      }
+    }
+  };
+
+  // Handle quantity decrease
+  const handleDecreaseQuantity = () => {
+    if (!selectedVariant) return;
+    const currentQuantity = getCartQuantity();
+    const newQuantity = currentQuantity - 1;
+    
+    if (newQuantity === 0) {
+      removeFromCart(selectedVariant.id);
+      // Call the callback for toast notification
+      if (onQuantityDecrease) {
+        onQuantityDecrease({ ...selectedVariant, name: product.name }, 0);
+      }
+    } else if (newQuantity > 0) {
+      updateQuantity(selectedVariant.id, newQuantity);
+      // Call the callback for toast notification
+      if (onQuantityDecrease) {
+        onQuantityDecrease({ ...selectedVariant, name: product.name }, newQuantity);
+      }
+    }
   };
 
   const formatVariantName = (variant) => {
@@ -189,19 +251,42 @@ const ProductCard = ({ product, onAddToCart }) => {
           </div>
         )}
 
-        {/* Add to Cart Button */}
-        <button 
-          className="add-to-cart-btn" 
-          onClick={handleAddToCart}
-          disabled={!selectedVariant || selectedVariant.stock === 0}
-        >
-          {!selectedVariant 
-            ? "Select Variant" 
-            : selectedVariant.stock > 0 
-              ? "Add to Cart" 
-              : "Out of Stock"
-          }
-        </button>
+        {/* Add to Cart Button or Quantity Controls */}
+        {getCartQuantity() > 0 ? (
+          <div className="quantity-controls-container">
+            <div className="quantity-controls-bs">
+              <button 
+                className="quantity-btn decrease"
+                onClick={handleDecreaseQuantity}
+                disabled={!selectedVariant}
+              >
+                <Minus size={16} />
+              </button>
+              <span className="quantity-display">{getCartQuantity()}</span>
+              <button 
+                className="quantity-btn increase"
+                onClick={handleIncreaseQuantity}
+                disabled={!selectedVariant || getCartQuantity() >= selectedVariant.stock}
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+            
+          </div>
+        ) : (
+          <button 
+            className="add-to-cart-btn" 
+            onClick={handleAddToCart}
+            disabled={!selectedVariant || selectedVariant.stock === 0}
+          >
+            {!selectedVariant 
+              ? "Select Variant" 
+              : selectedVariant.stock > 0 
+                ? "Add to Cart" 
+                : "Out of Stock"
+            }
+          </button>
+        )}
       </div>
     </div>
   );

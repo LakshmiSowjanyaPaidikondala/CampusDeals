@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth.jsx";
 import { CartProvider } from "./contexts/CartContext.jsx";
+import { initializeMigration } from "./utils/migration.js";
 
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home/Home";
@@ -14,6 +15,7 @@ import Register from "./pages/Login_Register/Register";
 import Profile from "./pages/Profile/Profile";
 import Orders from "./pages/Orders/Orders";
 import Settings from "./pages/Settings/Settings";
+import Terms from "./pages/Terms/Terms";
 import Footer from "./components/Footer/Footer";
 import HeroBanner from "./components/HeroBanner/HeroBanner";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
@@ -22,6 +24,11 @@ import logo from "./assets/logo.png";
 
 
 const App = () => {
+  // Run migration on app startup
+  useEffect(() => {
+    initializeMigration();
+  }, []);
+
   return (
     <AuthProvider>
       <CartProvider>
@@ -48,6 +55,7 @@ const App = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/terms" element={<Terms />} />
                 <Route path="*" element={<div style={{padding: '2rem', textAlign: 'center'}}><h2>Page Not Found</h2><p>The page you're looking for doesn't exist.</p></div>} />
               </Routes>
             </ErrorBoundary>

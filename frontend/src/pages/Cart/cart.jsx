@@ -134,7 +134,7 @@ const Cart = () => {
     setTimeout(() => {
       setIsLoading(false);
       setShowSuccess(true);
-      // Reset after success animation
+      // Reset after success animation and redirect to orders page
       setTimeout(() => {
         setShowSuccess(false);
         // Clear appropriate cart from context
@@ -146,6 +146,8 @@ const Cart = () => {
         // Clear local state
         setCartItems([]);
         setSelectedItems([]);
+        // Redirect to orders page
+        navigate('/orders');
       }, 3000);
     }, 3500);
   };

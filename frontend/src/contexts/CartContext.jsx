@@ -16,6 +16,7 @@ import {
   // Utilities
   transformCartItem
 } from '../services/cartService';
+import { getCartCookie, setCartCookie } from '../utils/cookies.js';
 
 const CartContext = createContext();
 
@@ -30,9 +31,14 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
   
-  // Cart state
-  const [buyCartItems, setBuyCartItems] = useState([]);
-  const [sellCartItems, setSellCartItems] = useState([]);
+  // Initialize carts from cookies or with empty arrays
+  const [buyCartItems, setBuyCartItems] = useState(() => {
+    return getCartCookie('buyCart');
+  });
+
+  const [sellCartItems, setSellCartItems] = useState(() => {
+    return getCartCookie('sellCart');
+  });
   
   // Loading and error states
   const [isLoadingBuyCart, setIsLoadingBuyCart] = useState(false);
@@ -48,40 +54,40 @@ export const CartProvider = ({ children }) => {
     setCartItems([...buyCartItems, ...sellCartItems]);
   }, [buyCartItems, sellCartItems]);
 
+  // Save carts to cookies for unauthenticated users
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCartCookie('buyCart', buyCartItems);
+    }
+  }, [buyCartItems, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCartCookie('sellCart', sellCartItems);
+    }
+  }, [sellCartItems, isAuthenticated]);
+
   // Load carts from backend on authentication
   useEffect(() => {
     if (isAuthenticated) {
       loadBuyCartFromBackend();
       loadSellCartFromBackend();
     } else {
-      // Load from localStorage for unauthenticated users
-      loadCartsFromLocalStorage();
+      // Load from cookies for unauthenticated users
+      loadCartsFromCookies();
     }
   }, [isAuthenticated]);
 
-  // Save to localStorage for unauthenticated users
-  useEffect(() => {
-    if (!isAuthenticated) {
-      localStorage.setItem('campusDealsBuyCart', JSON.stringify(buyCartItems));
-    }
-  }, [buyCartItems, isAuthenticated]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      localStorage.setItem('campusDealsSellCart', JSON.stringify(sellCartItems));
-    }
-  }, [sellCartItems, isAuthenticated]);
-
-  // Load carts from localStorage (for unauthenticated users)
-  const loadCartsFromLocalStorage = () => {
-    const savedBuyCart = localStorage.getItem('campusDealsBuyCart');
-    const savedSellCart = localStorage.getItem('campusDealsSellCart');
+  // Load carts from cookies (for unauthenticated users)
+  const loadCartsFromCookies = () => {
+    const savedBuyCart = getCartCookie('buyCart');
+    const savedSellCart = getCartCookie('sellCart');
     
     if (savedBuyCart) {
-      setBuyCartItems(JSON.parse(savedBuyCart));
+      setBuyCartItems(savedBuyCart);
     }
     if (savedSellCart) {
-      setSellCartItems(JSON.parse(savedSellCart));
+      setSellCartItems(savedSellCart);
     }
   };
 
@@ -110,10 +116,10 @@ export const CartProvider = ({ children }) => {
       console.error('Error loading buy cart from backend:', error);
       setBuyCartError(error.message);
       
-      // Fallback to localStorage if backend fails
-      const savedBuyCart = localStorage.getItem('campusDealsBuyCart');
+      // Fallback to cookies if backend fails
+      const savedBuyCart = getCartCookie('buyCart');
       if (savedBuyCart) {
-        setBuyCartItems(JSON.parse(savedBuyCart));
+        setBuyCartItems(savedBuyCart);
       }
     } finally {
       setIsLoadingBuyCart(false);
@@ -134,7 +140,7 @@ export const CartProvider = ({ children }) => {
         console.error('Error adding to buy cart:', error);
         setBuyCartError(error.message);
         
-        // Fallback to localStorage
+        // Fallback to local
         addToBuyCartLocal(product);
         throw error;
       }
@@ -151,7 +157,7 @@ export const CartProvider = ({ children }) => {
       if (existingItem) {
         return prevItems.map(item =>
           item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || 99) }
+            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || item.stock || 99) }
             : item
         );
       }
@@ -185,10 +191,10 @@ export const CartProvider = ({ children }) => {
       console.error('Error loading sell cart from backend:', error);
       setSellCartError(error.message);
       
-      // Fallback to localStorage if backend fails
-      const savedSellCart = localStorage.getItem('campusDealsSellCart');
+      // Fallback to cookies if backend fails
+      const savedSellCart = getCartCookie('sellCart');
       if (savedSellCart) {
-        setSellCartItems(JSON.parse(savedSellCart));
+        setSellCartItems(savedSellCart);
       }
     } finally {
       setIsLoadingSellCart(false);
@@ -209,7 +215,7 @@ export const CartProvider = ({ children }) => {
         console.error('Error adding to sell cart:', error);
         setSellCartError(error.message);
         
-        // Fallback to localStorage
+        // Fallback to local
         addToSellCartLocal(product);
         throw error;
       }
@@ -226,7 +232,7 @@ export const CartProvider = ({ children }) => {
       if (existingItem) {
         return prevItems.map(item =>
           item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || 99) }
+            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || item.stock || 99) }
             : item
         );
       }
@@ -297,9 +303,16 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = (productId) => {
-    // This function is deprecated to avoid cross-cart interference
-    // Use removeFromBuyCart or removeFromSellCart instead
-    console.warn('removeFromCart is deprecated. Use removeFromBuyCart or removeFromSellCart instead.');
+    // Check which cart contains the item and remove from appropriate cart
+    const inBuyCart = buyCartItems.find(item => item.id === productId);
+    const inSellCart = sellCartItems.find(item => item.id === productId);
+
+    if (inBuyCart) {
+      removeFromBuyCart(productId);
+    }
+    if (inSellCart) {
+      removeFromSellCart(productId);
+    }
   };
 
   // Update buy cart quantity
@@ -335,7 +348,7 @@ export const CartProvider = ({ children }) => {
     setBuyCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.inStock || 99) }
+          ? { ...item, quantity: Math.min(newQuantity, item.inStock || item.stock || 99) }
           : item
       )
     );
@@ -374,16 +387,23 @@ export const CartProvider = ({ children }) => {
     setSellCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.inStock || 99) }
+          ? { ...item, quantity: Math.min(newQuantity, item.inStock || item.stock || 99) }
           : item
       )
     );
   };
 
   const updateQuantity = (productId, newQuantity) => {
-    // This function is deprecated to avoid cross-cart interference
-    // Use updateBuyQuantity or updateSellQuantity instead
-    console.warn('updateQuantity is deprecated. Use updateBuyQuantity or updateSellQuantity instead.');
+    // Check which cart contains the item and update appropriate cart
+    const inBuyCart = buyCartItems.find(item => item.id === productId);
+    const inSellCart = sellCartItems.find(item => item.id === productId);
+
+    if (inBuyCart) {
+      updateBuyQuantity(productId, newQuantity);
+    }
+    if (inSellCart) {
+      updateSellQuantity(productId, newQuantity);
+    }
   };
 
   // Clear buy cart

@@ -205,13 +205,81 @@
   transform: translateY(-2px);
 }
 
-.search-bar input:focus ~ .search-icon,
+  .search-bar input:focus ~ .search-icon,
 .search-input-container:hover .search-icon {
   color: #764ba2;
   transform: translateY(-50%) scale(1.1);
 }
 
-/* 📱 Responsive Design */
+/* 📢 Scrolling Message Banner */
+.scrolling-message-container {
+  background: #0d646b;
+  color: white;
+  padding: 0.8rem 0;
+  margin-bottom: 2rem;
+  border-radius: 15px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.scrolling-message {
+  display: flex;
+  animation: scroll-left 30s linear infinite;
+  white-space: nowrap;
+}
+
+.message-item-buy {
+  display: inline-block;
+  padding: 0 3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Pause animation on hover */
+.scrolling-message-container:hover .scrolling-message {
+  animation-play-state: paused;
+}
+
+/* Responsive scrolling message */
+@media (max-width: 768px) {
+  .scrolling-message-container {
+    padding: 0.6rem 0;
+    margin-bottom: 1.5rem;
+  }
+  
+  .message-item {
+    font-size: 0.9rem;
+    padding: 0 2rem;
+  }
+  
+  .scrolling-message {
+    animation: scroll-left 25s linear infinite;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-item {
+    font-size: 0.8rem;
+    padding: 0 1.5rem;
+  }
+  
+  .scrolling-message {
+    animation: scroll-left 20s linear infinite;
+  }
+}/* 📱 Responsive Design */
 @media (max-width: 768px) {
   .buy-header {
     flex-direction: column;

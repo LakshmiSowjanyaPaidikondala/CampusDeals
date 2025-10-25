@@ -318,6 +318,26 @@ const Buy = () => {
     }
   };
 
+  // Handle quantity increase with toast
+  const handleQuantityIncrease = (variant, newQuantity) => {
+    const productName = variant.name.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+    showToast(`${productName} (${variant.variant}) quantity increased to ${newQuantity}!`);
+  };
+
+  // Handle quantity decrease with toast
+  const handleQuantityDecrease = (variant, newQuantity) => {
+    const productName = variant.name.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+    if (newQuantity === 0) {
+      showToast(`${productName} (${variant.variant}) removed from cart!`, "info");
+    } else {
+      showToast(`${productName} (${variant.variant}) quantity decreased to ${newQuantity}!`);
+    }
+  };
+
   const handleProceed = () => {
     if (buyCartItems.length > 0) {
       navigate('/cart', { state: { activeTab: 'buy' } });
@@ -359,6 +379,13 @@ const Buy = () => {
         </div>
       </div>
 
+      {/* 📢 Scrolling Message Banner */}
+      <div className="scrolling-message-container">
+        <div className="scrolling-message">
+          <span className="message-item-buy">🎉 Welcome to Campus Deals! Get the best student essentials at unbeatable prices!</span>
+        </div>
+      </div>
+
       {/* 🛒 Product Grid */}
       <div className="products-grid">
         {loading ? (
@@ -374,7 +401,14 @@ const Buy = () => {
           </div>
         ) : filteredProducts.length > 0 ? (
           filteredProducts.map((item, index) => (
-            <ProductCard key={`${item.name}-${index}`} product={item} onAddToCart={handleAddToCart} />
+            <ProductCard 
+              key={`${item.name}-${index}`} 
+              product={item} 
+              onAddToCart={handleAddToCart}
+              onQuantityIncrease={handleQuantityIncrease}
+              onQuantityDecrease={handleQuantityDecrease}
+              cartType="buy"
+            />
           ))
         ) : (
           <div className="no-results">
@@ -386,16 +420,7 @@ const Buy = () => {
         )}
       </div>
 
-      {/* ✅ Buy Button */}
-      <div className="buy-button-container">
-        <button
-          className="buy-button"
-          onClick={handleProceed}
-          disabled={buyCartItems.length === 0}
-        >
-          Go to Buy Cart ({getBuyCartCount()} items)
-        </button>
-      </div>
+      
 
       {/* 📝 Buyer Form as Modal */}
       {/*{showForm && <BuyForm cart={cartItems} onClose={handleCloseForm} />}*/}

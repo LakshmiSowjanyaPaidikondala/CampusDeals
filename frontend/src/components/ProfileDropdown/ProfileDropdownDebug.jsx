@@ -7,7 +7,7 @@ import {
   FaUser, 
   FaShoppingCart, 
   FaHistory, 
-  FaCog, 
+  FaFileContract, 
   FaSignOutAlt,
   FaChevronDown 
 } from 'react-icons/fa';
@@ -204,25 +204,32 @@ const ProfileDropdownDebug = () => {
             </Link>
 
             <Link 
-              to="/settings" 
+              to="/terms" 
               className="dropdown-item"
               onClick={closeDropdown}
             >
-              <FaCog className="item-icon" />
-              <span>Settings</span>
+              <FaFileContract className="item-icon" />
+              <span>Terms & Conditions</span>
             </Link>
-          </div>
-
-          <div className="dropdown-divider"></div>
-
-          {/* Logout */}
-          <button 
+            <button 
             className="dropdown-item logout-item"
             onClick={handleLogoutClick}
           >
             <FaSignOutAlt className="item-icon" />
             <span>Logout</span>
           </button>
+          </div>
+
+          {/* <div className="dropdown-divider"></div> */}
+
+          {/* Logout */}
+          {/* <button 
+            className="dropdown-item logout-item"
+            onClick={handleLogoutClick}
+          >
+            <FaSignOutAlt className="item-icon" />
+            <span>Logout</span>
+          </button> */}
         </div>
       </div>
 
