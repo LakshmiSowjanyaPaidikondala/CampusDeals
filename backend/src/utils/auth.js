@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { generateRefreshToken, storeRefreshToken } = require('./refreshToken');
+const { generateRefreshToken } = require('./refreshToken');
 const config = require('../config/environment');
 
 // Generate JWT access token (short-lived)
@@ -22,19 +22,8 @@ const generateTokenPair = async (userId, email, role) => {
     // Generate short-lived access token
     const accessToken = generateToken(userId, email, role);
     
-    // Generate long-lived refresh token
+    // Generate refresh token (but don't store it)
     const refreshTokenData = generateRefreshToken(userId, email, role);
-    
-    // Store refresh token in database
-    const storeResult = await storeRefreshToken(
-      userId, 
-      refreshTokenData.refreshToken, 
-      refreshTokenData.expiresAt
-    );
-    
-    if (!storeResult.success) {
-      throw new Error('Failed to store refresh token');
-    }
     
     return {
       success: true,

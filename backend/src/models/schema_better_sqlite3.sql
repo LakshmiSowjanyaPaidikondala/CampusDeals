@@ -120,18 +120,6 @@ CREATE TABLE IF NOT EXISTS serial_allocations (
     FOREIGN KEY (buy_order_id) REFERENCES orders(order_id) ON DELETE SET NULL
 );
 
--- Refresh Tokens table
-CREATE TABLE IF NOT EXISTS refresh_tokens (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    token TEXT UNIQUE NOT NULL,
-    expires_at DATETIME NOT NULL,
-    revoked INTEGER DEFAULT 0,
-    revoked_at DATETIME NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
 -- Create indexes for optimal performance with better-sqlite3
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(user_email);
 CREATE INDEX IF NOT EXISTS idx_products_name ON products(product_name);
@@ -154,10 +142,6 @@ CREATE INDEX IF NOT EXISTS idx_serial_allocations_serial ON serial_allocations(s
 CREATE INDEX IF NOT EXISTS idx_serial_allocations_sell_order ON serial_allocations(sell_order_id);
 CREATE INDEX IF NOT EXISTS idx_serial_allocations_buy_order ON serial_allocations(buy_order_id);
 CREATE INDEX IF NOT EXISTS idx_serial_allocations_available ON serial_allocations(product_code, buy_order_id) WHERE buy_order_id IS NULL;
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires ON refresh_tokens(expires_at);
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_revoked ON refresh_tokens(revoked);
 
 -- Analyze tables for query optimization
 ANALYZE;
