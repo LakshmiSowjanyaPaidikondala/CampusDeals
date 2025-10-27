@@ -284,6 +284,12 @@ select.input-field + .validation-icon {
   z-index: 4;
 }
 
+/* Adjust validation icon position when password toggle button exists */
+.input-container:has(.password-toggle) .validation-icon {
+  right: 48px;
+  z-index: 2;
+}
+
 @keyframes popIn {
   from {
     transform: scale(0);
@@ -331,15 +337,22 @@ select.input-field + .validation-icon {
   color: #6b7280;
   cursor: pointer;
   padding: 4px;
-  z-index: 2;
+  z-index: 3;
   border-radius: 4px;
   transition: all 0.2s ease;
+  top: 50%;
 }
 
 .password-toggle:hover {
   color: #4b5563;
   background-color: #f3f4f6;
   transform: scale(1.1);
+}
+
+/* Ensure validation icon doesn't overlap with password toggle */
+.input-container:has(.password-toggle) .validation-icon {
+  right: 48px;
+  z-index: 2;
 }
 
 .submit-btn {
@@ -521,6 +534,15 @@ select.input-field + .validation-icon {
   .input-container:has(.dropdown-arrow-icon) .validation-icon {
     right: 38px;
   }
+
+  /* Adjust validation icon position when password toggle exists on mobile */
+  .input-container:has(.password-toggle) .validation-icon {
+    right: 44px;
+  }
+
+  .password-toggle {
+    z-index: 3;
+  }
   
   .submit-btn {
     padding: 12px;
@@ -613,7 +635,8 @@ select.input-field + .validation-icon {
   
   .validation-icon,
   .password-toggle {
-    right: 10px;
+    right: 20px;
+    top: auto;
     width: 16px;
     height: 16px;
   }
@@ -633,6 +656,15 @@ select.input-field + .validation-icon {
 
   .input-container:has(.dropdown-arrow-icon) .validation-icon {
     right: 32px;
+  }
+
+  /* Adjust validation icon position when password toggle exists on small mobile */
+  .input-container:has(.password-toggle) .validation-icon {
+    right: 40px;
+  }
+
+  .password-toggle {
+    z-index: 3;
   }
   
   .submit-btn {
@@ -734,6 +766,15 @@ select.input-field + .validation-icon {
   .input-container:has(.dropdown-arrow-icon) .validation-icon {
     right: 30px;
   }
+
+  /* Adjust validation icon position when password toggle exists on extra small mobile */
+  .input-container:has(.password-toggle) .validation-icon {
+    right: 38px;
+  }
+
+  .password-toggle {
+    z-index: 3;
+  }
 }
 
 /* Landscape orientation - Fullscreen Mobile Design */
@@ -831,6 +872,15 @@ select.input-field + .validation-icon {
 
   .input-container:has(.dropdown-arrow-icon) .validation-icon {
     right: 28px;
+  }
+
+  /* Adjust validation icon position when password toggle exists in landscape */
+  .input-container:has(.password-toggle) .validation-icon {
+    right: 36px;
+  }
+
+  .password-toggle {
+    z-index: 3;
   }
 }
 

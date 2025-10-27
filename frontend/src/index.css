@@ -12,7 +12,10 @@
   font-size: 1.8rem;
   font-weight: bold;
 }
-
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+}
 /* Navbar Base */
 
 
