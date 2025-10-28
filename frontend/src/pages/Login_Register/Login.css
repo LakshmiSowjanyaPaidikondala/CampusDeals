@@ -447,6 +447,7 @@
 /* Extra small devices - Optimized for tiny screens */
 @media (max-width: 480px) {
   .login-container {
+    
     padding: 0.5rem;
     min-height: 100vh;
     min-height: 100dvh;
