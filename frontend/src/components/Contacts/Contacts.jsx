@@ -47,7 +47,7 @@ const Contacts = () => {
       id: 3,
       platform: 'Gmail',
       logo: gmailLogo,
-      url: 'campusdeals.online@gmail.com',
+      url: 'https://mail.google.com/mail/?view=cm&fs=1&to=campusdealsonline@gmail.com',
       handle: 'campusdealsonline@gmail.com'
     }
   ];
