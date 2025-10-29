@@ -1,7 +1,29 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCartCookie, setCartCookie } from '../utils/cookies.js';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { buyCartAPI, sellCartAPI, cartAPI } from '../utils/cartApi.js';
+import { useAuth } from '../hooks/useAuth.jsx';
+
+// Import images for cart items
+import calciImg from '../assets/Calci.jpg';
+import drafterImg from '../assets/Drafter.jpeg';
+import chartHolderImg from '../assets/chart holder.jpg';
+import mechCoatImg from '../assets/Mechanical.jpeg';
+import chemCoatImg from '../assets/Chemical.jpeg';
 
 const CartContext = createContext();
+
+// Image mapping for products (same as in Buy/Sell pages)
+const productImages = {
+  calculator: calciImg,
+  drafter: drafterImg,
+  chartbox: chartHolderImg,
+  white_lab_coat: chemCoatImg,
+  brown_lab_coat: mechCoatImg
+};
+
+// Helper function to get product image
+const getProductImage = (productName) => {
+  return productImages[productName] || calciImg;
+};
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -12,14 +34,14 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  // Initialize separate carts from cookies or with empty arrays
-  const [buyCartItems, setBuyCartItems] = useState(() => {
-    return getCartCookie('buyCart');
-  });
-
-  const [sellCartItems, setSellCartItems] = useState(() => {
-    return getCartCookie('sellCart');
-  });
+  const { isAuthenticated } = useAuth();
+  
+  // Initialize separate carts from backend or with empty arrays
+  const [buyCartItems, setBuyCartItems] = useState([]);
+  const [sellCartItems, setSellCartItems] = useState([]);
+  const [loading, setLoading] = useState(false); // Start with false, only set true during actual operations
+  const [error, setError] = useState(null);
+  const [isFetching, setIsFetching] = useState(false); // Prevent multiple simultaneous fetches
 
   // For backward compatibility - combine both carts for components that still use cartItems
   const [cartItems, setCartItems] = useState([]);
@@ -29,131 +51,374 @@ export const CartProvider = ({ children }) => {
     setCartItems([...buyCartItems, ...sellCartItems]);
   }, [buyCartItems, sellCartItems]);
 
-  // Save carts to cookies whenever they change
+  // Fetch cart data from backend when user is authenticated
+  const fetchCartData = useCallback(async () => {
+    if (!isAuthenticated) {
+      setBuyCartItems([]);
+      setSellCartItems([]);
+      setIsFetching(false);
+      return;
+    }
+
+    // Prevent multiple simultaneous fetches
+    if (isFetching) {
+      return;
+    }
+
+    try {
+      setIsFetching(true);
+      setError(null);
+      
+      const { buyCart, sellCart } = await cartAPI.getAllCarts();
+      
+      // Ensure we have valid cart data
+      const buyItems = buyCart?.items || [];
+      const sellItems = sellCart?.items || [];
+      
+      // Debug logging
+      console.log('Raw cart data:', { buyCart, sellCart });
+      console.log('Buy items:', buyItems);
+      console.log('Sell items:', sellItems);
+      
+      // Transform backend data to match frontend format
+      const transformedBuyItems = buyItems.map(item => {
+        console.log('Transforming buy item:', item);
+        const price = parseFloat(item.price_per_item) || 0;
+        return {
+          id: item.product_id,
+          name: item.product_name,
+          product_name: item.product_name,
+          variant: item.product_variant,
+          product_variant: item.product_variant,
+          price: price,
+          originalPrice: price ? price * 1.2 : 0, // Add some markup for display
+          quantity: parseInt(item.quantity) || 0,
+          inStock: 99, // You may want to get this from backend
+          stock: 99,
+          type: 'buy',
+          image: getProductImage(item.product_name),
+          product_images: getProductImage(item.product_name),
+          productCode: item.product_code,
+          product_code: item.product_code,
+          category: item.product_name,
+          subcategory: item.product_variant,
+          seller: 'Campus Deals'
+        };
+      });
+
+      const transformedSellItems = sellItems.map(item => {
+        console.log('Transforming sell item:', item);
+        const price = parseFloat(item.price_per_item) || 0;
+        return {
+          id: item.product_id,
+          name: item.product_name,
+          product_name: item.product_name,
+          variant: item.product_variant,
+          product_variant: item.product_variant,
+          price: price,
+          originalPrice: price ? price * 1.2 : 0, // Add some markup for display
+          quantity: parseInt(item.quantity) || 0,
+          inStock: 99, // You may want to get this from backend
+          stock: 99,
+          type: 'sell',
+          image: getProductImage(item.product_name),
+          product_images: getProductImage(item.product_name),
+          productCode: item.product_code,
+          product_code: item.product_code,
+          category: item.product_name,
+          subcategory: item.product_variant,
+          seller: 'Your Items'
+        };
+      });
+
+      setBuyCartItems(transformedBuyItems);
+      setSellCartItems(transformedSellItems);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching cart data:', err);
+      // Set empty arrays on error to prevent undefined errors
+      setBuyCartItems([]);
+      setSellCartItems([]);
+    } finally {
+      setIsFetching(false);
+    }
+  }, [isAuthenticated]); // Only depend on isAuthenticated
+
+  // Fetch cart data when authentication state changes
   useEffect(() => {
-    setCartCookie('buyCart', buyCartItems);
-  }, [buyCartItems]);
+    fetchCartData();
+  }, [fetchCartData]); // Now properly memoized
 
-  useEffect(() => {
-    setCartCookie('sellCart', sellCartItems);
-  }, [sellCartItems]);
+  const addToBuyCart = async (product) => {
+    if (!isAuthenticated) {
+      setError('Please log in to add items to cart');
+      return;
+    }
 
-  const addToBuyCart = (product) => {
-    setBuyCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-
-      if (existingItem) {
-        // Update quantity if item already exists
-        return prevItems.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || item.stock || 99) }
-            : item
-        );
-      }
-
-      // Add new item with quantity 1
-      return [...prevItems, { ...product, quantity: 1, type: 'buy' }];
-    });
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await buyCartAPI.addItem(product.id || product.product_id, 1);
+      
+      // Fetch cart data to get complete item details from backend
+      // (Add operations need full product data that backend provides)
+      await fetchCartData();
+      
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error adding to buy cart:', err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addToSellCart = (product) => {
-    setSellCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
+  const addToSellCart = async (product) => {
+    if (!isAuthenticated) {
+      setError('Please log in to add items to cart');
+      return;
+    }
 
-      if (existingItem) {
-        // Update quantity if item already exists
-        return prevItems.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.inStock || item.stock || 99) }
-            : item
-        );
-      }
-
-      // Add new item with quantity 1
-      return [...prevItems, { ...product, quantity: 1, type: 'sell' }];
-    });
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await sellCartAPI.addItem(product.id || product.product_id, 1);
+      
+      // Fetch cart data to get complete item details from backend
+      // (Add operations need full product data that backend provides)
+      await fetchCartData();
+      
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error adding to sell cart:', err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Backward compatibility - add to buy cart by default
-  const addToCart = (product) => {
-    addToBuyCart(product);
+  const addToCart = async (product) => {
+    return await addToBuyCart(product);
   };
 
-  const removeFromBuyCart = (productId) => {
-    setBuyCartItems(prevItems => prevItems.filter(item => item.id !== productId));
+  const removeFromBuyCart = async (productId) => {
+    if (!isAuthenticated) {
+      setError('Please log in to remove items from cart');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await buyCartAPI.removeItem(productId);
+      
+      // Update local state instead of refetching all data
+      setBuyCartItems(prevItems => 
+        prevItems.filter(item => item.id !== productId)
+      );
+      
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error removing from buy cart:', err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeFromSellCart = (productId) => {
-    setSellCartItems(prevItems => prevItems.filter(item => item.id !== productId));
+  const removeFromSellCart = async (productId) => {
+    if (!isAuthenticated) {
+      setError('Please log in to remove items from cart');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await sellCartAPI.removeItem(productId);
+      
+      // Update local state instead of refetching all data
+      setSellCartItems(prevItems => 
+        prevItems.filter(item => item.id !== productId)
+      );
+      
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error removing from sell cart:', err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = async (productId) => {
     // Check which cart contains the item and remove from appropriate cart
     const inBuyCart = buyCartItems.find(item => item.id === productId);
     const inSellCart = sellCartItems.find(item => item.id === productId);
 
     if (inBuyCart) {
-      removeFromBuyCart(productId);
+      return await removeFromBuyCart(productId);
     }
     if (inSellCart) {
-      removeFromSellCart(productId);
+      return await removeFromSellCart(productId);
     }
+    
+    return { success: false, error: 'Item not found in any cart' };
   };
 
-  const updateBuyQuantity = (productId, newQuantity) => {
-    if (newQuantity === 0) {
-      removeFromBuyCart(productId);
+  const updateBuyQuantity = async (productId, newQuantity) => {
+    if (!isAuthenticated) {
+      setError('Please log in to update cart items');
       return;
     }
 
-    setBuyCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.inStock || item.stock || 99) }
-          : item
-      )
-    );
+    if (newQuantity === 0) {
+      return await removeFromBuyCart(productId);
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await buyCartAPI.updateItem(productId, newQuantity);
+      
+      // Update local state instead of refetching all data
+      setBuyCartItems(prevItems => 
+        prevItems.map(item => 
+          item.id === productId 
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+      
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error updating buy cart quantity:', err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateSellQuantity = (productId, newQuantity) => {
-    if (newQuantity === 0) {
-      removeFromSellCart(productId);
+  const updateSellQuantity = async (productId, newQuantity) => {
+    if (!isAuthenticated) {
+      setError('Please log in to update cart items');
       return;
     }
 
-    setSellCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.inStock || item.stock || 99) }
-          : item
-      )
-    );
+    if (newQuantity === 0) {
+      return await removeFromSellCart(productId);
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await sellCartAPI.updateItem(productId, newQuantity);
+      
+      // Update local state instead of refetching all data
+      setSellCartItems(prevItems => 
+        prevItems.map(item => 
+          item.id === productId 
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+      
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error updating sell cart quantity:', err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateQuantity = (productId, newQuantity) => {
+  const updateQuantity = async (productId, newQuantity) => {
     // Check which cart contains the item and update appropriate cart
     const inBuyCart = buyCartItems.find(item => item.id === productId);
     const inSellCart = sellCartItems.find(item => item.id === productId);
 
     if (inBuyCart) {
-      updateBuyQuantity(productId, newQuantity);
+      return await updateBuyQuantity(productId, newQuantity);
     }
     if (inSellCart) {
-      updateSellQuantity(productId, newQuantity);
+      return await updateSellQuantity(productId, newQuantity);
+    }
+    
+    return { success: false, error: 'Item not found in any cart' };
+  };
+
+  const clearBuyCart = async () => {
+    if (!isAuthenticated) {
+      setError('Please log in to clear cart');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await buyCartAPI.clearCart();
+      
+      // Clear local state instead of refetching
+      setBuyCartItems([]);
+      
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error clearing buy cart:', err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
     }
   };
 
-  const clearBuyCart = () => {
-    setBuyCartItems([]);
+  const clearSellCart = async () => {
+    if (!isAuthenticated) {
+      setError('Please log in to clear cart');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await sellCartAPI.clearCart();
+      
+      // Clear local state instead of refetching
+      setSellCartItems([]);
+      
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error clearing sell cart:', err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const clearSellCart = () => {
-    setSellCartItems([]);
-  };
-
-  const clearCart = () => {
-    clearBuyCart();
-    clearSellCart();
+  const clearCart = async () => {
+    const buyResult = await clearBuyCart();
+    const sellResult = await clearSellCart();
+    
+    return {
+      success: buyResult.success && sellResult.success,
+      buyResult,
+      sellResult
+    };
   };
 
   const getBuyCartCount = () => {
@@ -186,6 +451,12 @@ export const CartProvider = ({ children }) => {
     sellCartItems,
     // Combined cart for backward compatibility
     cartItems,
+    // Loading and error states
+    loading,
+    isFetching,
+    error,
+    // Utility functions
+    fetchCartData,
     // Add functions
     addToBuyCart,
     addToSellCart,

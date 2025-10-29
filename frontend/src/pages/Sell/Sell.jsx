@@ -20,7 +20,7 @@ const Sell = () => {
   const [groupedProducts, setGroupedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { addToSellCart, sellCartItems, getSellCartCount } = useCart();
+  const { addToSellCart, sellCartItems, getSellCartCount, loading: cartLoading, error: cartError } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -272,10 +272,17 @@ const Sell = () => {
     fetchProducts();
   }, []);
 
+  // Show cart errors as toasts
+  useEffect(() => {
+    if (cartError) {
+      showToast(cartError, 'error');
+    }
+  }, [cartError]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
     // Check if user is authenticated
     if (!isAuthenticated) {
       // Redirect to login page if not authenticated
@@ -284,8 +291,11 @@ const Sell = () => {
     }
 
     // Add product with proper structure for sell cart
+    console.log('Product being added to cart:', product);
+    
     const cartItem = {
       id: product.id,
+      product_id: product.id, // Ensure backend compatibility
       name: product.name,
       variant: product.variant,
       price: product.price,
@@ -300,10 +310,15 @@ const Sell = () => {
       type: 'sell'
     };
     
-    addToSellCart(cartItem);
+    const result = await addToSellCart(cartItem);
     
-    // Show toast notification instead of alert
-    showToast(`${product.name} (${product.variant}) added to sell cart!`);
+    if (result.success) {
+      // Show success toast notification
+      showToast(`${product.name} (${product.variant}) added to sell cart!`);
+    } else {
+      // Show error toast notification
+      showToast(result.error || 'Failed to add item to cart', 'error');
+    }
   };
 
   // Handle quantity increase with toast
