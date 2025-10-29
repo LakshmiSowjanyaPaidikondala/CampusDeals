@@ -1,8 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check, ShoppingCart, Tag } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import './cart.css';
+
+// Memoized cart item component for better performance
+const CartItem = React.memo(({ item, onUpdateQuantity, onRemoveItem, isLoading, getDiscountPercentage }) => {
+  return (
+    <>
+      <div className="item-image-container">
+        <img
+          src={item.image || item.product_images || '/default-product.jpg'}
+          alt={item.name || item.product_name || 'Product'}
+          className="item-image"
+          onError={(e) => {
+            e.target.src = '/default-product.jpg';
+          }}
+        />
+        {item.originalPrice && item.originalPrice > (item.price || 0) && (
+          <div className="discount-badge">
+            {getDiscountPercentage(item.originalPrice || 0, item.price || 0)}% OFF
+          </div>
+        )}
+      </div>
+
+      <div className="item-details">
+        <div className="item-info">
+          <h3 className="item-name">{item.name || item.product_name || 'Unknown Product'}</h3>
+          <p className="item-description">{item.description || `${item.name || ''} - ${item.variant || ''}`}</p>
+          
+          <div className="item-meta">
+            <span className="category-badge">{item.subcategory || item.category || 'General'}</span>
+          </div>
+        </div>
+
+        <div className="item-actions">
+          <div className="price-section">
+            <div className="current-price">₹{(item.price || 0).toLocaleString()}</div>
+            {item.originalPrice && item.originalPrice > (item.price || 0) && (
+              <div className="original-price">₹{(item.originalPrice || 0).toLocaleString()}</div>
+            )}
+          </div>
+
+          <div className="quantity-controls">
+            <button
+              type="button"
+              className="qty-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onUpdateQuantity(item.id, Math.max(0, (item.quantity || 1) - 1));
+              }}
+              disabled={isLoading}
+            >
+              <Minus size={16} />
+            </button>
+            <span className="quantity">{item.quantity || 0}</span>
+            <button
+              type="button"
+              className="qty-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onUpdateQuantity(item.id, (item.quantity || 0) + 1);
+              }}
+              disabled={isLoading}
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+
+          <button 
+            type="button"
+            className="remove-btn"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemoveItem(item.id);
+            }}
+            disabled={isLoading}
+          >
+            <Trash2 size={16} />
+            Remove
+          </button>
+        </div>
+      </div>
+    </>
+  );
+});
 
 
 
@@ -12,10 +97,16 @@ const Cart = () => {
   const { 
     buyCartItems, 
     sellCartItems, 
-    updateQuantity: updateContextQuantity, 
-    removeFromCart: removeFromContext, 
+    updateBuyQuantity,
+    updateSellQuantity,
+    removeFromBuyCart,
+    removeFromSellCart,
     clearBuyCart,
-    clearSellCart 
+    clearSellCart,
+    loading: cartLoading,
+    isFetching,
+    error: cartError,
+    fetchCartData
   } = useCart();
   
   // Determine initial tab based on navigation state or which cart has more items
@@ -44,94 +135,167 @@ const Cart = () => {
   useEffect(() => {
     const currentCartItems = activeTab === 'buy' ? buyCartItems : sellCartItems;
     
-    if (currentCartItems.length > 0) {
-      setCartItems(currentCartItems);
-      setSelectedItems(currentCartItems.map(item => item.id));
-    } else {
-      setCartItems([]);
-      setSelectedItems([]);
-    }
+    // Only update if the items actually changed to prevent unnecessary re-renders
+    setCartItems(prevItems => {
+      if (JSON.stringify(prevItems) !== JSON.stringify(currentCartItems)) {
+        return currentCartItems;
+      }
+      return prevItems;
+    });
+    
+    setSelectedItems(prevSelected => {
+      const newSelected = currentCartItems.map(item => item.id);
+      if (JSON.stringify(prevSelected) !== JSON.stringify(newSelected)) {
+        return newSelected;
+      }
+      return prevSelected;
+    });
   }, [buyCartItems, sellCartItems, activeTab]);
 
-  const updateQuantity = (id, newQuantity) => {
+  // Show cart errors (handled by context, but we can add additional handling if needed)
+  useEffect(() => {
+    if (cartError) {
+      console.error('Cart error:', cartError);
+      // Error display is handled by the CartContext and shown via toasts in Buy/Sell pages
+    }
+  }, [cartError]);
+
+  const updateQuantity = useCallback(async (id, newQuantity) => {
     if (newQuantity === 0) {
-      removeFromCart(id);
+      await removeFromCart(id);
       return;
     }
     
-    // Update in context
-    updateContextQuantity(id, newQuantity);
-    
-    // Update local state
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
+    // Optimistic update - update UI immediately
+    setCartItems(prevItems => 
+      prevItems.map(item => 
+        item.id === id 
+          ? { ...item, quantity: newQuantity }
+          : item
       )
     );
-  };
-
-  const removeFromCart = (id) => {
-    // Remove from context
-    removeFromContext(id);
     
-    // Update local state
+    try {
+      // Update in appropriate cart based on active tab
+      let result;
+      if (activeTab === 'buy') {
+        result = await updateBuyQuantity(id, newQuantity);
+      } else {
+        result = await updateSellQuantity(id, newQuantity);
+      }
+      
+      if (!result.success) {
+        console.error('Failed to update quantity:', result.error);
+        // Revert optimistic update on error
+        const currentCartItems = activeTab === 'buy' ? buyCartItems : sellCartItems;
+        setCartItems(currentCartItems);
+      }
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      // Revert optimistic update on error
+      const currentCartItems = activeTab === 'buy' ? buyCartItems : sellCartItems;
+      setCartItems(currentCartItems);
+    }
+  }, [activeTab, updateBuyQuantity, updateSellQuantity, buyCartItems, sellCartItems]);
+
+  const removeFromCart = useCallback(async (id) => {
+    // Optimistic update - remove from UI immediately
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
     setSelectedItems(prev => prev.filter(itemId => itemId !== id));
-  };
+    
+    try {
+      // Remove from appropriate cart based on active tab
+      let result;
+      if (activeTab === 'buy') {
+        result = await removeFromBuyCart(id);
+      } else {
+        result = await removeFromSellCart(id);
+      }
+      
+      if (!result.success) {
+        console.error('Failed to remove item:', result.error);
+        // Revert optimistic update on error
+        const currentCartItems = activeTab === 'buy' ? buyCartItems : sellCartItems;
+        setCartItems(currentCartItems);
+        setSelectedItems(currentCartItems.map(item => item.id));
+      }
+    } catch (error) {
+      console.error('Error removing item:', error);
+      // Revert optimistic update on error
+      const currentCartItems = activeTab === 'buy' ? buyCartItems : sellCartItems;
+      setCartItems(currentCartItems);
+      setSelectedItems(currentCartItems.map(item => item.id));
+    }
+  }, [activeTab, removeFromBuyCart, removeFromSellCart, buyCartItems, sellCartItems]);
 
-  const toggleItemSelection = (id) => {
+  const toggleItemSelection = useCallback((id) => {
     setSelectedItems(prev =>
       prev.includes(id)
         ? prev.filter(itemId => itemId !== id)
         : [...prev, id]
     );
-  };
+  }, []);
 
-  const getSelectedItems = () => {
+  const selectedItems_memo = useMemo(() => {
     return cartItems.filter(item => selectedItems.includes(item.id));
-  };
+  }, [cartItems, selectedItems]);
 
-  const getTotalPrice = () => {
-    return getSelectedItems().reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
+  const totalPrice = useMemo(() => {
+    return selectedItems_memo.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 0)), 0);
+  }, [selectedItems_memo]);
 
-  const getTotalOriginalPrice = () => {
-    return getSelectedItems().reduce((total, item) => total + (item.originalPrice * item.quantity), 0);
-  };
+  const totalOriginalPrice = useMemo(() => {
+    return selectedItems_memo.reduce((total, item) => total + ((item.originalPrice || item.price || 0) * (item.quantity || 0)), 0);
+  }, [selectedItems_memo]);
 
-  const getTotalSavings = () => {
-    return getTotalOriginalPrice() - getTotalPrice();
-  };
+  const totalSavings = useMemo(() => {
+    return Math.max(0, totalOriginalPrice - totalPrice);
+  }, [totalOriginalPrice, totalPrice]);
 
-  const getTotalItems = () => {
-    return getSelectedItems().reduce((total, item) => total + item.quantity, 0);
-  };
+  const totalItems = useMemo(() => {
+    return selectedItems_memo.reduce((total, item) => total + (item.quantity || 0), 0);
+  }, [selectedItems_memo]);
 
   const getDiscountPercentage = (original, current) => {
+    if (!original || original <= 0 || !current || current < 0) return 0;
     return Math.round(((original - current) / original) * 100);
   };
 
-  const handleBuyNow = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+  const handleBuyNow = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate order processing
+      await new Promise(resolve => setTimeout(resolve, 3500));
+      
       setShowSuccess(true);
-      // Reset after success animation and redirect to orders page
-      setTimeout(() => {
-        setShowSuccess(false);
-        // Clear appropriate cart from context
-        if (activeTab === 'buy') {
-          clearBuyCart();
-        } else {
-          clearSellCart();
+      
+      // Clear appropriate cart from context after success
+      setTimeout(async () => {
+        try {
+          if (activeTab === 'buy') {
+            await clearBuyCart();
+          } else {
+            await clearSellCart();
+          }
+          
+          // Clear local state
+          setCartItems([]);
+          setSelectedItems([]);
+          setShowSuccess(false);
+          
+          // Redirect to orders page
+          navigate('/orders');
+        } catch (error) {
+          console.error('Error clearing cart:', error);
+          setShowSuccess(false);
+          setIsLoading(false);
         }
-        // Clear local state
-        setCartItems([]);
-        setSelectedItems([]);
-        // Redirect to orders page
-        navigate('/orders');
       }, 3000);
-    }, 3500);
+    } catch (error) {
+      console.error('Error processing order:', error);
+      setIsLoading(false);
+    }
   };
 
   if (showSuccess) {
@@ -147,11 +311,11 @@ const Cart = () => {
             <div className="success-details">
               <div className="success-item">
                 <span>Items:</span>
-                <span>{getTotalItems()}</span>
+                <span>{totalItems}</span>
               </div>
               <div className="success-item">
                 <span>Total:</span>
-                <span>₹{getTotalPrice().toLocaleString()}</span>
+                <span>₹{totalPrice.toLocaleString()}</span>
               </div>
             </div>
             <p className="contact-info">Contact sellers to arrange pickup</p>
@@ -161,13 +325,13 @@ const Cart = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="loading-container">
         <div className="loading-animation">
           <div className="loading-spinner"></div>
-          <h2>Processing Your Order...</h2>
-          <p>Please wait while we confirm your items</p>
+          <h2>{isLoading ? 'Processing Your Order...' : 'Loading Cart...'}</h2>
+          <p>{isLoading ? 'Please wait while we confirm your items' : 'Fetching your cart items'}</p>
         </div>
       </div>
     );
@@ -303,61 +467,13 @@ const Cart = () => {
                     </label>
                   </div>
 
-                  <div className="item-image">
-                    <img src={item.image} alt={item.name} />
-                    {item.originalPrice > item.price && (
-                      <div className="discount-badge">
-                        {getDiscountPercentage(item.originalPrice, item.price)}% OFF
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="item-details">
-                    <div className="item-info">
-                      <h3 className="item-name">{item.name}</h3>
-                      <p className="item-description">{item.description}</p>
-                      
-                      <div className="item-meta">
-                       
-                        <span className="category-badge">{item.subcategory || item.category}</span>
-                        <span className="stock-info">Only {item.inStock} left</span>
-                      </div>
-                    </div>
-
-                    <div className="item-actions">
-                      <div className="price-section">
-                        <div className="current-price">₹{item.price.toLocaleString()}</div>
-                        {item.originalPrice > item.price && (
-                          <div className="original-price">₹{item.originalPrice.toLocaleString()}</div>
-                        )}
-                      </div>
-
-                      <div className="quantity-controls">
-                        <button
-                          className="qty-btn"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className="quantity">{item.quantity}</span>
-                        <button
-                          className="qty-btn"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          disabled={item.quantity >= item.inStock}
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
-
-                      <button 
-                        className="remove-btn"
-                        onClick={() => removeFromCart(item.id)}
-                      >
-                        <Trash2 size={16} />
-                        Remove
-                      </button>
-                    </div>
-                  </div>
+                  <CartItem
+                    item={item}
+                    onUpdateQuantity={updateQuantity}
+                    onRemoveItem={removeFromCart}
+                    isLoading={isLoading}
+                    getDiscountPercentage={getDiscountPercentage}
+                  />
                 </div>
               ))}
             </div>
@@ -369,30 +485,30 @@ const Cart = () => {
           <div className="order-summary-card">
             <div className="summary-header">
               <h3>Order Summary</h3>
-              <span className="selected-count">{getTotalItems()} items selected</span>
+              <span className="selected-count">{totalItems} items selected</span>
             </div>
 
             <div className="summary-content">
               <div className="summary-row">
                 <span>Total MRP</span>
-                <span>₹{getTotalOriginalPrice().toLocaleString()}</span>
+                <span>₹{totalOriginalPrice.toLocaleString()}</span>
               </div>
               
               <div className="summary-row discount-row">
                 <span>You Save</span>
-                <span className="discount-amount">₹{getTotalSavings().toLocaleString()}</span>
+                <span className="discount-amount">₹{totalSavings.toLocaleString()}</span>
               </div>
 
               <div className="summary-divider"></div>
 
               <div className="summary-row total-row">
                 <span>Total Amount</span>
-                <span>₹{getTotalPrice().toLocaleString()}</span>
+                <span>₹{totalPrice.toLocaleString()}</span>
               </div>
 
-              {getTotalSavings() > 0 && (
+              {totalSavings > 0 && (
                 <div className="savings-highlight">
-                  You saved ₹{getTotalSavings().toLocaleString()} on this order!
+                  You saved ₹{totalSavings.toLocaleString()} on this order!
                 </div>
               )}
             </div>
@@ -417,9 +533,9 @@ const Cart = () => {
       {/* Mobile Bottom Bar */}
       <div className="mobile-bottom-bar">
         <div className="mobile-price-info">
-          <div className="mobile-total">₹{getTotalPrice().toLocaleString()}</div>
-          {getTotalSavings() > 0 && (
-            <div className="mobile-savings">You save ₹{getTotalSavings().toLocaleString()}</div>
+          <div className="mobile-total">₹{totalPrice.toLocaleString()}</div>
+          {totalSavings > 0 && (
+            <div className="mobile-savings">You save ₹{totalSavings.toLocaleString()}</div>
           )}
         </div>
         <button 
