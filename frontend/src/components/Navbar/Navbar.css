@@ -326,6 +326,53 @@
   box-shadow: 0 8px 25px rgba(255, 71, 87, 0.6), 0 0 0 6px rgba(255, 71, 87, 0.15);
 }
 
+/* Login Button Styles (shown when not authenticated) */
+.login-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  padding: 0.75rem 1.8rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.login-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.login-button:hover::before {
+  left: 100%;
+}
+
+.login-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 12px 35px rgba(99, 102, 241, 0.45);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0891b2 100%);
+}
+
+.login-button:active {
+  transform: translateY(0) scale(1.02);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+}
+
 /* Mobile Cart in Sidebar */
 .sidebar-cart {
   padding: 1rem 2rem;
@@ -574,6 +621,11 @@
     top: -6px;
     right: -6px;
   }
+  
+  .login-button {
+    padding: 0.65rem 1.5rem;
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -623,6 +675,11 @@
   
   .nav-right {
     gap: 0.8rem;
+  }
+  
+  .login-button {
+    padding: 0.6rem 1.3rem;
+    font-size: 0.85rem;
   }
 }
 
