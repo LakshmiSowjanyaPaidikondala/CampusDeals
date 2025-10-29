@@ -4,12 +4,14 @@ import { ShoppingCart } from "lucide-react";
 import logo from "../../assets/logo.png";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdownDebug";
 import { useCart } from "../../contexts/CartContext";
+import { useAuth } from "../../hooks/useAuth";
 import "./Navbar.css";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { getCartCount } = useCart();
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -109,13 +111,19 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Premium Cart Icon */}
-        <Link to="/cart" className="cart-link" onClick={(e) => handleNavigation('/cart', e)}>
-          <ShoppingCart className="cart-icon" size={24} />
-          {cartCount > 0 && (
-            <span className="cart-count">{cartCount}</span>
-          )}
-        </Link>
+        {/* Premium Cart Icon or Login Button */}
+        {isAuthenticated ? (
+          <Link to="/cart" className="cart-link" onClick={(e) => handleNavigation('/cart', e)}>
+            <ShoppingCart className="cart-icon" size={24} />
+            {cartCount > 0 && (
+              <span className="cart-count">{cartCount}</span>
+            )}
+          </Link>
+        ) : (
+          <Link to="/login" className="login-button" onClick={(e) => handleNavigation('/login', e)}>
+            Login
+          </Link>
+        )}
 
         {/* Profile Dropdown */}
         <ProfileDropdown />
