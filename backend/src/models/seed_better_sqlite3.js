@@ -79,28 +79,28 @@ class BetterSQLiteSeeder {
     seedProducts() {
         const products = [
             // Drafters
-            ['drafter', 'premium_drafter', 'DFT-P001', 2500.00, 'images/drafter_premium.jpg', 15],
-            ['drafter', 'standard_drafter', 'DFT-S001', 1800.00, 'images/drafter_standard.jpg', 25],
-            ['drafter', 'budget_drafter', 'DFT-B001', 1200.00, 'images/drafter_budget.jpg', 30],
+            ['drafter', 'premium_drafter', 'DFT-P001', 2500.00, 'images/drafter_premium.jpg', 0],
+            ['drafter', 'standard_drafter', 'DFT-S001', 1800.00, 'images/drafter_standard.jpg', 0],
+            ['drafter', 'budget_drafter', 'DFT-B001', 1200.00, 'images/drafter_budget.jpg', 0],
 
             // White Lab Coats
-            ['white_lab_coat', 'S', 'WLC-S001', 450.00, 'images/white_labcoat_s.jpg', 12],
-            ['white_lab_coat', 'M', 'WLC-M001', 450.00, 'images/white_labcoat_m.jpg', 20],
-            ['white_lab_coat', 'L', 'WLC-L001', 450.00, 'images/white_labcoat_l.jpg', 18],
-            ['white_lab_coat', 'XL', 'WLC-XL001', 450.00, 'images/white_labcoat_xl.jpg', 10],
-            ['white_lab_coat', 'XXL', 'WLC-XXL001', 450.00, 'images/white_labcoat_xxl.jpg', 5],
+            ['white_lab_coat', 'S', 'WLC-S001', 450.00, 'images/white_labcoat_s.jpg', 0],
+            ['white_lab_coat', 'M', 'WLC-M001', 450.00, 'images/white_labcoat_m.jpg', 0],
+            ['white_lab_coat', 'L', 'WLC-L001', 450.00, 'images/white_labcoat_l.jpg', 0],
+            ['white_lab_coat', 'XL', 'WLC-XL001', 450.00, 'images/white_labcoat_xl.jpg', 0],
+            ['white_lab_coat', 'XXL', 'WLC-XXL001', 450.00, 'images/white_labcoat_xxl.jpg', 0],
 
             // Brown Lab Coats
-            ['brown_lab_coat', 'S', 'BLC-S001', 500.00, 'images/brown_labcoat_s.jpg', 8],
-            ['brown_lab_coat', 'M', 'BLC-M001', 500.00, 'images/brown_labcoat_m.jpg', 15],
-            ['brown_lab_coat', 'L', 'BLC-L001', 500.00, 'images/brown_labcoat_l.jpg', 12],
-            ['brown_lab_coat', 'XL', 'BLC-XL001', 500.00, 'images/brown_labcoat_xl.jpg', 7],
-            ['brown_lab_coat', 'XXL', 'BLC-XXL001', 500.00, 'images/brown_labcoat_xxl.jpg', 3],
+            ['brown_lab_coat', 'S', 'BLC-S001', 500.00, 'images/brown_labcoat_s.jpg', 0],
+            ['brown_lab_coat', 'M', 'BLC-M001', 500.00, 'images/brown_labcoat_m.jpg', 0],
+            ['brown_lab_coat', 'L', 'BLC-L001', 500.00, 'images/brown_labcoat_l.jpg', 0],
+            ['brown_lab_coat', 'XL', 'BLC-XL001', 500.00, 'images/brown_labcoat_xl.jpg', 0],
+            ['brown_lab_coat', 'XXL', 'BLC-XXL001', 500.00, 'images/brown_labcoat_xxl.jpg', 0],
 
             // Calculators
-            ['calculator', 'MS', 'CALC-MS001', 1200.00, 'images/calculator_ms.jpg', 20],
-            ['calculator', 'ES', 'CALC-ES001', 800.00, 'images/calculator_es.jpg', 25],
-            ['calculator', 'ES-Plus', 'CALC-ESP001', 1500.00, 'images/calculator_es_plus.jpg', 15]
+            ['calculator', 'MS', 'CALC-MS001', 1200.00, 'images/calculator_ms.jpg', 0],
+            ['calculator', 'ES', 'CALC-ES001', 800.00, 'images/calculator_es.jpg', 0],
+            ['calculator', 'ES-Plus', 'CALC-ESP001', 1500.00, 'images/calculator_es_plus.jpg', 0]
         ];
 
         console.log('Seeding products...');
