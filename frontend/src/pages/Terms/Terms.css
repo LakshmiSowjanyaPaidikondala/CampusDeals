@@ -2,7 +2,7 @@
 .terms-page {
   min-height: 100vh;
   background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem 1rem;
+  padding: 0 1rem 2rem 1rem;
   position: relative;
   overflow-x: hidden;
 }
@@ -55,8 +55,9 @@
   padding: 2rem;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
+  border-radius: 0 0 20px 20px;
   border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top: none;
   margin-bottom: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -97,6 +98,8 @@
     0 8px 32px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   flex-shrink: 0;
+  left: 7px;
+  top: 40%;
 }
 
 @keyframes iconPulse {
