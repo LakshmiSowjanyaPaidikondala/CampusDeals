@@ -14,6 +14,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const buyCartRoutes = require('./routes/buyCartRoutes');
 const sellCartRoutes = require('./routes/sellCartRoutes');
 const ordersRoutes = require('./routes/ordersRoutes');
+const adminsRoutes = require('./routes/adminsRoutes');
 
 // Import middleware
 const { authenticateToken, authorizeRoles } = require('./middleware/auth');
@@ -92,6 +93,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/cart/buy', buyCartRoutes);
 app.use('/api/cart/sell', sellCartRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/admins', adminsRoutes);
 
 // Legacy cart routes (for backward compatibility)
 app.post("/api/cart", requireAuthForBuy, validateTransactionData(['product_id', 'quantity']), (req, res) => {
