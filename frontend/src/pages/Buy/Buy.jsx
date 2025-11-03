@@ -19,7 +19,7 @@ const Buy = () => {
   const [groupedProducts, setGroupedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { addToBuyCart, buyCartItems, getBuyCartCount } = useCart();
+  const { addToBuyCart, buyCartItems, getBuyCartCount, loading: cartLoading, error: cartError } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -279,10 +279,17 @@ const Buy = () => {
     fetchProducts();
   }, []);
 
+  // Show cart errors as toasts
+  useEffect(() => {
+    if (cartError) {
+      showToast(cartError, 'error');
+    }
+  }, [cartError]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
     // Check if user is authenticated
     if (!isAuthenticated) {
       // Redirect to login page if not authenticated
@@ -291,8 +298,11 @@ const Buy = () => {
     }
 
     // Add product with proper structure for buy cart
+    console.log('Product being added to cart:', product);
+    
     const cartItem = {
       id: product.id,
+      product_id: product.id, // Ensure backend compatibility
       name: product.name,
       variant: product.variant,
       price: product.price,
@@ -307,10 +317,15 @@ const Buy = () => {
       type: 'buy'
     };
     
-    addToBuyCart(cartItem);
+    const result = await addToBuyCart(cartItem);
     
-    // Show toast notification instead of alert
-    showToast(`${product.name} (${product.variant}) added to buy cart!`);
+    if (result.success) {
+      // Show success toast notification
+      showToast(`${product.name} (${product.variant}) added to buy cart!`);
+    } else {
+      // Show error toast notification
+      showToast(result.error || 'Failed to add item to cart', 'error');
+    }
   };
 
   // Handle quantity increase with toast
@@ -415,16 +430,7 @@ const Buy = () => {
         )}
       </div>
 
-      {/* ✅ Buy Button */}
-      <div className="buy-button-container">
-        <button
-          className="buy-button"
-          onClick={handleProceed}
-          disabled={buyCartItems.length === 0}
-        >
-          Go to Buy Cart ({getBuyCartCount()} items)
-        </button>
-      </div>
+      
 
       {/* 📝 Buyer Form as Modal */}
       {/*{showForm && <BuyForm cart={cartItems} onClose={handleCloseForm} />}*/}
