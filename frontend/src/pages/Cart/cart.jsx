@@ -154,23 +154,6 @@ const Cart = () => {
     });
   }, [buyCartItems, sellCartItems, activeTab]);
 
-<<<<<<< HEAD
-  // Authentication check helper
-  const requireAuth = (action) => {
-    if (!isAuthenticated) {
-      // You can show a toast or alert here
-      alert('Please log in to continue with your purchase.');
-      navigate('/login');
-      return false;
-    }
-    return true;
-  };
-
-  const updateQuantity = (id, newQuantity) => {
-    // Check authentication before allowing quantity changes
-    if (!requireAuth()) return;
-
-=======
   // Show cart errors (handled by context, but we can add additional handling if needed)
   useEffect(() => {
     if (cartError) {
@@ -180,7 +163,6 @@ const Cart = () => {
   }, [cartError]);
 
   const updateQuantity = useCallback(async (id, newQuantity) => {
->>>>>>> 175ce348376e8775aea29420592aac487924ba03
     if (newQuantity === 0) {
       await removeFromCart(id);
       return;
@@ -194,17 +176,6 @@ const Cart = () => {
           : item
       )
     );
-<<<<<<< HEAD
-  };
-
-  const removeFromCart = (id) => {
-    // Check authentication before allowing item removal
-    if (!requireAuth()) return;
-
-    // Remove from context
-    removeFromContext(id);
-=======
->>>>>>> 175ce348376e8775aea29420592aac487924ba03
     
     try {
       // Update in appropriate cart based on active tab
@@ -292,21 +263,6 @@ const Cart = () => {
     return Math.round(((original - current) / original) * 100);
   };
 
-<<<<<<< HEAD
-  const handleBuyNow = () => {
-    // Check authentication before proceeding with purchase
-    if (!requireAuth()) return;
-
-    // Check if any items are selected
-    if (selectedItems.length === 0) {
-      alert('Please select at least one item to proceed.');
-      return;
-    }
-
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-=======
   const handleBuyNow = async () => {
     try {
       setIsLoading(true);
@@ -314,7 +270,6 @@ const Cart = () => {
       // Simulate order processing
       await new Promise(resolve => setTimeout(resolve, 3500));
       
->>>>>>> 175ce348376e8775aea29420592aac487924ba03
       setShowSuccess(true);
       
       // Clear appropriate cart from context after success
@@ -514,68 +469,6 @@ const Cart = () => {
                     </label>
                   </div>
 
-<<<<<<< HEAD
-                  <div className="item-image">
-                    <img src={item.image} alt={item.name} />
-                    {item.originalPrice > item.price && (
-                      <div className="discount-badge">
-                        {getDiscountPercentage(item.originalPrice, item.price)}% OFF
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="item-details">
-                    <div className="item-info">
-                      <h3 className="item-name">{item.name}</h3>
-                      <p className="item-description">{item.description}</p>
-                      
-                      <div className="item-meta">
-                       
-                        <span className="category-badge">{item.subcategory || item.category}</span>
-                        <span className="stock-info">Only {item.inStock} left</span>
-                      </div>
-                    </div>
-
-                    <div className="item-actions">
-                      <div className="price-section">
-                        <div className="current-price">₹{item.price.toLocaleString()}</div>
-                        {item.originalPrice > item.price && (
-                          <div className="original-price">₹{item.originalPrice.toLocaleString()}</div>
-                        )}
-                      </div>
-
-                      <div className="quantity-controls">
-                        <button
-                          className="qty-btn"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          disabled={!isAuthenticated}
-                          title={!isAuthenticated ? "Please log in to modify quantity" : ""}
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className="quantity">{item.quantity}</span>
-                        <button
-                          className="qty-btn"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          disabled={!isAuthenticated || item.quantity >= item.inStock}
-                          title={!isAuthenticated ? "Please log in to modify quantity" : item.quantity >= item.inStock ? "Stock limit reached" : ""}
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
-
-                      <button 
-                        className="remove-btn"
-                        onClick={() => removeFromCart(item.id)}
-                        disabled={!isAuthenticated}
-                        title={!isAuthenticated ? "Please log in to remove items" : ""}
-                      >
-                        <Trash2 size={16} />
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-=======
                   <CartItem
                     item={item}
                     onUpdateQuantity={updateQuantity}
@@ -583,7 +476,6 @@ const Cart = () => {
                     isLoading={isLoading}
                     getDiscountPercentage={getDiscountPercentage}
                   />
->>>>>>> 175ce348376e8775aea29420592aac487924ba03
                 </div>
               ))}
             </div>
