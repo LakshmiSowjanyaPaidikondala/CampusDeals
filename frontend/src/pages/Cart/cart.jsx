@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check, ShoppingCart, Tag } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../hooks/useAuth';
 import './cart.css';
 
 
@@ -9,6 +10,7 @@ import './cart.css';
 const Cart = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const { 
     buyCartItems, 
     sellCartItems, 
@@ -53,7 +55,21 @@ const Cart = () => {
     }
   }, [buyCartItems, sellCartItems, activeTab]);
 
+  // Authentication check helper
+  const requireAuth = (action) => {
+    if (!isAuthenticated) {
+      // You can show a toast or alert here
+      alert('Please log in to continue with your purchase.');
+      navigate('/login');
+      return false;
+    }
+    return true;
+  };
+
   const updateQuantity = (id, newQuantity) => {
+    // Check authentication before allowing quantity changes
+    if (!requireAuth()) return;
+
     if (newQuantity === 0) {
       removeFromCart(id);
       return;
@@ -71,6 +87,9 @@ const Cart = () => {
   };
 
   const removeFromCart = (id) => {
+    // Check authentication before allowing item removal
+    if (!requireAuth()) return;
+
     // Remove from context
     removeFromContext(id);
     
@@ -112,6 +131,15 @@ const Cart = () => {
   };
 
   const handleBuyNow = () => {
+    // Check authentication before proceeding with purchase
+    if (!requireAuth()) return;
+
+    // Check if any items are selected
+    if (selectedItems.length === 0) {
+      alert('Please select at least one item to proceed.');
+      return;
+    }
+
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -334,6 +362,8 @@ const Cart = () => {
                         <button
                           className="qty-btn"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          disabled={!isAuthenticated}
+                          title={!isAuthenticated ? "Please log in to modify quantity" : ""}
                         >
                           <Minus size={16} />
                         </button>
@@ -341,7 +371,8 @@ const Cart = () => {
                         <button
                           className="qty-btn"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          disabled={item.quantity >= item.inStock}
+                          disabled={!isAuthenticated || item.quantity >= item.inStock}
+                          title={!isAuthenticated ? "Please log in to modify quantity" : item.quantity >= item.inStock ? "Stock limit reached" : ""}
                         >
                           <Plus size={16} />
                         </button>
@@ -350,6 +381,8 @@ const Cart = () => {
                       <button 
                         className="remove-btn"
                         onClick={() => removeFromCart(item.id)}
+                        disabled={!isAuthenticated}
+                        title={!isAuthenticated ? "Please log in to remove items" : ""}
                       >
                         <Trash2 size={16} />
                         Remove
@@ -395,12 +428,28 @@ const Cart = () => {
               )}
             </div>
 
+            {!isAuthenticated && (
+              <div className="auth-prompt">
+                <p>🔐 Please log in to complete your purchase</p>
+                <button 
+                  className="login-redirect-btn"
+                  onClick={() => navigate('/login')}
+                >
+                  Go to Login
+                </button>
+              </div>
+            )}
+
             <button 
               className="buy-now-btn"
-              disabled={selectedItems.length === 0}
+              disabled={selectedItems.length === 0 || !isAuthenticated}
               onClick={handleBuyNow}
+              title={!isAuthenticated ? "Please log in to proceed" : selectedItems.length === 0 ? "Please select items to proceed" : ""}
             >
-              {activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'}
+              {!isAuthenticated 
+                ? 'LOG IN TO CONTINUE' 
+                : activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'
+              }
             </button>
 
             <div className="campus-info">
@@ -422,10 +471,13 @@ const Cart = () => {
         </div>
         <button 
           className="mobile-buy-now-btn"
-          disabled={selectedItems.length === 0}
+          disabled={selectedItems.length === 0 || !isAuthenticated}
           onClick={handleBuyNow}
         >
-          {activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'}
+          {!isAuthenticated 
+            ? 'LOG IN TO CONTINUE' 
+            : activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'
+          }
         </button>
       </div>
     </div>
