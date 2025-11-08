@@ -30,7 +30,7 @@ const generateTokenPair = async (userId, email, role) => {
       accessToken,
       refreshToken: refreshTokenData.refreshToken,
       accessTokenExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
-      refreshTokenExpiresIn: '15m'
+      refreshTokenExpiresIn: '3h'
     };
   } catch (error) {
     console.error('Error generating token pair:', error);

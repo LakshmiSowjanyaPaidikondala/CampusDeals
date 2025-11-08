@@ -22,9 +22,9 @@ const generateRefreshToken = (userId, email, role) => {
     { expiresIn: '15m' } // 15 minutes expiry
   );
   
-  // Set expiry time (15 minutes from now)
+  // Set expiry time (3 hours from now)
   const expiresAt = new Date();
-  expiresAt.setTime(expiresAt.getTime() + (15 * 60 * 1000));
+  expiresAt.setTime(expiresAt.getTime() + (3 * 60 * 60 * 1000));
   
   return {
     refreshToken,
