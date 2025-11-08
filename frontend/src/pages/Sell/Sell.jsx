@@ -74,7 +74,14 @@ const Sell = () => {
       name: 'ES-Plus (Engineering Scientific Plus)'
     },
     
-    // Drafter variants
+    // Drafter variants (consolidated)
+    'drafter': {
+      name: 'Professional Drafter',
+      description: "High-quality drafting instrument for engineering and technical drawings",
+      features: ["Precision instruments", "Durable construction", "Professional grade"],
+      bestFor: "Engineering drawings and technical work"
+    },
+    // Individual drafter variants (for backend compatibility)
     'premium_drafter': {
       name: 'Premium Professional Drafter'
     },
@@ -129,6 +136,43 @@ const Sell = () => {
         };
       }
       
+      // Special handling for drafters - consolidate all drafter variants into a single product
+      if (productName === 'drafter') {
+        // Check if we already have a drafter entry
+        if (grouped[productName].variants.length === 0) {
+          // Create a single consolidated drafter variant
+          const totalStock = productList
+            .filter(p => p.product_name === 'drafter')
+            .reduce((sum, p) => sum + p.quantity, 0);
+          
+          // Use average price or a standard price for consolidated drafter
+          const avgPrice = productList
+            .filter(p => p.product_name === 'drafter')
+            .reduce((sum, p) => sum + p.product_price, 0) / 
+            productList.filter(p => p.product_name === 'drafter').length;
+          
+          const variantInfo = variantDetails['drafter'] || {
+            name: 'Professional Drafter',
+            description: "Quality drafting tool for your needs",
+            features: ["Standard quality", "Reliable performance"],
+            bestFor: "General academic use"
+          };
+          
+          grouped[productName].variants.push({
+            id: product.product_id, // Use first drafter's ID
+            variant: 'drafter', // Single variant name
+            price: Math.round(avgPrice), // Average price rounded
+            stock: totalStock, // Combined stock
+            productCode: 'DFT', // Generic product code
+            images: product.product_images,
+            variantDetails: variantInfo
+          });
+        }
+        // Skip adding additional drafter variants since we've consolidated them
+        return;
+      }
+      
+      // For all other products (calculators, lab coats, etc.), keep their variants as normal
       const variantInfo = variantDetails[product.product_variant] || {
         name: product.product_variant,
         description: "Quality variant for your needs",
@@ -218,9 +262,9 @@ const Sell = () => {
         errorMessage = 'Cannot connect to server. Loading sample data instead.';
         console.log('🔄 Loading fallback data...');
         
-        // Load fallback data when API is unavailable - All 17 products from database
+        // Load fallback data when API is unavailable - All 15 products from database
         const fallbackProducts = [
-          // Drafter products
+          // Drafter products (will be consolidated into single variant)
           { product_id: 1, product_name: 'drafter', product_variant: 'premium_drafter', product_price: 400, quantity: 15, product_code: 'DFT-P', product_images: 'Drafter.jpeg' },
           { product_id: 2, product_name: 'drafter', product_variant: 'standard_drafter', product_price: 350, quantity: 25, product_code: 'DFT-S', product_images: 'Drafter.jpeg' },
           { product_id: 3, product_name: 'drafter', product_variant: 'budget_drafter', product_price: 300, quantity: 30, product_code: 'DFT-B', product_images: 'Drafter.jpeg' },
@@ -384,15 +428,16 @@ const Sell = () => {
       {/* 📢 Scrolling Message Banner */}
       <div className="scrolling-message-container">
         <div className="scrolling-message">
-          <span className="message-item-sell">💼 Turn your unused items into cash! Start selling on Campus Deals today!</span>
+          <span className="message-item-sell">You will get 85% of the sale price!</span>
 
         </div>
       </div>
 
       {/* 🛒 Product Grid */}
-      <div className="products-grid">
+      <div className="products-grid-sell">
         {loading ? (
           <div className="loading-state">
+    
             <p>Loading products...</p>
           </div>
         ) : error ? (

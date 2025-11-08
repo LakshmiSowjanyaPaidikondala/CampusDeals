@@ -1,7 +1,6 @@
 const { db, run, query } = require('../config/db');
 const { generateToken, generateTokenPair, hashPassword, comparePassword } = require('../utils/auth');
 const { blacklistToken } = require('../utils/tokenBlacklist');
-const { validateRefreshToken, revokeRefreshToken, revokeUserRefreshTokens } = require('../utils/refreshToken');
 const { 
   validateEmail, 
   validatePassword, 
@@ -361,22 +360,15 @@ const logout = async (req, res) => {
     const userId = req.user?.userId;
     const userEmail = req.user?.email;
     const token = req.token; // Access token attached by auth middleware
-    const { refreshToken } = req.body; // Refresh token from request body
+    const { refreshToken } = req.body; // Refresh token from request body (but not stored in DB)
     
     // Blacklist the current access token to prevent reuse
     if (token) {
       blacklistToken(token);
     }
     
-    // Revoke the refresh token if provided
-    if (refreshToken) {
-      await revokeRefreshToken(refreshToken);
-    }
-    
-    // Optionally revoke all refresh tokens for this user (more secure)
-    if (userId) {
-      await revokeUserRefreshTokens(userId);
-    }
+    // Note: Refresh tokens are JWT-based and not stored in database
+    // They will naturally expire after 15 minutes
     
     console.log(`🚪 User logout: ${userEmail || 'Unknown'} (ID: ${userId || 'Unknown'})`);
     
@@ -388,8 +380,8 @@ const logout = async (req, res) => {
         email: userEmail,
         loggedOutAt: new Date().toISOString(),
         accessTokenInvalidated: !!token,
-        refreshTokenRevoked: !!refreshToken,
-        instruction: 'Both tokens have been invalidated. Please remove from client storage.'
+        refreshTokenNote: 'JWT refresh token will expire naturally (not stored in database)',
+        instruction: 'Remove both tokens from client storage. Access token is blacklisted, refresh token will expire in 15 minutes.'
       }
     });
     
@@ -415,22 +407,31 @@ const refreshAccessToken = async (req, res) => {
       });
     }
     
-    // Validate the refresh token
-    const validation = await validateRefreshToken(refreshToken);
+    // Validate the JWT refresh token
+    const config = require('../config/environment');
+    const secret = config.jwt && config.jwt.secret ? config.jwt.secret : process.env.JWT_SECRET;
     
-    if (!validation.valid) {
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, secret);
+      
+      // Check if it's actually a refresh token
+      if (decoded.type !== 'refresh') {
+        throw new Error('Not a refresh token');
+      }
+    } catch (jwtError) {
       return res.status(401).json({
         success: false,
         message: '❌ Invalid or expired refresh token',
-        error: validation.message
+        error: jwtError.message
       });
     }
     
     // Generate new token pair
     const tokenPair = await generateTokenPair(
-      validation.userId, 
-      validation.email, 
-      validation.role
+      decoded.userId, 
+      decoded.email, 
+      decoded.role
     );
     
     if (!tokenPair.success) {
@@ -440,9 +441,6 @@ const refreshAccessToken = async (req, res) => {
         error: tokenPair.error
       });
     }
-    
-    // Revoke the old refresh token
-    await revokeRefreshToken(refreshToken);
     
     res.json({
       success: true,
@@ -454,13 +452,13 @@ const refreshAccessToken = async (req, res) => {
         refreshToken: tokenPair.refreshTokenExpiresIn
       },
       user: {
-        userId: validation.userId,
-        email: validation.email,
-        role: validation.role
+        userId: decoded.userId,
+        email: decoded.email,
+        role: decoded.role
       },
       instructions: {
         message: 'Use new tokens for future requests',
-        note: 'Old refresh token has been revoked'
+        note: 'JWT-based tokens (not stored in database)'
       }
     });
     
@@ -474,6 +472,252 @@ const refreshAccessToken = async (req, res) => {
   }
 };
 
+// Admin Login - dedicated endpoint for admin authentication
+const adminLogin = async (req, res) => {
+  try {
+    // Sanitize input data
+    const sanitizedData = sanitizeUserInput(req.body);
+    const { admin_email, admin_password } = sanitizedData;
+
+    // Validate required fields
+    const requiredFields = ['admin_email', 'admin_password'];
+    const fieldValidation = validateRequiredFields(sanitizedData, requiredFields);
+    
+    if (!fieldValidation.isValid) {
+      return res.status(400).json({ 
+        success: false,
+        message: '❌ Admin email and password are required',
+        details: fieldValidation.message,
+        missingFields: fieldValidation.missingFields
+      });
+    }
+
+    // Validate email format
+    if (!validateEmail(admin_email)) {
+      return res.status(400).json({ 
+        success: false,
+        message: '❌ Please provide a valid admin email address',
+        field: 'admin_email'
+      });
+    }
+
+    // Check if admin exists in database
+    const [admins] = query('SELECT * FROM admins WHERE admin_email = ?', [admin_email]);
+    
+    if (admins.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: '❌ Admin not found',
+        suggestion: 'Please check your admin email address',
+        action: 'admin_not_found'
+      });
+    }
+
+    const admin = admins[0];
+
+    // Validate password
+    const isPasswordValid = await comparePassword(admin_password, admin.admin_password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false,
+        message: '❌ Invalid admin password',
+        suggestion: 'Please check your password and try again',
+        field: 'admin_password'
+      });
+    }
+
+    // Generate token pair specifically for admin with their actual role
+    const tokenPair = await generateTokenPair(admin.admin_id, admin.admin_email, admin.role);
+    
+    if (!tokenPair.success) {
+      return res.status(500).json({
+        success: false,
+        message: '❌ Error generating admin authentication tokens',
+        error: tokenPair.error
+      });
+    }
+
+    // Return successful admin login response
+    res.json({
+      success: true,
+      message: '✅ Admin login successful',
+      admin: {
+        admin_id: admin.admin_id,
+        admin_name: admin.admin_name,
+        admin_email: admin.admin_email,
+        admin_phone: admin.admin_phone,
+        admin_studyyear: admin.admin_studyyear,
+        admin_branch: admin.admin_branch,
+        admin_section: admin.admin_section,
+        admin_residency: admin.admin_residency,
+        role: admin.role
+      },
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.refreshToken,
+      tokenExpiry: {
+        accessToken: tokenPair.accessTokenExpiresIn,
+        refreshToken: tokenPair.refreshTokenExpiresIn
+      },
+      instructions: {
+        message: 'Use accessToken for admin API requests',
+        header: 'Authorization: Bearer ACCESS_TOKEN',
+        note: 'This token is specifically for admin operations'
+      }
+    });
+
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: '❌ Admin login failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Please try again later'
+    });
+  }
+};
+
+// Admin Registration - dedicated endpoint for admin registration
+const adminRegister = async (req, res) => {
+  try {
+    // Sanitize input data
+    const sanitizedData = sanitizeUserInput(req.body);
+    
+    const {
+      admin_name,
+      admin_email,
+      admin_password,
+      admin_phone,
+      admin_studyyear,
+      admin_branch,
+      admin_section,
+      admin_residency
+    } = sanitizedData;
+
+    // Validate required fields
+    const requiredFields = ['admin_name', 'admin_email', 'admin_password'];
+    const fieldValidation = validateRequiredFields(sanitizedData, requiredFields);
+    
+    if (!fieldValidation.isValid) {
+      return res.status(400).json({ 
+        success: false,
+        message: '❌ Missing required fields for admin registration',
+        details: fieldValidation.message,
+        missingFields: fieldValidation.missingFields
+      });
+    }
+
+    // Validate email format
+    if (!validateEmail(admin_email)) {
+      return res.status(400).json({ 
+        success: false,
+        message: '❌ Please provide a valid admin email address',
+        field: 'admin_email'
+      });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(admin_password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ 
+        success: false,
+        message: '❌ Admin password validation failed',
+        details: passwordValidation.message,
+        field: 'admin_password'
+      });
+    }
+
+    // Check if admin already exists
+    const [existingAdmins] = query(
+      'SELECT admin_id FROM admins WHERE admin_email = ?',
+      [admin_email]
+    );
+    
+    if (existingAdmins.length > 0) {
+      return res.status(409).json({ 
+        success: false,
+        message: '❌ Admin with this email already exists',
+        suggestion: 'Please use admin login instead or use a different email address',
+        field: 'admin_email'
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await hashPassword(admin_password);
+
+    // Insert new admin
+    const [result] = run(
+      `INSERT INTO admins 
+       (admin_name, admin_email, admin_password, admin_phone, admin_studyyear, admin_branch, admin_section, admin_residency) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        admin_name,
+        admin_email,
+        hashedPassword,
+        admin_phone,
+        admin_studyyear,
+        admin_branch,
+        admin_section,
+        admin_residency
+      ]
+    );
+
+    // Generate token pair specifically for admin with default 'admin' role
+    const tokenPair = await generateTokenPair(result.insertId, admin_email, 'admin');
+    
+    if (!tokenPair.success) {
+      return res.status(500).json({
+        success: false,
+        message: '❌ Error generating admin authentication tokens',
+        error: tokenPair.error
+      });
+    }
+
+    // Get the created admin (excluding password)
+    const [newAdmin] = query(`
+      SELECT 
+        admin_id, 
+        admin_name, 
+        admin_email, 
+        admin_phone, 
+        admin_studyyear, 
+        admin_branch, 
+        admin_section, 
+        admin_residency,
+        role,
+        created_at,
+        updated_at
+      FROM admins 
+      WHERE admin_id = ?
+    `, [result.insertId]);
+
+    // Return successful admin registration response
+    res.status(201).json({
+      success: true,
+      message: '✅ Admin registered successfully',
+      admin: newAdmin[0],
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.refreshToken,
+      tokenExpiry: {
+        accessToken: tokenPair.accessTokenExpiresIn,
+        refreshToken: tokenPair.refreshTokenExpiresIn
+      },
+      instructions: {
+        message: 'Admin account created and logged in automatically',
+        usage: 'Use accessToken for admin API requests',
+        header: 'Authorization: Bearer ACCESS_TOKEN',
+        note: 'This token is specifically for admin operations'
+      }
+    });
+
+  } catch (error) {
+    console.error('Admin registration error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: '❌ Admin registration failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Please try again later'
+    });
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -481,6 +725,8 @@ module.exports = {
   refreshAccessToken,
   getProfile,
   validateUserForTransaction,
+  adminLogin,
+  adminRegister,
   // Keep backward compatibility
   register: signup
 };

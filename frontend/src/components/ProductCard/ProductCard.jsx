@@ -189,8 +189,8 @@ const ProductCard = ({ product, onAddToCart, onQuantityIncrease, onQuantityDecre
                         {variant.stock > 0 ? `${variant.stock} left` : 'Out of stock'}
                       </small>
                     </div>
-                    {/* Variant Features */}
-                    {variant.variantDetails?.features && Array.isArray(variant.variantDetails.features) && (
+                    {/* Variant Features - Hidden for drafter */}
+                    {variant.variantDetails?.features && Array.isArray(variant.variantDetails.features) && product.name !== 'drafter' && (
                       <div className="variant-features">
                         <small className="features-label">Features:</small>
                         <div className="features-tags">
@@ -229,8 +229,8 @@ const ProductCard = ({ product, onAddToCart, onQuantityIncrease, onQuantityDecre
               </div>
             </div>
             
-            {/* Variant Features for single variant or selected variant details */}
-            {selectedVariant.variantDetails?.features && Array.isArray(selectedVariant.variantDetails.features) && (
+            {/* Variant Features for single variant or selected variant details - Hidden for drafter */}
+            {selectedVariant.variantDetails?.features && Array.isArray(selectedVariant.variantDetails.features) && product.name !== 'drafter' && (
               <div className="selected-variant-features">
                 <h5 className="variant-features-title">Key Features:</h5>
                 <ul className="variant-features-list">
@@ -242,13 +242,13 @@ const ProductCard = ({ product, onAddToCart, onQuantityIncrease, onQuantityDecre
             )}
             
             {/* Best For Section */}
-            {selectedVariant.variantDetails?.bestFor && (
-              <div className="selected-variant-bestfor">
-                <h5 className="bestfor-title">Recommended For:</h5>
-                <p className="bestfor-text">{selectedVariant.variantDetails.bestFor}</p>
-              </div>
-            )}
-          </div>
+            {/* {selectedVariant.variantDetails?.bestFor && ( */}
+               {/* <div className="selected-variant-bestfor"> */}
+               
+               
+              {/* </div> */}
+            {/* // )} */}
+         </div>
         )}
 
         {/* Add to Cart Button or Quantity Controls */}

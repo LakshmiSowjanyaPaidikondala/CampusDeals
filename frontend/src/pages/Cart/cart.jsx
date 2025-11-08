@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft, Check, ShoppingCart, Tag } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../hooks/useAuth';
 import './cart.css';
 
 // Memoized cart item component for better performance
@@ -94,6 +95,7 @@ const CartItem = React.memo(({ item, onUpdateQuantity, onRemoveItem, isLoading, 
 const Cart = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const { 
     buyCartItems, 
     sellCartItems, 
@@ -513,12 +515,28 @@ const Cart = () => {
               )}
             </div>
 
+            {!isAuthenticated && (
+              <div className="auth-prompt">
+                <p>🔐 Please log in to complete your purchase</p>
+                <button 
+                  className="login-redirect-btn"
+                  onClick={() => navigate('/login')}
+                >
+                  Go to Login
+                </button>
+              </div>
+            )}
+
             <button 
               className="buy-now-btn"
-              disabled={selectedItems.length === 0}
+              disabled={selectedItems.length === 0 || !isAuthenticated}
               onClick={handleBuyNow}
+              title={!isAuthenticated ? "Please log in to proceed" : selectedItems.length === 0 ? "Please select items to proceed" : ""}
             >
-              {activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'}
+              {!isAuthenticated 
+                ? 'LOG IN TO CONTINUE' 
+                : activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'
+              }
             </button>
 
             <div className="campus-info">
@@ -540,10 +558,13 @@ const Cart = () => {
         </div>
         <button 
           className="mobile-buy-now-btn"
-          disabled={selectedItems.length === 0}
+          disabled={selectedItems.length === 0 || !isAuthenticated}
           onClick={handleBuyNow}
         >
-          {activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'}
+          {!isAuthenticated 
+            ? 'LOG IN TO CONTINUE' 
+            : activeTab === 'buy' ? 'BUY NOW' : 'SELL NOW'
+          }
         </button>
       </div>
     </div>

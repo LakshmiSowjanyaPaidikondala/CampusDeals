@@ -1074,10 +1074,60 @@
   pointer-events: none;
 }
 
+/* Authentication Styles */
+.auth-prompt {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.auth-prompt p {
+  margin: 0 0 0.75rem 0;
+  color: #dc2626;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.login-redirect-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.login-redirect-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Disabled button styles for authentication */
+.qty-btn:disabled,
+.remove-btn:disabled,
+.buy-now-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.qty-btn:disabled:hover,
+.remove-btn:disabled:hover,
+.buy-now-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 /* Print Styles */
 @media print {
   .mobile-bottom-bar,
-  .back-btn {
+  .back-btn,
+  .auth-prompt {
     display: none;
   }
 }

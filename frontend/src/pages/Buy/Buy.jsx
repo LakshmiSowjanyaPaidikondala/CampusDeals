@@ -397,7 +397,7 @@ const Buy = () => {
       </div>
 
       {/* 🛒 Product Grid */}
-      <div className="products-grid">
+      <div className="products-grid-buy">
         {loading ? (
           <div className="loading-state">
             <p>Loading products...</p>
